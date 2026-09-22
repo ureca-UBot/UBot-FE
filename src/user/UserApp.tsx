@@ -17,9 +17,11 @@ import { StorePage } from './pages/StorePage'
 import { StoreLocatorPage } from './pages/StoreLocatorPage'
 import { SupportPage } from './pages/SupportPage'
 import { isUserPage, userPageTitles } from './routes'
+import { useNavigate as useRouterNavigate } from 'react-router-dom'
 import './styles/user.css'
 
 export default function UserApp() {
+  const routerNavigate = useRouterNavigate()
   const { page, navigate } = useUserNavigation()
   const { heroIndex, previous, next, goTo } = useHeroCarousel()
   const [loggedIn, setLoggedIn] = useState(false)
@@ -110,10 +112,15 @@ export default function UserApp() {
       navigate(route)
       return
     }
-    if (target.classList.contains('open-login') || target.hasAttribute('data-login-required')) {
-      setLoginOpen(true)
-      return
-    }
+	if (target.classList.contains('open-login')) {
+	  routerNavigate('/auth/login')
+	  return
+	}
+
+	if (target.hasAttribute('data-login-required')) {
+	  routerNavigate('/auth/login')
+	  return
+	}
     if (target.id === 'demoOpen' || target.id === 'mobileDemoOpen') {
       setActiveDialog('demo')
       return
@@ -158,7 +165,7 @@ export default function UserApp() {
       setProductTitle(target.dataset.productLink)
       navigate('product')
     }
-  }, [goTo, navigate, next, previous, resetConversation, runDemo, sendAi])
+  }, [goTo, navigate, next, previous, resetConversation, routerNavigate, runDemo, sendAi])
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Enter' || event.shiftKey || !(event.target instanceof HTMLTextAreaElement)) return

@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 function getDestination(role: 'USER' | 'ADMIN') {
-  return role === 'ADMIN' ? '/admin/dashboard' : '/user'
+  return role === 'ADMIN' ? '/admin/dashboard' : '/'
 }
 
 export function LoginPage() {
