@@ -231,9 +231,9 @@ export function useAiDemo({
             <div class="answer-actions">
               <button
                 class="primary"
-                data-chat-route="support"
+                data-chat-route="stores"
               >
-                고객지원에서 보기
+                지도에서 보기
               </button>
 
               <button data-reserve>
@@ -567,9 +567,9 @@ export function useAiDemo({
             </button>
 
             <button
-              data-chat-route="support"
+              data-chat-route="stores"
             >
-              고객지원 보기
+              매장 상세
             </button>`,
           );
 

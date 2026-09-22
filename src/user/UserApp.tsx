@@ -14,6 +14,7 @@ import { HomePage } from './pages/HomePage'
 import { MyPage } from './pages/MyPage'
 import { ProductPage } from './pages/ProductPage'
 import { StorePage } from './pages/StorePage'
+import { StoreLocatorPage } from './pages/StoreLocatorPage'
 import { SupportPage } from './pages/SupportPage'
 import { isUserPage, userPageTitles } from './routes'
 import './styles/user.css'
@@ -40,7 +41,13 @@ export default function UserApp() {
   useScrollReveal()
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 72)
+    const handleScroll = () => {
+      setScrolled((current) => (
+        current
+          ? window.scrollY > 24
+          : window.scrollY > 96
+      ))
+    }
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -176,6 +183,7 @@ export default function UserApp() {
         <MyPage active={page === 'my'} loggedIn={loggedIn} />
         <BenefitsPage active={page === 'benefits'} />
         <SupportPage active={page === 'support'} />
+        <StoreLocatorPage active={page === 'stores'} />
         <AiPage active={page === 'ai'} loggedIn={loggedIn} chatActive={chatActive} messages={messages} context={context} />
       </main>
       <MobileBottomNav page={page} />

@@ -61,7 +61,7 @@ export function AiPage({ active, loggedIn, chatActive, messages, context }: Page
 
           <aside className="ai-right desktop-only">
             <div className="side-context-card"><small>현재 상태</small><b id="rightLoginState">{loggedIn ? '로그인 완료' : '비회원'}</b><p id="rightLoginDesc">{loggedIn ? '개인 요금제와 혜택 조회가 가능해요.' : '개인 정보 조회 질문은 로그인 후 이용할 수 있어요.'}</p><button className="open-login">로그인하기</button></div>
-            <div className="side-context-card"><small>가까운 대리점</small><b>U봇 강남직영점</b><p>현재 위치 기준 420m</p><button data-route="support">고객지원에서 보기</button></div>
+            <div className="side-context-card"><small>가까운 대리점</small><b>U봇 강남직영점</b><p>현재 위치 기준 420m</p><button data-route="stores">지도에서 보기</button></div>
             <div className="side-context-card muted"><small>대화 세션</small><b id="threadState">{loggedIn ? 'MEMBER-SESSION' : 'GUEST-8F21'}</b><p>로그인 전후 같은 Thread를 유지합니다.</p></div>
           </aside>
         </div>

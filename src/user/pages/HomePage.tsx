@@ -59,7 +59,7 @@ export function HomePage({ active, heroIndex, loggedIn }: PageProps) {
                 <h1>가까운 매장을<br /><em>지금 위치에서 바로.</em></h1>
                 <p>현재 위치를 기준으로 가까운 LG U+ 매장을 찾고,<br />거리와 매장 정보를 한 화면에서 확인할 수 있어요.</p>
                 <div className="hero-actions">
-                  <button className="black-btn" data-route="support">가까운 매장 찾기</button>
+                  <button className="black-btn" data-route="stores">가까운 매장 찾기</button>
                   <button className="link-btn" data-route="ai" data-ai-prompt="가까운 대리점을 찾고 싶어">AI에게 물어보기 <span>↗</span></button>
                 </div>
               </div>
@@ -130,7 +130,7 @@ export function HomePage({ active, heroIndex, loggedIn }: PageProps) {
             <button data-route="ai">
               <i>01</i><span><b>AI로 묻기</b><small>FAQ부터 상품·혜택까지</small></span><em>↗</em>
             </button>
-            <button data-route="support">
+            <button data-route="stores">
               <i>02</i><span><b>가까운 매장</b><small>현재 위치 기준으로 찾기</small></span><em>↗</em>
             </button>
             <button data-route="support">
@@ -154,7 +154,7 @@ export function HomePage({ active, heroIndex, loggedIn }: PageProps) {
           <button data-route="store"><span>▦</span><b>휴대폰</b></button>
           <button data-route="benefits"><span>◇</span><b>혜택</b></button>
           <button data-route="support"><span>◉</span><b>통신 상태</b></button>
-          <button data-route="support"><span>⌖</span><b>매장 찾기</b></button>
+          <button data-route="stores"><span>⌖</span><b>매장 찾기</b></button>
         </div>
 
         <article className="mobile-feature" data-route="ai">
@@ -171,7 +171,7 @@ export function HomePage({ active, heroIndex, loggedIn }: PageProps) {
           <div className="mobile-section-title"><h2>자주 찾는 서비스</h2><button>전체</button></div>
           <div className="mobile-list">
             <button data-route="ai" data-ai-prompt="인터넷 이전 설치 어떻게 해?"><span className="list-icon coral">⌂</span><span><b>인터넷 이전 설치</b><small>이사 전에 미리 신청해보세요</small></span><em>›</em></button>
-            <button data-route="support"><span className="list-icon violet">⌖</span><span><b>가까운 대리점 찾기</b><small>현재 위치 기준으로 찾아요</small></span><em>›</em></button>
+            <button data-route="stores"><span className="list-icon violet">⌖</span><span><b>가까운 대리점 찾기</b><small>현재 위치 기준으로 찾아요</small></span><em>›</em></button>
             <button data-route="ai"><span className="list-icon grey">?</span><span><b>궁금한 내용 검색</b><small>FAQ부터 신청 방법까지</small></span><em>›</em></button>
           </div>
         </section>

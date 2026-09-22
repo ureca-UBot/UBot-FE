@@ -33,6 +33,8 @@ export function useUserNavigation() {
 
   useEffect(() => {
     document.title = `${userPageTitles[page]} · U봇 통신 생활 서비스`
+    document.body.dataset.route = page
+    document.dispatchEvent(new CustomEvent('ubot:route-change', { detail: { route: page } }))
   }, [page])
 
   useEffect(() => {

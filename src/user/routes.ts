@@ -5,6 +5,7 @@ export type UserPage =
   | 'my'
   | 'benefits'
   | 'support'
+  | 'stores'
   | 'ai'
 
 export const userPageTitles: Record<UserPage, string> = {
@@ -14,6 +15,7 @@ export const userPageTitles: Record<UserPage, string> = {
   my: 'MY',
   benefits: '혜택',
   support: '고객지원',
+  stores: '매장 찾기',
   ai: 'AI 검색',
 }
 
@@ -24,6 +26,7 @@ const routePaths: Record<UserPage, string> = {
   my: 'my',
   benefits: 'benefits',
   support: 'support',
+  stores: 'support/store-address',
   ai: 'ai',
 }
 
@@ -36,6 +39,8 @@ const pathAliases: Record<string, UserPage> = {
   benefits: 'benefits',
   network: 'support',
   support: 'support',
+  stores: 'stores',
+  'support/store-address': 'stores',
   ai: 'ai',
 }
 
