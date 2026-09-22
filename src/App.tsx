@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { DashboardPage } from './admin/dashboard/pages/DashboardPage'
+import { DashboardPage } from './admin/pages/dashboard/DashboardPage.tsx'
 import { FaqDetailPage } from './admin/pages/faq/FaqDetailPage'
 import { FaqLayout } from './admin/pages/faq/FaqLayout'
 import { FaqListPage } from './admin/pages/faq/FaqListPage'

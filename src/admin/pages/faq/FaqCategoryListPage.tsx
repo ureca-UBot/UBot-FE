@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
+import { ApiRequestError } from '../../../shared/api/client';
+import type { PageResponse } from '../../../shared/types/api';
 import { adminFaqApi } from '../../faq/api/faqApi';
+import { FaqCategoryInUseModal } from '../../faq/components/FaqCategoryInUseModal';
 import { Pagination } from '../../faq/components/Pagination';
 import { useFaqCategories } from '../../faq/hooks/useFaqCategories';
 import type { FaqCategoryResponse } from '../../faq/types/faq';
-import type { PageResponse } from '../../../shared/types/api';
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+const FAQ_CATEGORY_IN_USE_CODE = 'FAQ-006';
 
 export function FaqCategoryListPage() {
   const { refreshCategories } = useFaqCategories();
@@ -15,6 +23,8 @@ export function FaqCategoryListPage() {
   const [editing, setEditing] = useState<FaqCategoryResponse | null>(null);
   const [editedName, setEditedName] = useState('');
   const [removing, setRemoving] = useState<FaqCategoryResponse | null>(null);
+  const [inUseCategory, setInUseCategory] = useState<FaqCategoryResponse | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   function load() {
     void adminFaqApi.getCategories(page, 10, keyword).then(setResult);
@@ -43,9 +53,20 @@ export function FaqCategoryListPage() {
 
   async function remove() {
     if (!removing) return;
-    await adminFaqApi.deleteCategory(String(removing.faqCategoryId));
-    setRemoving(null);
-    await refresh();
+    setDeleteError(null);
+
+    try {
+      await adminFaqApi.deleteCategory(String(removing.faqCategoryId));
+      setRemoving(null);
+      await refresh();
+    } catch (caughtError) {
+      if (caughtError instanceof ApiRequestError && caughtError.code === FAQ_CATEGORY_IN_USE_CODE) {
+        setInUseCategory(removing);
+        setRemoving(null);
+        return;
+      }
+      setDeleteError(errorMessage(caughtError, '카테고리 삭제에 실패했습니다.'));
+    }
   }
 
   return (
@@ -75,14 +96,12 @@ export function FaqCategoryListPage() {
                 <td>{category.name}</td>
                 <td>
                   <div className="faq-row-actions">
+                    <button className="table-action-button" onClick={() => { setEditing(category); setEditedName(category.name); }} type="button">수정</button>
                     <button
-                      className="table-action-button"
-                      onClick={() => { setEditing(category); setEditedName(category.name); }}
+                      className="table-action-button table-action-button--danger"
+                      onClick={() => { setRemoving(category); setDeleteError(null); }}
                       type="button"
                     >
-                      수정
-                    </button>
-                    <button className="table-action-button table-action-button--danger" onClick={() => setRemoving(category)} type="button">
                       삭제
                     </button>
                   </div>
@@ -122,13 +141,16 @@ export function FaqCategoryListPage() {
             <h2 id="category-delete-title">카테고리 삭제</h2>
             <p><strong>{removing.name}</strong></p>
             <p>정말 삭제하시겠습니까?</p>
+            {deleteError && <p className="login-error">{deleteError}</p>}
             <div className="faq-modal__actions">
               <button className="danger-button" onClick={() => void remove()} type="button">삭제</button>
-              <button className="secondary-button" onClick={() => setRemoving(null)} type="button">취소</button>
+              <button className="secondary-button" onClick={() => { setRemoving(null); setDeleteError(null); }} type="button">취소</button>
             </div>
           </section>
         </div>
       )}
+
+      {inUseCategory && <FaqCategoryInUseModal category={inUseCategory} onClose={() => setInUseCategory(null)} />}
     </>
   );
 }

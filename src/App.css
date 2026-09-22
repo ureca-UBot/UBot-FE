@@ -74,6 +74,7 @@
 .faq-table td > button { padding: 7px 10px; border: 1px solid #c7d2fe; border-radius: 7px; color: #4338ca; background: #eef2ff; font-size: 12px; font-weight: 700; }.faq-table td > button + button { margin-left: 6px; border-color: #fecaca; color: #b91c1c; background: #fef2f2; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px; background: rgb(15 23 42 / 45%); }
 .faq-modal { display: grid; gap: 16px; width: min(100%, 560px); padding: 28px; border-radius: 16px; background: #fff; }.faq-modal label{display:grid;gap:8px}.faq-modal input,.faq-modal select,.faq-modal textarea{padding:11px;border:1px solid #d1d5db;border-radius:8px}.faq-modal textarea{min-height:150px}.faq-modal__actions{display:flex;justify-content:flex-end;gap:8px}
+.faq-category-in-use-modal { width: min(100%, 960px); }
 
 @media (max-width: 720px) {
   .admin-layout { grid-template-columns: 1fr; }

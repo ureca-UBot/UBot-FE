@@ -1,12 +1,22 @@
-import { tokenStorage } from '../../auth/utils/tokenStorage'
-import type { ApiResponse } from '../types/api'
+import { tokenStorage } from '../../auth/utils/tokenStorage';
+import type { ApiResponse } from '../types/api';
 
-// 개발 환경에서는 Vite가 /api 요청을 백엔드로 프록시한다.
-// 배포 환경에서 API 주소가 다르면 VITE_API_BASE_URL에 지정한다.
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '')
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+
+export class ApiRequestError extends Error {
+  readonly code?: string;
+  readonly status: number;
+
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+    this.code = code;
+  }
+}
 
 async function request<T>(path: string, init: RequestInit = {}, withAuth = true): Promise<T> {
-  const accessToken = withAuth ? tokenStorage.getAccessToken() : null
+  const accessToken = withAuth ? tokenStorage.getAccessToken() : null;
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
     headers: {
@@ -15,14 +25,14 @@ async function request<T>(path: string, init: RequestInit = {}, withAuth = true)
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...init.headers,
     },
-  })
-  const body = (await response.json().catch(() => null)) as ApiResponse<T> | null
+  });
+  const body = (await response.json().catch(() => null)) as ApiResponse<T> | null;
 
   if (!response.ok || !body?.success) {
-    throw new Error(body?.message || '요청을 처리하지 못했습니다.')
+    throw new ApiRequestError(body?.message || '요청을 처리하지 못했습니다.', response.status, body?.code);
   }
 
-  return body.data
+  return body.data;
 }
 
 export const apiClient = {
@@ -33,4 +43,4 @@ export const apiClient = {
   }, withAuth),
   patch: <T>(path: string, data: unknown) => request<T>(path, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
-}
+};
