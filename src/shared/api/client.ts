@@ -31,4 +31,6 @@ export const apiClient = {
     method: 'POST',
     ...(data === undefined ? {} : { body: JSON.stringify(data) }),
   }, withAuth),
+  patch: <T>(path: string, data: unknown) => request<T>(path, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }

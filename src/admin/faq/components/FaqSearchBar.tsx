@@ -1,0 +1,4 @@
+import type { FormEvent } from 'react'
+import type { FaqCategoryResponse } from '../types/faq'
+interface Props { categories: FaqCategoryResponse[]; keyword: string; categoryId: string; onKeywordChange: (v: string) => void; onCategoryChange: (v: string) => void; onSearch: () => void; onReset: () => void }
+export function FaqSearchBar(p: Props) { function submit(e: FormEvent) { e.preventDefault(); p.onSearch() }; return <form className="faq-search" onSubmit={submit}><select onChange={(e) => p.onCategoryChange(e.target.value)} value={p.categoryId}><option value="">전체</option>{p.categories.map((c) => <option key={c.faqCategoryId} value={c.faqCategoryId}>{c.name}</option>)}</select><input onChange={(e) => p.onKeywordChange(e.target.value)} placeholder="질문 또는 답변 검색" value={p.keyword}/><button className="primary-button" type="submit">검색</button><button className="secondary-button" onClick={p.onReset} type="button">초기화</button></form> }

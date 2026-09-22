@@ -2,9 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 const menuItems = [
   { label: '대시보드', to: '/admin/dashboard' },
-  { label: 'FAQ 목록', to: '/admin/faqs' },
-  { label: '삭제된 FAQ' },
-  { label: 'FAQ 카테고리' },
+  { label: 'FAQ 관리', to: '/admin/faqs' },
   { label: '매장 관리' },
 ]
 
