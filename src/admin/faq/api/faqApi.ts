@@ -35,5 +35,5 @@ export function getFaqList({ keyword, categoryId, page = 0, size = 10 }: GetFaqL
   }
   if (categoryId !== null && categoryId !== undefined) searchParams.set('categoryId', String(categoryId))
 
-  return apiClient.get<PageResponse<FaqResponse>>(`/admin/faqs?${searchParams.toString()}`)
+  return apiClient.get<PageResponse<FaqResponse>>(`/api/admin/faqs?${searchParams.toString()}`)
 }
