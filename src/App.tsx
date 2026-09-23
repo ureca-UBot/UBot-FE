@@ -11,6 +11,7 @@ import { RequireAdmin } from './admin/routes/RequireAdmin'
 import { AuthProvider } from './auth/context/AuthProvider'
 import { LoginPage } from './auth/pages/LoginPage'
 import { UserSignupPage } from './user/auth/pages/UserSignupPage'
+import { MyProfileProvider } from './user/my/context/MyProfileProvider'
 import UserApp from './user/UserApp'
 import './App.css'
 
@@ -42,7 +43,7 @@ function App() {
           </Route>
 
           {/* 일반 사용자 - 공개 */}
-          <Route path="/*" element={<UserApp />} />
+          <Route path="/*" element={<MyProfileProvider><UserApp /></MyProfileProvider>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

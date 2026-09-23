@@ -1,3 +1,4 @@
+import { LogoutButton } from '../../auth/components/LogoutButton';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { MyProfileCard } from '../my/components/MyProfileCard';
 
@@ -21,6 +22,7 @@ export function MyPage({ active, loggedIn: demoLoggedIn }: PageProps) {
           <article className="member-summary"><div><small>010-55••-21••</small><h2>5G 스탠다드</h2><span>9월 청구요금</span><b>54,700원</b></div><div className="usage-circle"><i>54%</i></div></article>
           {user && <MyProfileCard active={active} key={user.id} />}
           <div className="my-menu-grid"><button><b>가입 정보</b><span>›</span></button><button><b>요금제 조회·변경</b><span>›</span></button><button><b>납부 방법 변경</b><span>›</span></button><button><b>결합상품 관리</b><span>›</span></button></div>
+          {user && <LogoutButton className="outline-wide my-logout" redirectTo={null} />}
         </div>
       </div>
     </section>

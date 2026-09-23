@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { ApiRequestError } from '../../../shared/api/client'
 import { profileApi } from '../api/profileApi'
+import { useMyProfile } from '../hooks/useMyProfile'
 import type { Gender, UserProfile, UserProfileUpdateRequest } from '../types/profile'
 
 const genderLabels: Record<Gender, string> = { MALE: '남성', FEMALE: '여성' }
@@ -51,36 +52,34 @@ function changedFields(profile: UserProfile, form: ProfileForm): UserProfileUpda
 }
 
 function errorMessage(error: unknown, fallback: string) {
-  // access token 만료 시 자동 재발급이 아직 없어 새로고침(앱 시작 시 refresh)으로 안내합니다.
+  // apiClient가 access token 재발급을 시도한 뒤에도 401이면 로그인이 끝난 상태입니다.
   if (error instanceof ApiRequestError && error.status === 401) {
-    return '로그인이 만료되었습니다. 새로고침하거나 다시 로그인해 주세요.'
+    return '로그인이 만료되었습니다. 다시 로그인해 주세요.'
   }
   return error instanceof Error ? error.message : fallback
 }
 
 export function MyProfileCard({ active }: { active: boolean }) {
-  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const { profile, refreshProfile, updateProfile } = useMyProfile()
   const [loadError, setLoadError] = useState<string | null>(null)
   const [form, setForm] = useState<ProfileForm | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  // 모든 사용자 화면이 함께 렌더링되므로 MY 화면이 열렸을 때만 조회합니다.
+  // 모든 사용자 화면이 함께 렌더링되므로 MY 화면이 열렸을 때 최신 정보로 다시 조회합니다.
   useEffect(() => {
     if (!active) return undefined
     let cancelled = false
-    profileApi.getMe()
-      .then((result) => {
-        if (cancelled) return
-        setProfile(result)
-        setLoadError(null)
+    refreshProfile()
+      .then(() => {
+        if (!cancelled) setLoadError(null)
       })
       .catch((error: unknown) => {
         if (!cancelled) setLoadError(errorMessage(error, '회원 정보를 불러오지 못했습니다.'))
       })
     return () => { cancelled = true }
-  }, [active])
+  }, [active, refreshProfile])
 
   function updateField<Key extends keyof ProfileForm>(key: Key, value: ProfileForm[Key]) {
     setForm((current) => (current ? { ...current, [key]: value } : current))
@@ -118,8 +117,8 @@ export function MyProfileCard({ active }: { active: boolean }) {
     setSaving(true)
     setSaveError(null)
     try {
-      const updated = await profileApi.updateMe(request)
-      setProfile(updated)
+      // 공유 상태를 바꿔 헤더·홈의 이름 표시도 함께 갱신합니다.
+      updateProfile(await profileApi.updateMe(request))
       setForm(null)
       setNotice('회원 정보를 수정했습니다.')
     } catch (error) {
