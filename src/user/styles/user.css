@@ -1084,3 +1084,44 @@ to{transform:scaleX(1)}
   .ubot-user-app .store-region-search{grid-template-columns:1fr 1fr}
   .ubot-user-app .store-service-filter,.ubot-user-app .store-region-search button{grid-column:1/-1}
 }
+
+/* Store map info window — 길찾기 진입점 */
+.ubot-user-app .store-map-info-directions{width:100%;min-height:32px;margin-top:8px;padding:0 12px;border:0;border-radius:9px;color:#fff;background:var(--ink);font-size:11px;font-weight:800;cursor:pointer}
+.ubot-user-app .store-map-info-directions:hover{background:#000}
+
+/* Directions panel (길찾기) — 가까운 대리점 목록 자리에 슬라이드로 등장 */
+.ubot-user-app .stores-list{position:relative}
+.ubot-user-app .store-direction-panel{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;background:#fff;transform:translateX(104%);transition:transform .24s ease}
+.ubot-user-app .store-direction-panel.open{transform:translateX(0)}
+.ubot-user-app .direction-panel-head{display:flex;align-items:center;min-height:64px;padding:0 8px 0 4px;gap:6px;border-bottom:1px solid #ececef}
+.ubot-user-app .direction-panel-back,.ubot-user-app .direction-panel-close{flex:0 0 auto;width:34px;height:34px;border:0;border-radius:50%;color:#4f535b;background:transparent;font-size:20px;line-height:1;cursor:pointer}
+.ubot-user-app .direction-panel-back:hover,.ubot-user-app .direction-panel-close:hover{background:#f3f4f6}
+.ubot-user-app .direction-panel-dest{min-width:0;flex:1}
+.ubot-user-app .direction-panel-dest span{display:block;color:var(--pink-dark);font-size:9px;font-weight:900;letter-spacing:.1em}
+.ubot-user-app .direction-panel-dest b{display:block;overflow:hidden;font-size:14px;text-overflow:ellipsis;white-space:nowrap}
+.ubot-user-app .direction-panel-dest small{display:block;overflow:hidden;color:var(--muted);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.ubot-user-app .direction-mode-tabs{display:grid;grid-template-columns:repeat(3,1fr);padding:10px;gap:6px;border-bottom:1px solid #ececef}
+.ubot-user-app .direction-mode-tabs button{min-height:38px;border:1px solid #d8d9dd;border-radius:10px;background:#fff;color:#4f535b;font-size:12px;font-weight:800;cursor:pointer}
+.ubot-user-app .direction-mode-tabs button.active{border-color:var(--ink);color:#fff;background:var(--ink)}
+.ubot-user-app .direction-panel-body{min-height:0;padding:14px 16px 18px;overflow:auto;flex:1}
+.ubot-user-app .direction-status{min-height:18px;margin:0 0 8px;color:var(--muted);font-size:12px}
+.ubot-user-app .direction-status.error{color:#c42e53}
+.ubot-user-app .direction-summary{display:flex;flex-wrap:wrap;align-items:center;padding:14px;margin-bottom:12px;gap:8px 10px;border:1px solid #ececef;border-radius:14px;background:#f8f9fb}
+.ubot-user-app .direction-summary b{font-size:20px;letter-spacing:-.03em}
+.ubot-user-app .direction-summary>span{color:#6c6f76;font-size:12px}
+.ubot-user-app .direction-summary em{padding:4px 8px;border-radius:999px;color:#666971;background:#eef0f3;font-size:10px;font-style:normal;font-weight:800}
+.ubot-user-app .direction-landing-link{width:100%;margin-top:4px;color:#1677ff;font-size:11px;font-weight:800;text-decoration:none}
+.ubot-user-app .direction-landing-link:hover{text-decoration:underline}
+.ubot-user-app .direction-candidates{display:grid;gap:8px;margin-bottom:12px}
+.ubot-user-app .direction-candidate{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid #e0e1e5;border-radius:12px;background:#fff;text-align:left;gap:10px;cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.ubot-user-app .direction-candidate:hover{border-color:#8dbfff;background:#f6faff}
+.ubot-user-app .direction-candidate b{font-size:15px}
+.ubot-user-app .direction-candidate small{color:#84878e;font-size:11px}
+.ubot-user-app .direction-candidate.recommended{border-color:#1677ff;box-shadow:inset 0 0 0 1px #1677ff}
+.ubot-user-app .direction-steps{display:grid;gap:8px}
+.ubot-user-app .direction-step{padding:10px 12px;border-left:2px solid #e0e1e5;background:#fafafb;border-radius:0 10px 10px 0}
+.ubot-user-app .direction-step-head{display:flex;align-items:center;gap:7px}
+.ubot-user-app .direction-step-head i{flex:0 0 auto;padding:2px 7px;border-radius:999px;color:#fff;background:#8b8e95;font-size:9px;font-style:normal;font-weight:800}
+.ubot-user-app .direction-step-head span{font-size:12px;font-weight:700}
+.ubot-user-app .direction-step small{display:block;margin-top:4px;color:#84878e;font-size:10px}
+.ubot-user-app .direction-step-vehicles{color:#1677ff!important;font-weight:700}
