@@ -465,6 +465,24 @@ to{transform:scaleX(1)}
 .ubot-user-app .usage-circle i{z-index:1;font-size:14px;font-style:normal}
 .ubot-user-app .my-menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
 .ubot-user-app .my-menu-grid button{display:flex;min-height:60px;padding:0 18px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:16px;background:#fff;font-size:14px}
+.ubot-user-app .my-profile{margin-top:16px;padding:26px 28px;border:1px solid var(--line);border-radius:26px;background:#fff}
+.ubot-user-app .my-profile-head{display:flex;margin-bottom:18px;align-items:center;justify-content:space-between;gap:12px}
+.ubot-user-app .my-profile-head h3{margin:0;font-size:20px}
+.ubot-user-app .my-profile-list{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px 16px;margin:0}
+.ubot-user-app .my-profile-list dt{color:var(--muted);font-size:14px}
+.ubot-user-app .my-profile-list dd{margin:0;font-size:15px;font-weight:650;overflow-wrap:anywhere}
+.ubot-user-app .my-profile-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+.ubot-user-app .my-profile-form label{display:grid;gap:7px}
+.ubot-user-app .my-profile-form label span{font-size:13px;font-weight:700}
+.ubot-user-app .my-profile-form input,.ubot-user-app .my-profile-form select{width:100%;padding:11px;border:1px solid #d6d7db;border-radius:10px;background:#fff;font-size:14px}
+.ubot-user-app .my-profile-form input:disabled{color:var(--muted);background:var(--soft)}
+.ubot-user-app .my-profile-form__full,.ubot-user-app .my-profile-actions{grid-column:1/-1}
+.ubot-user-app .my-profile-actions{display:flex;justify-content:flex-end;gap:8px}
+.ubot-user-app .my-profile-ghost{min-height:40px;padding:0 16px;border:1px solid #d8d9dd;border-radius:999px;background:#fff;font-size:14px}
+.ubot-user-app .my-profile-actions .my-profile-ghost{min-height:48px;padding:0 22px}
+.ubot-user-app .my-profile-message{margin:14px 0 0;color:var(--muted);font-size:14px}
+.ubot-user-app .my-profile-form .my-profile-message{margin:0}
+.ubot-user-app .my-profile-message.error{color:#c42e53}
 
 .ubot-user-app .benefit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 .ubot-user-app .benefit-item{min-height:310px;padding:28px;border-radius:26px}
@@ -886,6 +904,9 @@ to{transform:scaleX(1)}
 .ubot-user-app .usage-circle{width:82px;height:82px}
 .ubot-user-app .usage-circle:after{width:60px;height:60px}
 .ubot-user-app .my-menu-grid{grid-template-columns:1fr}
+.ubot-user-app .my-profile{padding:22px 18px}
+.ubot-user-app .my-profile-list{grid-template-columns:88px minmax(0,1fr)}
+.ubot-user-app .my-profile-form{grid-template-columns:1fr}
 .ubot-user-app .benefit-grid{grid-template-columns:1fr;gap:12px}
 .ubot-user-app .benefit-item{min-height:190px;padding:24px}
 .ubot-user-app .benefit-item h2{font-size:25px}
