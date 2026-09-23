@@ -243,6 +243,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       );
       if (myRequestId !== requestId) return;
       candidatesEl.hidden = true;
+      candidatesEl.replaceChildren();
       renderSummary(detail);
       renderSteps(detail.steps);
       drawPath(detail.path);
