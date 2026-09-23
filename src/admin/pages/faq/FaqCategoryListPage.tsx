@@ -150,7 +150,7 @@ export function FaqCategoryListPage() {
         </div>
       )}
 
-      {inUseCategory && <FaqCategoryInUseModal category={inUseCategory} onClose={() => setInUseCategory(null)} />}
+      {inUseCategory && <FaqCategoryInUseModal category={inUseCategory} onClose={() => setInUseCategory(null)} onDeleted={() => { setInUseCategory(null); void refresh(); }} />}
     </>
   );
 }

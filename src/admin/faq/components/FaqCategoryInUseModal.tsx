@@ -8,14 +8,16 @@ import { Pagination } from './Pagination';
 interface FaqCategoryInUseModalProps {
   category: FaqCategoryResponse;
   onClose: () => void;
+  onDeleted: () => void;
 }
 
-export function FaqCategoryInUseModal({ category, onClose }: FaqCategoryInUseModalProps) {
+export function FaqCategoryInUseModal({ category, onClose, onDeleted }: FaqCategoryInUseModalProps) {
   const [page, setPage] = useState(0);
   const [reloadToken, setReloadToken] = useState(0);
   const [result, setResult] = useState<PageResponse<FaqResponse> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deletingFaq, setDeletingFaq] = useState<FaqResponse | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState(false);
 
   useEffect(() => {
     void adminFaqApi
@@ -29,18 +31,31 @@ export function FaqCategoryInUseModal({ category, onClose }: FaqCategoryInUseMod
       });
   }, [category.faqCategoryId, page, reloadToken]);
 
+  const canDeleteCategory = result?.totalElements === 0;
+
+  async function removeCategory() {
+    setDeletingCategory(true);
+    setError(null);
+    try {
+      await adminFaqApi.deleteCategory(String(category.faqCategoryId));
+      onDeleted();
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : '카테고리 삭제에 실패했습니다.');
+    } finally {
+      setDeletingCategory(false);
+    }
+  }
+
   return (
     <>
       <div className="modal-backdrop">
         <section className="faq-modal faq-category-in-use-modal" role="dialog" aria-modal="true" aria-labelledby="category-in-use-title">
-          <h2 id="category-in-use-title">카테고리를 삭제할 수 없습니다</h2>
-          <p>
-            <strong>{category.name}</strong> 카테고리를 사용하는 FAQ가 있습니다. FAQ를 다른 카테고리로 옮기거나 삭제한 뒤 다시 시도해 주세요.
-          </p>
+          <h2 id="category-in-use-title">{canDeleteCategory ? '카테고리를 삭제할 수 있습니다' : '카테고리를 삭제할 수 없습니다'}</h2>
+          <p>{canDeleteCategory ? <><strong>{category.name}</strong> 카테고리를 사용하는 활성 FAQ가 없습니다. 카테고리를 삭제할 수 있습니다.</> : <><strong>{category.name}</strong> 카테고리를 사용하는 FAQ가 있습니다. FAQ를 다른 카테고리로 옮기거나 삭제한 뒤 다시 시도해 주세요.</>}</p>
 
           {error && <p className="login-error">{error}</p>}
           {!error && !result && <p className="page-message">FAQ 목록을 불러오는 중입니다.</p>}
-          {result && (
+          {result && !canDeleteCategory && (
             <>
               <p className="faq-result-count">총 {result.totalElements}개의 FAQ</p>
               <div className="faq-table-wrapper">
@@ -70,6 +85,7 @@ export function FaqCategoryInUseModal({ category, onClose }: FaqCategoryInUseMod
           )}
 
           <div className="faq-modal__actions">
+            {canDeleteCategory && <button className="danger-button" disabled={deletingCategory} onClick={() => void removeCategory()} type="button">{deletingCategory ? '삭제 중...' : '삭제'}</button>}
             <button className="secondary-button" onClick={onClose} type="button">닫기</button>
           </div>
         </section>

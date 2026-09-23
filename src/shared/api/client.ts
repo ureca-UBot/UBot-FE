@@ -26,6 +26,9 @@ async function request<T>(path: string, init: RequestInit = {}, withAuth = true)
       ...init.headers,
     },
   });
+
+  if (response.status === 204) return undefined as T;
+
   const body = (await response.json().catch(() => null)) as ApiResponse<T> | null;
 
   if (!response.ok || !body?.success) {
