@@ -483,6 +483,7 @@ to{transform:scaleX(1)}
 .ubot-user-app .my-profile-message{margin:14px 0 0;color:var(--muted);font-size:14px}
 .ubot-user-app .my-profile-form .my-profile-message{margin:0}
 .ubot-user-app .my-profile-message.error{color:#c42e53}
+.ubot-user-app .my-logout{margin-top:16px}
 
 .ubot-user-app .benefit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 .ubot-user-app .benefit-item{min-height:310px;padding:28px;border-radius:26px}
@@ -821,6 +822,9 @@ to{transform:scaleX(1)}
   .ubot-user-app .route,.ubot-user-app .page-standard{padding-top:58px}
 .ubot-user-app .mobile-home{padding:26px 18px 32px}
 .ubot-user-app .mobile-welcome small{color:var(--muted);font-size:13px}
+.ubot-user-app .mobile-member-link{padding:0;border:0;color:inherit;background:none;font-size:13px}
+.ubot-user-app .mobile-member-link b{color:var(--ink)}
+.ubot-user-app .mobile-logout-link{margin-left:10px;padding:0;border:0;color:var(--subtle);background:none;font-size:12px;text-decoration:underline;text-underline-offset:2px}
 .ubot-user-app .mobile-welcome h1{margin:9px 0 21px;font-size:clamp(27px,8vw,32px);line-height:1.32;letter-spacing:-.05em}
 
   .ubot-user-app .mobile-guest-card{display:flex;align-items:center;justify-content:space-between;padding:15px;gap:12px;border:1px solid var(--line);border-radius:17px;background:#fff}
@@ -1021,6 +1025,7 @@ to{transform:scaleX(1)}
   .ubot-user-app .header-action-icon svg{display:block;width:30px;height:30px}
 
   .ubot-user-app .header-action-label{display:block;white-space:nowrap;color:inherit;font-size:10.5px;line-height:1}
+  .ubot-user-app .header-member .header-action-label{max-width:72px;overflow:hidden;text-overflow:ellipsis}
 
 
   .ubot-user-app .mega-menu{top:118px;border-top:1px solid #e9e9ec;background:rgba(255,255,255,.995);box-shadow:0 30px 55px rgba(18,18,22,.11);backdrop-filter:blur(22px);transform:translateY(-8px)}
