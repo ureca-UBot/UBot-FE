@@ -1,9 +1,16 @@
+import { useAuth } from '../../auth/hooks/useAuth';
+import { MyProfileCard } from '../my/components/MyProfileCard';
+
 interface PageProps {
   active: boolean;
   loggedIn: boolean;
 }
 
-export function MyPage({ active, loggedIn }: PageProps) {
+export function MyPage({ active, loggedIn: demoLoggedIn }: PageProps) {
+  // 실제 로그인(AuthProvider)과 시연용 로그인(UserApp) 중 하나라도 있으면 회원 화면을 보여줍니다.
+  const { user } = useAuth();
+  const loggedIn = demoLoggedIn || user !== null;
+
   return (
     <>
     <section className={`route page-standard${active ? ' active' : ''}`} data-page="my">
@@ -12,6 +19,7 @@ export function MyPage({ active, loggedIn }: PageProps) {
         <div className={`my-guest${loggedIn ? ' hidden' : ''}`} id="myGuest"><h2>현재 비회원입니다.</h2><p>내 정보 조회를 위해 로그인이 필요해요.</p><button className="black-btn open-login">로그인하기</button></div>
         <div className={`my-member${loggedIn ? '' : ' hidden'}`} id="myMember">
           <article className="member-summary"><div><small>010-55••-21••</small><h2>5G 스탠다드</h2><span>9월 청구요금</span><b>54,700원</b></div><div className="usage-circle"><i>54%</i></div></article>
+          {user && <MyProfileCard active={active} key={user.id} />}
           <div className="my-menu-grid"><button><b>가입 정보</b><span>›</span></button><button><b>요금제 조회·변경</b><span>›</span></button><button><b>납부 방법 변경</b><span>›</span></button><button><b>결합상품 관리</b><span>›</span></button></div>
         </div>
       </div>
