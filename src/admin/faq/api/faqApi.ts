@@ -1,6 +1,6 @@
 import { apiClient } from '../../../shared/api/client'
 import type { PageResponse } from '../../../shared/types/api'
-import type { FaqCategoryCreateRequest, FaqCategoryResponse, FaqCategoryUpdateRequest, FaqCreateRequest, FaqLogResponse, FaqResponse, FaqUpdateRequest, OldFaqResponse } from '../types/faq'
+import type { FaqCategoryCreateRequest, FaqCategoryResponse, FaqCategoryUpdateRequest, FaqCreateRequest, FaqLogResponse, FaqResponse, FaqRestoreRequest, FaqUpdateRequest, OldFaqResponse } from '../types/faq'
 
 export interface GetFaqListParams {
   keyword?: string
@@ -16,6 +16,7 @@ export const adminFaqApi = {
   createFaq: (body: FaqCreateRequest) => apiClient.post<FaqResponse>('/admin/faqs', body),
   updateFaq: (body: FaqUpdateRequest) => apiClient.patch<FaqResponse>('/admin/faqs', body),
   deleteFaq: (faqId: string) => apiClient.delete<void>(`/admin/faqs/${faqId}`),
+  restoreFaqs: (body: FaqRestoreRequest) => apiClient.post<void>('/admin/faqs/restore', body),
   getCategories: (page = 0, size = 10, keyword?: string) => apiClient.get<PageResponse<FaqCategoryResponse>>(`/admin/faq-categories?${pageQuery(page, size)}${keyword?.trim() ? `&keyword=${encodeURIComponent(keyword.trim())}` : ''}`),
   getFaqsByCategory: (id: string, page = 0, size = 10) => apiClient.get<PageResponse<FaqResponse>>(`/admin/faq-categories/${id}/faqs?${pageQuery(page, size)}`),
   createCategory: (body: FaqCategoryCreateRequest) => apiClient.post<FaqCategoryResponse>('/admin/faq-categories', body),

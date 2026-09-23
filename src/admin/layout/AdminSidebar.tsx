@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom'
 const menuItems = [
   { label: '대시보드', to: '/admin/dashboard' },
   { label: 'FAQ 관리', to: '/admin/faqs' },
-  { label: '매장 관리' },
+  { label: '매장 관리', to: '/admin/stores' },
 ]
 
 export function AdminSidebar() {

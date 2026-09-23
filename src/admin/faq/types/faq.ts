@@ -22,6 +22,8 @@ export interface FaqUpdateRequest {
   answer: string
 }
 
+export interface FaqRestoreRequest { faqIds: number[] }
+
 export interface FaqCategoryResponse { faqCategoryId: number; name: string; createdAt: string; updatedAt: string }
 export interface FaqCategoryCreateRequest { name: string }
 export interface FaqCategoryUpdateRequest { afterName: string }
