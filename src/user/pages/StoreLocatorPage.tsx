@@ -65,6 +65,28 @@ export function StoreLocatorPage({ active }: PageProps) {
               <span>방문 전에 영업시간과 전화번호를 확인해 주세요.</span>
               <button className="reserve-main">선택한 매장 방문 예약</button>
             </div>
+            <div className="store-direction-panel" id="storeDirectionPanel" hidden>
+              <div className="direction-panel-head">
+                <button type="button" id="directionBackButton" className="direction-panel-back" aria-label="뒤로">‹</button>
+                <div className="direction-panel-dest">
+                  <span>목적지</span>
+                  <b id="directionDestName"></b>
+                  <small id="directionDestAddress"></small>
+                </div>
+                <button type="button" id="directionCloseButton" className="direction-panel-close" aria-label="닫기">×</button>
+              </div>
+              <div className="direction-mode-tabs" id="directionModeTabs" role="tablist">
+                <button type="button" data-mode="CAR" className="active" role="tab">자동차</button>
+                <button type="button" data-mode="TRANSIT" role="tab">대중교통</button>
+                <button type="button" data-mode="WALK" role="tab">도보</button>
+              </div>
+              <div className="direction-panel-body">
+                <p className="direction-status" id="directionStatus" aria-live="polite"></p>
+                <div className="direction-summary" id="directionSummary" hidden></div>
+                <div className="direction-candidates" id="directionCandidates" hidden></div>
+                <div className="direction-steps" id="directionSteps" hidden></div>
+              </div>
+            </div>
           </aside>
         </div>
       </div>

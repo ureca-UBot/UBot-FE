@@ -6,6 +6,7 @@ import {
   getStorePage,
   searchLocations,
 } from './api/stores';
+import { createDirectionsController } from './directions/setupStoreDirections';
 import { loadKakaoMaps } from './kakao/sdk';
 import type {
   KakaoEventHandler,
@@ -49,7 +50,7 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
 }
 
-function buildInfoWindow(store: Store) {
+function buildInfoWindow(store: Store, onDirections: () => void) {
   const root = document.createElement('div');
   root.className = 'store-map-info';
 
@@ -59,8 +60,13 @@ function buildInfoWindow(store: Store) {
   address.textContent = store.address;
   const hours = document.createElement('small');
   hours.textContent = store.businessHours || '영업시간 정보 없음';
+  const directionsButton = document.createElement('button');
+  directionsButton.type = 'button';
+  directionsButton.className = 'store-map-info-directions';
+  directionsButton.textContent = '길찾기';
+  directionsButton.addEventListener('click', onDirections);
 
-  root.append(name, address, hours);
+  root.append(name, address, hours, directionsButton);
   return root;
 }
 
@@ -109,6 +115,24 @@ export function setupStoreLocator(): () => void {
   let mapInitFrameId: number | undefined;
   let mapIdleHandler: KakaoEventHandler | null = null;
   let mapClickHandler: KakaoEventHandler | null = null;
+
+  const getDirectionsOrigin = (): Promise<{ latitude: number; longitude: number }> => new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('이 브라우저에서는 현재 위치를 사용할 수 없습니다.'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => resolve({ latitude: coords.latitude, longitude: coords.longitude }),
+      () => reject(new Error('현재 위치 권한을 허용하면 길찾기를 이용할 수 있습니다.')),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+    );
+  });
+
+  const directionsController = createDirectionsController({
+    getMap: () => map,
+    getMaps: () => maps,
+    getOrigin: getDirectionsOrigin,
+  });
 
   const showViewportSearch = () => {
     if (viewportSearchButton) viewportSearchButton.hidden = false;
@@ -252,7 +276,7 @@ export function setupStoreLocator(): () => void {
     if (!map || !markerEntry) return;
 
     if (moveMap) map.panTo(markerEntry.marker.getPosition());
-    infoWindow?.setContent(buildInfoWindow(store));
+    infoWindow?.setContent(buildInfoWindow(store, () => directionsController.openForStore(store)));
     infoWindow?.open(map, markerEntry.marker);
   };
 
@@ -809,6 +833,7 @@ export function setupStoreLocator(): () => void {
 
   return () => {
     disposed = true;
+    directionsController.dispose();
     viewportAbortController?.abort();
     window.clearTimeout(routeTimerId);
     if (clusterFrameId !== undefined) window.cancelAnimationFrame(clusterFrameId);

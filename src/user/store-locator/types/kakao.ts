@@ -27,6 +27,11 @@ export interface KakaoInfoWindow {
   open(map: KakaoMap, marker: KakaoMarker): void;
 }
 
+export interface KakaoPolyline {
+  setMap(map: KakaoMap | null): void;
+  setPath(path: KakaoLatLng[]): void;
+}
+
 export interface KakaoMap {
   addControl(control: object, position: unknown): void;
   getBounds(): KakaoBounds;
@@ -64,6 +69,13 @@ export interface KakaoMapsApi {
   Size: new (width: number, height: number) => object;
   Point: new (x: number, y: number) => object;
   InfoWindow: new (options?: { zIndex?: number }) => KakaoInfoWindow;
+  Polyline: new (options: {
+    path: KakaoLatLng[];
+    strokeWeight?: number;
+    strokeColor?: string;
+    strokeOpacity?: number;
+    strokeStyle?: string;
+  }) => KakaoPolyline;
   ZoomControl: new () => object;
   ControlPosition: { RIGHT: unknown };
   event: {
