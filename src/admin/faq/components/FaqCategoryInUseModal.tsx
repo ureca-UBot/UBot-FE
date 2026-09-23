@@ -84,6 +84,7 @@ export function FaqCategoryInUseModal({ category, onClose }: FaqCategoryInUseMod
             question: deletingFaq.question,
             answer: deletingFaq.answer,
             version: deletingFaq.version,
+            adminId: deletingFaq.adminId,
             updatedAt: deletingFaq.updatedAt,
           }}
           onClose={() => setDeletingFaq(null)}

@@ -17,7 +17,6 @@ export const adminFaqApi = {
   updateFaq: (body: FaqUpdateRequest) => apiClient.patch<FaqResponse>('/admin/faqs', body),
   deleteFaq: (faqId: string) => apiClient.delete<void>(`/admin/faqs/${faqId}`),
   getCategories: (page = 0, size = 10, keyword?: string) => apiClient.get<PageResponse<FaqCategoryResponse>>(`/admin/faq-categories?${pageQuery(page, size)}${keyword?.trim() ? `&keyword=${encodeURIComponent(keyword.trim())}` : ''}`),
-  getCategory: (id: string) => apiClient.get<FaqCategoryResponse>(`/admin/faq-categories/${id}`),
   getFaqsByCategory: (id: string, page = 0, size = 10) => apiClient.get<PageResponse<FaqResponse>>(`/admin/faq-categories/${id}/faqs?${pageQuery(page, size)}`),
   createCategory: (body: FaqCategoryCreateRequest) => apiClient.post<FaqCategoryResponse>('/admin/faq-categories', body),
   updateCategory: (id: string, body: FaqCategoryUpdateRequest) => apiClient.patch<FaqCategoryResponse>(`/admin/faq-categories/${id}`, body),
@@ -25,7 +24,6 @@ export const adminFaqApi = {
   getFaqLogsByFaq: (id: string, page = 0, size = 10) => apiClient.get<PageResponse<FaqLogResponse>>(`/admin/faq-logs/faq?faqId=${id}&${pageQuery(page, size)}`),
   getFaqLogsByQuestion: (id: string, page = 0, size = 10) => apiClient.get<PageResponse<FaqLogResponse>>(`/admin/faq-logs/question-log?questionLogId=${id}&${pageQuery(page, size)}`),
   getOldFaqsByFaq: (id: string, page = 0, size = 10) => apiClient.get<PageResponse<OldFaqResponse>>(`/admin/old-faqs/faq?faqId=${id}&${pageQuery(page, size)}`),
-  getOldFaqsByCategory: (id: string, page = 0, size = 10) => apiClient.get<PageResponse<OldFaqResponse>>(`/admin/old-faqs/faq-category?faqCategoryId=${id}&${pageQuery(page, size)}`),
 }
 
 export function getFaqList({ keyword, categoryId, page = 0, size = 10 }: GetFaqListParams = {}) {
