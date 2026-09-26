@@ -2,7 +2,8 @@ import type { LoginResponse } from '../../auth/types/auth';
 import { tokenStorage } from '../../auth/utils/tokenStorage';
 import type { ApiResponse } from '../types/api';
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+const apiBaseUrl =
+  (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')// 현재 바뀐 api 규칙대로 통일하기위한 변경입니다
 const EXPIRED_ACCESS_TOKEN_CODE = 'JWT-007';
 // authApi.refresh와 같은 경로입니다. authApi가 이 파일을 import하므로 순환 참조를 피하려고 직접 호출합니다.
 const REFRESH_PATH = '/api/auth/refresh';
