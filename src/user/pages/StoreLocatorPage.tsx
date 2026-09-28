@@ -1,8 +1,18 @@
 import { useEffect } from 'react';
+import { ROUTE_ICON_PATHS, type RouteIconType } from '../store-locator/directions/icons';
 import { setupStoreLocator } from '../store-locator/setupStoreLocator';
 
 interface PageProps {
   active: boolean;
+}
+
+function DirectionIcon({ type }: { type: RouteIconType }) {
+  const { paths, filled } = ROUTE_ICON_PATHS[type];
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={filled ? 'filled' : undefined}>
+      {paths.map((d) => <path key={d} d={d} />)}
+    </svg>
+  );
 }
 
 export function StoreLocatorPage({ active }: PageProps) {
@@ -42,7 +52,7 @@ export function StoreLocatorPage({ active }: PageProps) {
           <div className="store-help-strip"><span><b>TIP</b> 지도를 움직인 뒤 ‘이 지역 검색’을 누르면 현재 영역의 매장을 보여드려요.</span><span>지역이나 서비스 조건을 선택하면 결과를 더 빠르게 좁힐 수 있습니다.</span></div>
         </section>
         <div className="store-result-bar">
-          <div><b>검색 결과</b><span id="storeResultCount"></span></div>
+          <div><b>검색 결과</b><span id="storeResultCount"></span><a className="kakao-map-link" id="kakaoMapLink" target="_blank" rel="noreferrer" hidden>카카오맵에서 보기 ↗</a></div>
           <p className="store-search-status" id="storeSearchStatus" aria-live="polite">매장 데이터를 불러오는 중입니다.</p>
         </div>
         <div className="stores-grid">
@@ -75,16 +85,36 @@ export function StoreLocatorPage({ active }: PageProps) {
                 </div>
                 <button type="button" id="directionCloseButton" className="direction-panel-close" aria-label="닫기">×</button>
               </div>
-              <div className="direction-mode-tabs" id="directionModeTabs" role="tablist">
-                <button type="button" data-mode="CAR" className="active" role="tab">자동차</button>
-                <button type="button" data-mode="TRANSIT" role="tab">대중교통</button>
-                <button type="button" data-mode="WALK" role="tab">도보</button>
+              <div className="direction-origin">
+                <div className="direction-origin-field">
+                  <span className="direction-origin-badge">출발</span>
+                  <input id="directionOriginInput" type="text" placeholder="출발지 검색 (주소, 건물명, 지명)" autoComplete="off" aria-label="출발지" role="combobox" aria-expanded="false" aria-controls="directionOriginResults" aria-autocomplete="list" />
+                  <button type="button" id="directionOriginLocate" className="direction-origin-locate" aria-label="현재 위치를 출발지로 설정" title="현재 위치"><DirectionIcon type="locate" /></button>
+                </div>
+                <ul className="direction-origin-results" id="directionOriginResults" role="listbox" aria-label="출발지 검색 결과" hidden></ul>
+              </div>
+              <div className="direction-controls">
+                <div className="direction-mode-tabs" id="directionModeTabs" role="tablist" aria-label="이동수단">
+                  <button type="button" data-mode="CAR" className="active" role="tab" aria-label="자동차" title="자동차"><DirectionIcon type="car" /></button>
+                  <button type="button" data-mode="TRANSIT" role="tab" aria-label="대중교통" title="대중교통"><DirectionIcon type="bus" /></button>
+                  <button type="button" data-mode="WALK" role="tab" aria-label="도보" title="도보"><DirectionIcon type="walk" /></button>
+                </div>
+                <button type="button" id="directionSearchButton" className="direction-search-button" aria-label="경로 검색" title="경로 검색"><DirectionIcon type="search" /></button>
               </div>
               <div className="direction-panel-body">
                 <p className="direction-status" id="directionStatus" aria-live="polite"></p>
+                <div className="direction-route-head" id="directionRouteHead" hidden>
+                  <button type="button" id="directionListBack" className="direction-panel-back" aria-label="경로 목록으로 돌아가기">‹</button>
+                  <span className="direction-candidate-head" id="directionRouteHeadInfo"></span>
+                </div>
                 <div className="direction-summary" id="directionSummary" hidden></div>
                 <div className="direction-candidates" id="directionCandidates" hidden></div>
-                <div className="direction-steps" id="directionSteps" hidden></div>
+                <div className="direction-steps-panel" id="directionStepsPanel" hidden>
+                  <button type="button" className="direction-steps-toggle" id="directionStepsToggle" aria-expanded="true" aria-controls="directionSteps">
+                    <span>상세 경로</span><small id="directionStepsCount"></small><DirectionIcon type="chevron" />
+                  </button>
+                  <div className="direction-steps" id="directionSteps" hidden></div>
+                </div>
               </div>
             </div>
           </aside>

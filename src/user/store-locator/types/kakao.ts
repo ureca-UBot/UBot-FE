@@ -32,12 +32,26 @@ export interface KakaoPolyline {
   setPath(path: KakaoLatLng[]): void;
 }
 
+export interface KakaoCustomOverlay {
+  setMap(map: KakaoMap | null): void;
+  setPosition(position: KakaoLatLng): void;
+  setContent(content: HTMLElement | string): void;
+  setZIndex(zIndex: number): void;
+}
+
+export interface KakaoMapProjection {
+  containerPointFromCoords(position: KakaoLatLng): KakaoPoint;
+  coordsFromContainerPoint(point: KakaoPoint): KakaoLatLng;
+}
+
 export interface KakaoMap {
   addControl(control: object, position: unknown): void;
   getBounds(): KakaoBounds;
+  getProjection(): KakaoMapProjection;
   getCenter(): KakaoLatLng;
   getLevel(): number;
   panTo(position: KakaoLatLng): void;
+  panBy(dx: number, dy: number): void;
   relayout(): void;
   setBounds(bounds: KakaoBounds): void;
   setCenter(position: KakaoLatLng): void;
@@ -67,7 +81,7 @@ export interface KakaoMapsApi {
     options?: { offset?: object },
   ) => KakaoMarkerImage;
   Size: new (width: number, height: number) => object;
-  Point: new (x: number, y: number) => object;
+  Point: new (x: number, y: number) => KakaoPoint;
   InfoWindow: new (options?: { zIndex?: number }) => KakaoInfoWindow;
   Polyline: new (options: {
     path: KakaoLatLng[];
@@ -75,7 +89,16 @@ export interface KakaoMapsApi {
     strokeColor?: string;
     strokeOpacity?: number;
     strokeStyle?: string;
+    zIndex?: number;
   }) => KakaoPolyline;
+  CustomOverlay: new (options: {
+    position: KakaoLatLng;
+    content: HTMLElement | string;
+    xAnchor?: number;
+    yAnchor?: number;
+    zIndex?: number;
+    clickable?: boolean;
+  }) => KakaoCustomOverlay;
   ZoomControl: new () => object;
   ControlPosition: { RIGHT: unknown };
   event: {
@@ -86,7 +109,42 @@ export interface KakaoMapsApi {
     Geocoder: new () => {
       addressSearch(
         address: string,
-        callback: (results: Array<{ x: string; y: string }>, status: string) => void,
+        callback: (
+          results: Array<{
+            x: string;
+            y: string;
+            address_name: string;
+            road_address: { address_name: string } | null;
+          }>,
+          status: string,
+        ) => void,
+      ): void;
+      coord2Address(
+        longitude: number,
+        latitude: number,
+        callback: (
+          results: Array<{
+            address: { address_name: string } | null;
+            road_address: { address_name: string } | null;
+          }>,
+          status: string,
+        ) => void,
+      ): void;
+    };
+    Places: new () => {
+      keywordSearch(
+        keyword: string,
+        callback: (
+          results: Array<{
+            place_name: string;
+            address_name: string;
+            road_address_name: string;
+            x: string;
+            y: string;
+          }>,
+          status: string,
+        ) => void,
+        options?: { size?: number },
       ): void;
     };
     Status: { OK: string };

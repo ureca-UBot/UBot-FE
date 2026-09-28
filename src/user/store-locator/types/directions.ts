@@ -7,7 +7,7 @@ export interface DirectionsPoint {
 
 export interface DirectionsStep {
   type: string;
-  guidance: string;
+  guidance: string | null;
   distanceMeters: number;
   durationSeconds: number;
   stops: string[];
@@ -22,7 +22,7 @@ export interface TransitFare {
 }
 
 export interface TransitInfo {
-  fare: TransitFare;
+  fare: TransitFare | null;
   transfers: number;
   type: string;
 }
@@ -37,11 +37,11 @@ export interface CarGuide {
   guidance: string;
   distanceMeters: number;
   durationSeconds: number;
-  point: DirectionsPoint;
+  point: DirectionsPoint | null;
 }
 
 export interface CarInfo {
-  fare: CarFare;
+  fare: CarFare | null;
   guides: CarGuide[];
 }
 
