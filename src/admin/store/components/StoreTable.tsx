@@ -1,15 +1,23 @@
 import type { AdminStore } from '../types/store'
 
+type StoreTableMode = 'active' | 'deleted'
+
 export function StoreTable({
   stores,
+  mode,
+  restoringStoreId,
   onDetail,
   onEdit,
   onDelete,
+  onActivate,
 }: {
   stores: AdminStore[]
+  mode: StoreTableMode
+  restoringStoreId: number | null
   onDetail: (storeId: number) => void
   onEdit: (storeId: number) => void
   onDelete: (store: AdminStore) => void
+  onActivate: (store: AdminStore) => void
 }) {
   return (
     <div className="faq-table-wrapper admin-store-table-wrapper">
@@ -28,7 +36,7 @@ export function StoreTable({
           {stores.length === 0 ? (
             <tr>
               <td className="admin-store-table__empty" colSpan={6}>
-                조회된 매장이 없습니다.
+                {mode === 'active' ? '조회된 매장이 없습니다.' : '삭제된 매장이 없습니다.'}
               </td>
             </tr>
           ) : (
@@ -55,29 +63,40 @@ export function StoreTable({
                   {store.phoneNumber ?? '-'}
                 </td>
                 <td data-label="관리">
-                  <div className="faq-row-actions">
+                  {mode === 'active' ? (
+                    <div className="faq-row-actions">
+                      <button
+                        className="table-action-button"
+                        onClick={() => onDetail(store.storeId)}
+                        type="button"
+                      >
+                        상세정보
+                      </button>
+                      <button
+                        className="table-action-button"
+                        onClick={() => onEdit(store.storeId)}
+                        type="button"
+                      >
+                        수정
+                      </button>
+                      <button
+                        className="table-action-button table-action-button--danger"
+                        onClick={() => onDelete(store)}
+                        type="button"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  ) : (
                     <button
-                      className="table-action-button"
-                      onClick={() => onDetail(store.storeId)}
+                      className="table-action-button admin-store-restore-button"
+                      disabled={restoringStoreId === store.storeId}
+                      onClick={() => onActivate(store)}
                       type="button"
                     >
-                      상세정보
+                      {restoringStoreId === store.storeId ? '복구 중...' : '복구'}
                     </button>
-                    <button
-                      className="table-action-button"
-                      onClick={() => onEdit(store.storeId)}
-                      type="button"
-                    >
-                      수정
-                    </button>
-                    <button
-                      className="table-action-button table-action-button--danger"
-                      onClick={() => onDelete(store)}
-                      type="button"
-                    >
-                      삭제
-                    </button>
-                  </div>
+                  )}
                 </td>
               </tr>
             ))

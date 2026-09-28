@@ -14,7 +14,10 @@ const serviceFilters = [
   ['FOREIGN_LANGUAGE_SUPPORT', '외국어 지원'],
 ] as const
 
+type StoreListMode = 'active' | 'deleted'
+
 export function StoreListPage() {
+  const [mode, setMode] = useState<StoreListMode>('active')
   const [result, setResult] = useState<PageResponse<AdminStore> | null>(null)
   const [storeNameInput, setStoreNameInput] = useState('')
   const [phoneNumberInput, setPhoneNumberInput] = useState('')
@@ -30,6 +33,7 @@ export function StoreListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [revision, setRevision] = useState(0)
+  const [restoringStoreId, setRestoringStoreId] = useState<number | null>(null)
   const [formStore, setFormStore] = useState<StoreDetail | null | undefined>(undefined)
   const [detailStoreId, setDetailStoreId] = useState<number | null>(null)
   const [deleteStore, setDeleteStore] = useState<AdminStore | null>(null)
@@ -50,15 +54,22 @@ export function StoreListPage() {
   }, [])
 
   useEffect(() => {
-    if (!sido) {
-      setSigungus([])
-      return
-    }
+    if (!sido) return
+
+    let cancelled = false
 
     void adminStoreApi
-      .getSigungus(sido)
-      .then(setSigungus)
-      .catch(() => setSigungus([]))
+        .getSigungus(sido)
+        .then((next) => {
+          if (!cancelled) setSigungus(next)
+        })
+        .catch(() => {
+          if (!cancelled) setSigungus([])
+        })
+
+    return () => {
+      cancelled = true
+    }
   }, [sido])
 
   useEffect(() => {
@@ -83,18 +94,26 @@ export function StoreListPage() {
     let cancelled = false
 
     async function fetchStores() {
-      if (!cancelled) setLoading(true)
+      if (!cancelled) {
+        setLoading(true)
+        setResult(null)
+      }
+
+      const params = {
+        storeName: storeName || undefined,
+        phoneNumber: phoneNumber || undefined,
+        sido: sido || undefined,
+        sigungu: sigungu || undefined,
+        serviceCodes,
+        page,
+        size: 20,
+      }
 
       try {
-        const next = await adminStoreApi.getStores({
-          storeName: storeName || undefined,
-          phoneNumber: phoneNumber || undefined,
-          sido: sido || undefined,
-          sigungu: sigungu || undefined,
-          serviceCodes,
-          page,
-          size: 20,
-        })
+        const next =
+          mode === 'active'
+            ? await adminStoreApi.getStores(params)
+            : await adminStoreApi.getDeletedStores(params)
 
         if (!cancelled) {
           setResult(next)
@@ -102,7 +121,13 @@ export function StoreListPage() {
         }
       } catch (caught) {
         if (!cancelled) {
-          setError(caught instanceof Error ? caught.message : '매장 목록을 불러오지 못했습니다.')
+          setError(
+            caught instanceof Error
+              ? caught.message
+              : mode === 'active'
+                ? '매장 목록을 불러오지 못했습니다.'
+                : '삭제된 매장 목록을 불러오지 못했습니다.',
+          )
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -114,7 +139,7 @@ export function StoreListPage() {
     return () => {
       cancelled = true
     }
-  }, [page, phoneNumber, revision, serviceCodes, sido, sigungu, storeName])
+  }, [mode, page, phoneNumber, revision, serviceCodes, sido, sigungu, storeName])
 
   async function openEdit(storeId: number) {
     setError(null)
@@ -123,6 +148,24 @@ export function StoreListPage() {
       setFormStore(await adminStoreApi.getStore(storeId))
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '매장 정보를 불러오지 못했습니다.')
+    }
+  }
+
+  async function restoreStore(store: AdminStore) {
+    if (!window.confirm(`'${store.storeName}' 매장을 다시 활성화할까요?`)) {
+      return
+    }
+
+    setRestoringStoreId(store.storeId)
+    setError(null)
+
+    try {
+      await adminStoreApi.activateStore(store.storeId)
+      setRevision((current) => current + 1)
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '매장을 복구하지 못했습니다.')
+    } finally {
+      setRestoringStoreId(null)
     }
   }
 
@@ -145,7 +188,17 @@ export function StoreListPage() {
   function changeSido(nextSido: string) {
     setSido(nextSido)
     setSigungu('')
+    setSigungus([])
     setPage(0)
+  }
+
+  function changeMode(nextMode: StoreListMode) {
+    setMode(nextMode)
+    setPage(0)
+    setError(null)
+    setDetailStoreId(null)
+    setDeleteStore(null)
+    setFormStore(undefined)
   }
 
   function resetFilters() {
@@ -166,10 +219,37 @@ export function StoreListPage() {
       <div className="page-heading">
         <div>
           <h1>매장 관리</h1>
-          <p>매장 정보를 조회하고 등록·수정·삭제합니다.</p>
+          <p>
+            {mode === 'active'
+              ? '매장 정보를 조회하고 등록·수정·삭제합니다.'
+              : '소프트 삭제된 매장을 조회하고 다시 활성화할 수 있습니다.'}
+          </p>
         </div>
-        <button className="primary-button" onClick={() => setFormStore(null)} type="button">
-          매장 등록
+        {mode === 'active' && (
+          <button className="primary-button" onClick={() => setFormStore(null)} type="button">
+            매장 등록
+          </button>
+        )}
+      </div>
+
+      <div className="admin-store-tabs" role="tablist" aria-label="매장 상태">
+        <button
+          aria-selected={mode === 'active'}
+          className={mode === 'active' ? 'admin-store-tab admin-store-tab--active' : 'admin-store-tab'}
+          onClick={() => changeMode('active')}
+          role="tab"
+          type="button"
+        >
+          활성 매장
+        </button>
+        <button
+          aria-selected={mode === 'deleted'}
+          className={mode === 'deleted' ? 'admin-store-tab admin-store-tab--active' : 'admin-store-tab'}
+          onClick={() => changeMode('deleted')}
+          role="tab"
+          type="button"
+        >
+          삭제된 매장
         </button>
       </div>
 
@@ -261,14 +341,21 @@ export function StoreListPage() {
       {error && <p className="login-error">{error}</p>}
 
       {loading ? (
-        <p className="page-message">매장 목록을 불러오는 중입니다.</p>
+        <p className="page-message">
+          {mode === 'active' ? '매장 목록을 불러오는 중입니다.' : '삭제된 매장 목록을 불러오는 중입니다.'}
+        </p>
       ) : (
         <>
-          <p className="faq-result-count">총 {result?.totalElements ?? 0}개</p>
+          <p className="faq-result-count">
+            {mode === 'active' ? '활성 매장' : '삭제된 매장'} 총 {result?.totalElements ?? 0}개
+          </p>
           <StoreTable
+            mode={mode}
+            onActivate={(store) => void restoreStore(store)}
             onDelete={setDeleteStore}
             onDetail={setDetailStoreId}
             onEdit={(storeId) => void openEdit(storeId)}
+            restoringStoreId={restoringStoreId}
             stores={result?.content ?? []}
           />
           {result && (
@@ -281,14 +368,14 @@ export function StoreListPage() {
         </>
       )}
 
-      {detailStoreId && (
+      {mode === 'active' && detailStoreId && (
         <StoreDetailModal
           onClose={() => setDetailStoreId(null)}
           storeId={detailStoreId}
         />
       )}
 
-      {formStore !== undefined && (
+      {mode === 'active' && formStore !== undefined && (
         <StoreFormModal
           onClose={() => setFormStore(undefined)}
           onSaved={() => setRevision((current) => current + 1)}
@@ -296,7 +383,7 @@ export function StoreListPage() {
         />
       )}
 
-      {deleteStore && (
+      {mode === 'active' && deleteStore && (
         <StoreDeleteModal
           onClose={() => setDeleteStore(null)}
           onDeleted={() => setRevision((current) => current + 1)}

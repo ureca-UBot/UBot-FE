@@ -48,6 +48,10 @@ export const adminStoreApi = {
     apiClient.get<PageResponse<AdminStore>>(
       `/api/admin/stores?${listQuery(params)}`,
     ),
+  getDeletedStores: (params: StoreListParams = {}) =>
+    apiClient.get<PageResponse<AdminStore>>(
+      `/api/admin/stores/deleted?${listQuery(params)}`,
+    ),
   getStore: (storeId: number) =>
     apiClient.get<StoreDetail>(`/api/stores/${storeId}`),
   getSidos: () => apiClient.get<string[]>('/api/stores/regions/sidos'),
