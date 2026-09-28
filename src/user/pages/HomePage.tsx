@@ -1,10 +1,14 @@
+import { LogoutButton } from '../../auth/components/LogoutButton';
+
 interface PageProps {
   active: boolean;
   heroIndex: number;
   loggedIn: boolean;
+  /** 실제 로그인한 사용자 이름. 있으면 모바일 인사말에 표시하고 누르면 MY로 이동합니다. */
+  memberName: string | null;
 }
 
-export function HomePage({ active, heroIndex, loggedIn }: PageProps) {
+export function HomePage({ active, heroIndex, loggedIn, memberName }: PageProps) {
   return (
     <>
     <section className={`route${active ? ' active' : ''}`} data-page="home">
@@ -144,9 +148,9 @@ export function HomePage({ active, heroIndex, loggedIn }: PageProps) {
       </section>
 
       <section className="mobile-only mobile-home">
-        <div className="mobile-welcome"><small id="mobileWelcomeSmall">{loggedIn ? '안녕하세요, 김유저님' : '로그인하지 않아도 기본 서비스를 이용할 수 있어요.'}</small><h1>필요한 통신 서비스를<br />빠르게 찾아보세요.</h1></div>
+        <div className="mobile-welcome"><small id="mobileWelcomeSmall">{memberName ? <><button className="mobile-member-link" data-route="my" type="button">안녕하세요, <b>{memberName}</b>님 ›</button><LogoutButton className="mobile-logout-link" redirectTo={null} /></> :loggedIn ? '안녕하세요, 김유저님' : '로그인하지 않아도 기본 서비스를 이용할 수 있어요.'}</small><h1>필요한 통신 서비스를<br />빠르게 찾아보세요.</h1></div>
 
-        <article className={`mobile-guest-card${loggedIn ? ' hidden' : ''}`} id="mobileGuestCard">
+        <article className={`mobile-guest-card${loggedIn || memberName ? ' hidden' : ''}`} id="mobileGuestCard">
           <div><span>비회원 이용 중</span><b>내 요금·혜택을 보려면 로그인하세요.</b></div><button className="open-login">로그인</button>
         </article>
 

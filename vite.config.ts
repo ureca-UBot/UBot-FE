@@ -6,7 +6,12 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
+    // GitHub Pages: https://ureca-UBot.github.io/UBot-FE/
+    // 로컬 개발에서는 /
+    base: mode === 'production' ? '/UBot-FE/' : '/',
+
     plugins: [react()],
+
     server: {
       proxy: {
         '/api': {

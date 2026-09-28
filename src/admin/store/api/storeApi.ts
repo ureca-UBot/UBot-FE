@@ -17,12 +17,12 @@ function requestBody({ sido, sigungu, phoneNumber, businessHours, ...required }:
 
 // BE feat/29-admin-store-api: 조회는 /stores, 관리 변경은 /admin/stores를 사용합니다.
 export const adminStoreApi = {
-  getStores: (params: StoreListParams = {}) => apiClient.get<PageResponse<StoreListItem>>(`/stores?${listQuery(params)}`),
-  getStore: (storeId: number) => apiClient.get<StoreDetail>(`/stores/${storeId}`),
-  getSidos: () => apiClient.get<string[]>('/stores/regions/sidos'),
-  getSigungus: (sido: string) => apiClient.get<string[]>(`/stores/regions/sigungus?sido=${encodeURIComponent(sido)}`),
-  createStore: (body: StoreFormValues) => apiClient.post<AdminStore>('/admin/stores', requestBody(body)),
-  updateStore: (storeId: number, body: StoreFormValues) => apiClient.patch<AdminStore>(`/admin/stores/${storeId}`, requestBody(body)),
-  deleteStore: (storeId: number) => apiClient.delete<void>(`/admin/stores/${storeId}`),
-  activateStore: (storeId: number) => apiClient.patch<AdminStore>(`/admin/stores/${storeId}/activate`, {}),
+  getStores: (params: StoreListParams = {}) => apiClient.get<PageResponse<StoreListItem>>(`/api/stores?${listQuery(params)}`),
+  getStore: (storeId: number) => apiClient.get<StoreDetail>(`/api/stores/${storeId}`),
+  getSidos: () => apiClient.get<string[]>('/api/stores/regions/sidos'),
+  getSigungus: (sido: string) => apiClient.get<string[]>(`/api/stores/regions/sigungus?sido=${encodeURIComponent(sido)}`),
+  createStore: (body: StoreFormValues) => apiClient.post<AdminStore>('/api/admin/stores', requestBody(body)),
+  updateStore: (storeId: number, body: StoreFormValues) => apiClient.patch<AdminStore>(`/api/admin/stores/${storeId}`, requestBody(body)),
+  deleteStore: (storeId: number) => apiClient.delete<void>(`/api/admin/stores/${storeId}`),
+  activateStore: (storeId: number) => apiClient.patch<AdminStore>(`/api/admin/stores/${storeId}/activate`, {}),
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type Mous
 import { useAiDemo } from './ai/useAiDemo'
 import { UserDialogs, type UserDialog } from './components/UserDialogs'
 import { UserLoginModal } from './components/UserLoginModal'
+import { useMyProfile } from './my/hooks/useMyProfile'
 import { useHeroCarousel } from './hooks/useHeroCarousel'
 import { useScrollReveal } from './hooks/useScrollReveal'
 import { useUserNavigation } from './hooks/useUserNavigation'
@@ -25,6 +26,8 @@ export default function UserApp() {
   const { page, navigate } = useUserNavigation()
   const { heroIndex, previous, next, goTo } = useHeroCarousel()
   const [loggedIn, setLoggedIn] = useState(false)
+  // 실제 로그인한 사용자 이름. 헤더·홈에서 로그인 여부 표시와 MY 이동에 씁니다.
+  const memberName = useMyProfile().profile?.name ?? null
   const {
     messages,
     chatActive,
@@ -181,10 +184,10 @@ export default function UserApp() {
 
   return (
     <div className="ubot-user-app" onClick={handleClick} onKeyDown={handleKeyDown}>
-      <DesktopHeader loggedIn={loggedIn} scrolled={scrolled} page={page} />
+      <DesktopHeader loggedIn={loggedIn} memberName={memberName} scrolled={scrolled} page={page} />
       <MobileHeader title={userPageTitles[page]} />
       <main>
-        <HomePage active={page === 'home'} heroIndex={heroIndex} loggedIn={loggedIn} />
+        <HomePage active={page === 'home'} heroIndex={heroIndex} loggedIn={loggedIn} memberName={memberName} />
         <StorePage active={page === 'store'} />
         <ProductPage active={page === 'product'} productTitle={productTitle} />
         <MyPage active={page === 'my'} loggedIn={loggedIn} />
