@@ -7,7 +7,7 @@ export interface DirectionsPoint {
 
 export interface DirectionsStep {
   type: string;
-  guidance: string;
+  guidance: string | null;
   distanceMeters: number;
   durationSeconds: number;
   stops: string[];

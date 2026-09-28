@@ -9,7 +9,7 @@ import type {
   DirectionsStep,
 } from '../types/directions';
 import { formatDistance, formatDuration, formatFare, formatTransitFare } from './format';
-import { createRouteIcon, type RouteIcon, type RouteIconType } from './icons';
+import { createRouteIcon, turnIconType, type RouteIcon } from './icons';
 import {
   MAX_VEHICLE_CHIPS,
   alightStopName,
@@ -64,13 +64,6 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
 }
 
-function stepTypeLabel(type: string) {
-  if (type === 'WALKING') return '도보';
-  if (type === 'BUS') return '버스';
-  if (type === 'SUBWAY') return '지하철';
-  return type;
-}
-
 // 카카오는 경로 첫/마지막 guide로 출발지·목적지를 함께 내려준다.
 function carGuideKind(guides: CarGuide[], index: number): ItemKind {
   const guidance = guides[index].guidance ?? '';
@@ -79,12 +72,30 @@ function carGuideKind(guides: CarGuide[], index: number): ItemKind {
   return 'step';
 }
 
-function carTurnIcon(guide: CarGuide): RouteIconType {
-  const guidance = guide.guidance ?? '';
-  if (/유턴/.test(guidance)) return 'uturn';
-  if (/좌/.test(guidance)) return 'left';
-  if (/우/.test(guidance)) return 'right';
-  return 'straight';
+function startItem(places: RoutePlaces, point: DirectionsPoint): RouteItem {
+  return {
+    kind: 'start',
+    label: '출발',
+    text: `출발 · ${places.origin}`,
+    meta: '',
+    icon: { type: 'start' },
+    point,
+    marker: 'none',
+    chips: [],
+  };
+}
+
+function endItem(places: RoutePlaces, point: DirectionsPoint): RouteItem {
+  return {
+    kind: 'end',
+    label: '도착',
+    text: `도착 · ${places.destination}`,
+    meta: '',
+    icon: { type: 'end' },
+    point,
+    marker: 'none',
+    chips: [],
+  };
 }
 
 function describeCarGuide(guide: CarGuide, kind: ItemKind, places: RoutePlaces) {
@@ -114,12 +125,34 @@ function buildCarItems(guides: CarGuide[], places: RoutePlaces): RouteItem[] {
       label,
       text: describeCarGuide(guide, kind, places),
       meta: describeCarGuideMeta(guide, kind),
-      icon: { type: kind === 'step' ? carTurnIcon(guide) : kind },
+      icon: { type: kind === 'step' ? turnIconType(guide.guidance) : kind },
       point: guide.point,
       marker: kind === 'step' ? 'number' : 'none',
       chips: [],
     };
   });
+}
+
+function buildWalkItems(
+  steps: DirectionsStep[],
+  places: RoutePlaces,
+  origin: DirectionsPoint,
+  destination: DirectionsPoint,
+): RouteItem[] {
+  const items = steps.map((step, index): RouteItem => ({
+    kind: 'step',
+    label: String(index + 1),
+    text: step.guidance || `${formatDistance(step.distanceMeters)} 이동`,
+    meta: [
+      formatDistance(step.distanceMeters),
+      step.durationSeconds > 0 ? `약 ${formatDuration(step.durationSeconds)}` : '',
+    ].filter(Boolean).join(' · '),
+    icon: { type: turnIconType(step.guidance) },
+    point: step.path[0] ?? null,
+    marker: 'number',
+    chips: [],
+  }));
+  return [startItem(places, origin), ...items, endItem(places, destination)];
 }
 
 function vehicleChips(step: DirectionsStep): RouteChip[] {
@@ -139,16 +172,7 @@ function buildTransitItems(
   origin: DirectionsPoint,
   destination: DirectionsPoint,
 ): RouteItem[] {
-  const items: RouteItem[] = [{
-    kind: 'start',
-    label: '출발',
-    text: `출발 · ${places.origin}`,
-    meta: '',
-    icon: { type: 'start' },
-    point: origin,
-    marker: 'none',
-    chips: [],
-  }];
+  const items: RouteItem[] = [startItem(places, origin)];
 
   steps.forEach((step, index) => {
     const icon = { type: stepIconType(step), color: stepColor(step) };
@@ -186,16 +210,7 @@ function buildTransitItems(
     });
   });
 
-  items.push({
-    kind: 'end',
-    label: '도착',
-    text: `도착 · ${places.destination}`,
-    meta: '',
-    icon: { type: 'end' },
-    point: destination,
-    marker: 'none',
-    chips: [],
-  });
+  items.push(endItem(places, destination));
   return items;
 }
 
@@ -574,37 +589,6 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     stepsEl.replaceChildren();
   };
 
-  const renderSteps = (steps: DirectionsResult['steps']) => {
-    stepsEl.replaceChildren();
-    if (!steps.length) {
-      stepsEl.hidden = true;
-      return;
-    }
-
-    steps.forEach((step) => {
-      const item = document.createElement('div');
-      item.className = 'direction-step';
-      const head = document.createElement('div');
-      head.className = 'direction-step-head';
-      const badge = document.createElement('i');
-      badge.textContent = stepTypeLabel(step.type);
-      const guidance = document.createElement('span');
-      guidance.textContent = step.guidance;
-      head.append(badge, guidance);
-      const meta = document.createElement('small');
-      meta.textContent = `${formatDistance(step.distanceMeters)} · ${formatDuration(step.durationSeconds)}`;
-      item.append(head, meta);
-      if (step.vehicles.length) {
-        const vehicles = document.createElement('small');
-        vehicles.className = 'direction-step-vehicles';
-        vehicles.textContent = step.vehicles.join(', ');
-        item.appendChild(vehicles);
-      }
-      stepsEl.appendChild(item);
-    });
-    stepsEl.hidden = false;
-  };
-
   const renderSummary = (result: DirectionsResult) => {
     summaryEl.replaceChildren();
     const stats: Array<{ label: string; value: string; wide?: boolean }> = [
@@ -771,8 +755,16 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
 
       const [result] = results;
       renderSummary(result);
-      if (currentMode === 'CAR') renderRouteItems(buildCarItems(result.carInfo?.guides ?? [], places));
-      else renderSteps(result.steps);
+      if (currentMode === 'CAR') {
+        renderRouteItems(buildCarItems(result.carInfo?.guides ?? [], places));
+      } else {
+        renderRouteItems(buildWalkItems(
+          result.steps,
+          places,
+          origin,
+          { latitude: store.latitude, longitude: store.longitude },
+        ));
+      }
       drawLines([{ path: result.path, color: ROUTE_COLOR }]);
       setStatus('');
     } catch (error) {

@@ -1176,12 +1176,6 @@ to{transform:scaleX(1)}
 .ubot-user-app .direction-chip{padding:1px 6px;border:1px solid var(--chip-color);border-radius:5px;color:var(--chip-color);background:#fff;font-size:10px;font-weight:800;line-height:1.5}
 .ubot-user-app .direction-chip.solid{color:#fff;background:var(--chip-color)}
 .ubot-user-app .direction-steps{display:grid;gap:8px}
-.ubot-user-app .direction-step{padding:10px 12px;border-left:2px solid #e0e1e5;background:#fafafb;border-radius:0 10px 10px 0}
-.ubot-user-app .direction-step-head{display:flex;align-items:center;gap:7px}
-.ubot-user-app .direction-step-head i{flex:0 0 auto;padding:2px 7px;border-radius:999px;color:#fff;background:#8b8e95;font-size:9px;font-style:normal;font-weight:800}
-.ubot-user-app .direction-step-head span{font-size:12px;font-weight:700}
-.ubot-user-app .direction-step small{display:block;margin-top:4px;color:#84878e;font-size:10px}
-.ubot-user-app .direction-step-vehicles{color:#1677ff!important;font-weight:700}
 
 /* 자동차 경로 안내 — 번호 목록 + 지도 번호 마커 + 안내 말풍선 */
 .ubot-user-app .direction-guide-item{display:grid;grid-template-columns:34px 30px minmax(0,1fr);align-items:center;width:100%;padding:10px 12px;gap:8px;border:1px solid #ececef;border-radius:12px;background:#fff;text-align:left;cursor:pointer;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}

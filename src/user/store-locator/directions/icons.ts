@@ -5,6 +5,7 @@ export type RouteIconType =
   | 'left'
   | 'right'
   | 'uturn'
+  | 'crosswalk'
   | 'walk'
   | 'bus'
   | 'subway';
@@ -24,6 +25,7 @@ const ICON_PATHS: Record<RouteIconType, { paths: string[]; filled?: boolean }> =
   right: { paths: ['M7 20v-7a4 4 0 0 1 4-4h8', 'M15 5l4 4-4 4'] },
   left: { paths: ['M17 20v-7a4 4 0 0 0-4-4H5', 'M9 5 5 9l4 4'] },
   uturn: { paths: ['M16 20V9a4 4 0 0 0-8 0v7', 'M4.5 12.5 8 16l3.5-3.5'] },
+  crosswalk: { paths: ['M4 4v16', 'M20 4v16', 'M8 7h8', 'M8 12h8', 'M8 17h8'] },
   walk: {
     paths: [
       'M14 4.5a1.5 1.5 0 1 1-3 0a1.5 1.5 0 1 1 3 0z',
@@ -54,6 +56,16 @@ const ICON_PATHS: Record<RouteIconType, { paths: string[]; filled?: boolean }> =
     ],
   },
 };
+
+// 도보 안내는 지명이 섞인 문장이라 '우체국'의 '우'처럼 한 글자로 판정하면 오탐이 난다.
+export function turnIconType(guidance: string | null | undefined): RouteIconType {
+  const text = guidance ?? '';
+  if (/유턴/.test(text)) return 'uturn';
+  if (/횡단보도/.test(text)) return 'crosswalk';
+  if (/좌회전|왼쪽|좌측/.test(text)) return 'left';
+  if (/우회전|오른쪽|우측/.test(text)) return 'right';
+  return 'straight';
+}
 
 export function createRouteIcon(icon: RouteIcon, className: string) {
   const wrapper = document.createElement('span');
