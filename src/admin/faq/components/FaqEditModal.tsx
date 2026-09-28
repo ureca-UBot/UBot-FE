@@ -1,7 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { adminFaqApi } from '../api/faqApi';
 import { useFaqCategories } from '../hooks/useFaqCategories';
+import type { FaqIntent } from '../types/faq';
 import type { FaqTableRow } from './FaqTable';
+
+const intentOptions: Array<{ value: FaqIntent; label: string }> = [
+  { value: 'GENERAL', label: '일반' },
+  { value: 'STORE_DATA', label: '매장 데이터' },
+  { value: 'USER_DATA', label: '사용자 데이터' },
+];
 
 interface FaqEditModalProps {
   faq: FaqTableRow;
@@ -14,6 +21,7 @@ export function FaqEditModal({ faq, onClose, onSaved }: FaqEditModalProps) {
   const [categoryId, setCategoryId] = useState(String(faq.categoryId));
   const [question, setQuestion] = useState(faq.question);
   const [answer, setAnswer] = useState(faq.answer);
+  const [intent, setIntent] = useState<FaqIntent>(faq.intent);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,14 +29,8 @@ export function FaqEditModal({ faq, onClose, onSaved }: FaqEditModalProps) {
     event.preventDefault();
     setBusy(true);
     setError(null);
-
     try {
-      await adminFaqApi.updateFaq({
-        id: faq.id,
-        categoryId: Number(categoryId),
-        question,
-        answer,
-      });
+      await adminFaqApi.updateFaq({ id: faq.id, categoryId: Number(categoryId), question, answer, intent });
       onSaved();
       onClose();
     } catch (caughtError) {
@@ -38,38 +40,15 @@ export function FaqEditModal({ faq, onClose, onSaved }: FaqEditModalProps) {
     }
   }
 
-  return (
-    <div className="modal-backdrop">
-      <form className="faq-modal" onSubmit={submit}>
-        <h2>FAQ 수정</h2>
-        <label>
-          카테고리
-          <select disabled={busy} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
-            {categories.map((category) => (
-              <option key={category.faqCategoryId} value={category.faqCategoryId}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          질문
-          <input disabled={busy} value={question} onChange={(event) => setQuestion(event.target.value)} />
-        </label>
-        <label>
-          답변
-          <textarea disabled={busy} value={answer} onChange={(event) => setAnswer(event.target.value)} />
-        </label>
-        {error && <p className="login-error">{error}</p>}
-        <div className="faq-modal__actions">
-          <button className="primary-button" disabled={busy} type="submit">
-            {busy ? '수정 중...' : '수정'}
-          </button>
-          <button className="secondary-button" disabled={busy} onClick={onClose} type="button">
-            취소
-          </button>
-        </div>
-      </form>
-    </div>
-  );
+  return <div className="modal-backdrop">
+    <form className="faq-modal" onSubmit={submit}>
+      <h2>FAQ 수정</h2>
+      <label>카테고리<select disabled={busy} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>{categories.map((category) => <option key={category.faqCategoryId} value={category.faqCategoryId}>{category.name}</option>)}</select></label>
+      <label>Intent<select disabled={busy} value={intent} onChange={(event) => setIntent(event.target.value as FaqIntent)}>{intentOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+      <label>질문<input disabled={busy} value={question} onChange={(event) => setQuestion(event.target.value)} /></label>
+      <label>답변<textarea disabled={busy} value={answer} onChange={(event) => setAnswer(event.target.value)} /></label>
+      {error && <p className="login-error">{error}</p>}
+      <div className="faq-modal__actions"><button className="primary-button" disabled={busy} type="submit">{busy ? '수정 중...' : '수정'}</button><button className="secondary-button" disabled={busy} onClick={onClose} type="button">취소</button></div>
+    </form>
+  </div>;
 }

@@ -1,9 +1,12 @@
+import type { FaqIntent } from '../types/faq';
+
 export interface FaqTableRow {
   id: number;
   categoryId: number;
   categoryName: string;
   question: string;
   answer: string;
+  intent: FaqIntent;
   version: number;
   adminId: number;
   updatedAt: string | null;

@@ -1,8 +1,11 @@
+export type FaqIntent = 'GENERAL' | 'STORE_DATA' | 'USER_DATA'
+
 export interface FaqResponse {
   id: number
   categoryId: number
   question: string
   answer: string
+  intent: FaqIntent
   version: number
   adminId: number
   createdAt: string
@@ -13,6 +16,7 @@ export interface FaqCreateRequest {
   categoryId: number
   question: string
   answer: string
+  intent: FaqIntent
 }
 
 export interface FaqUpdateRequest {
@@ -20,6 +24,7 @@ export interface FaqUpdateRequest {
   categoryId: number
   question: string
   answer: string
+  intent: FaqIntent
 }
 
 export interface FaqRestoreRequest { faqIds: number[] }

@@ -47,20 +47,20 @@ const pathAliases: Record<string, UserPage> = {
 const appBase = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/')
 
 export function pageFromLocation(): UserPage {
-  let path = window.location.pathname
+  const hashPath = window.location.hash
+      .replace(/^#\/?/, '')
+      .split('?')[0]
+      .replace(/\/+$/g, '')
 
-  if (appBase !== '/' && path.startsWith(appBase)) {
-    path = path.slice(appBase.length)
-  } else {
-    path = path.replace(/^\/+/, '')
-  }
-
-  return pathAliases[path.replace(/\/+$/g, '')] ?? 'home'
+  return pathAliases[hashPath] ?? 'home'
 }
 
 export function pageUrl(page: UserPage) {
   const path = routePaths[page]
-  return path ? `${appBase}${path}` : appBase
+
+  return path
+      ? `${appBase}#/${path}`
+      : `${appBase}#/`
 }
 
 export function isUserPage(value: string | undefined): value is UserPage {

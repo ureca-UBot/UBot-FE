@@ -43,6 +43,7 @@ export function FaqListPage() {
     categoryName: categories.find((category) => category.faqCategoryId === faq.categoryId)?.name ?? '삭제된 카테고리',
     question: faq.question,
     answer: faq.answer,
+    intent: faq.intent,
     version: faq.version,
     adminId: faq.adminId,
     updatedAt: faq.updatedAt,

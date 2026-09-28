@@ -99,6 +99,7 @@ export function FaqCategoryInUseModal({ category, onClose, onDeleted }: FaqCateg
             categoryName: category.name,
             question: deletingFaq.question,
             answer: deletingFaq.answer,
+            intent: deletingFaq.intent,
             version: deletingFaq.version,
             adminId: deletingFaq.adminId,
             updatedAt: deletingFaq.updatedAt,

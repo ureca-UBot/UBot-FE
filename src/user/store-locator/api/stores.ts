@@ -93,22 +93,12 @@ export async function getMapClusters(
 }
 
 export async function searchLocations(
-  query: string,
-  accessToken?: string,
+    query: string,
 ): Promise<LocationSearchResult[]> {
-  // TODO: feat/3 인증 구조가 병합되면 호출부에서 실제 access token을 전달한다.
-  if (!accessToken) {
-    throw new ApiError('주소 검색은 로그인이 필요합니다.', {
-      status: 401,
-      code: 'AUTH_REQUIRED',
-    })
-  }
-
   return unwrapApiResponse(await storeRequest<ApiResponse<LocationSearchResult[]>>(
-    `/locations/search?query=${encodeURIComponent(query)}`,
-    {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${accessToken}` },
-    },
+      `/locations/search?query=${encodeURIComponent(query)}`,
+      {
+        method: 'GET',
+      },
   ))
 }
