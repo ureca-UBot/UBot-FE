@@ -54,15 +54,22 @@ export function StoreListPage() {
   }, [])
 
   useEffect(() => {
-    if (!sido) {
-      setSigungus([])
-      return
-    }
+    if (!sido) return
+
+    let cancelled = false
 
     void adminStoreApi
-      .getSigungus(sido)
-      .then(setSigungus)
-      .catch(() => setSigungus([]))
+        .getSigungus(sido)
+        .then((next) => {
+          if (!cancelled) setSigungus(next)
+        })
+        .catch(() => {
+          if (!cancelled) setSigungus([])
+        })
+
+    return () => {
+      cancelled = true
+    }
   }, [sido])
 
   useEffect(() => {
@@ -181,6 +188,7 @@ export function StoreListPage() {
   function changeSido(nextSido: string) {
     setSido(nextSido)
     setSigungu('')
+    setSigungus([])
     setPage(0)
   }
 
