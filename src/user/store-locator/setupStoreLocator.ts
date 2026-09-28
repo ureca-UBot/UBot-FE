@@ -6,11 +6,13 @@ import {
   getStorePage,
   searchLocations,
 } from './api/stores';
+import { bubblePanOffset } from './bubblePlacement';
 import { createDirectionsController } from './directions/setupStoreDirections';
+import { kakaoMapPlaceUrl } from './kakao/links';
 import { loadKakaoMaps } from './kakao/sdk';
 import type {
+  KakaoCustomOverlay,
   KakaoEventHandler,
-  KakaoInfoWindow,
   KakaoLatLng,
   KakaoMap,
   KakaoMapsApi,
@@ -36,6 +38,11 @@ const KOREA_MAP_LIMIT = {
 const STORE_PAGE_SIZE = 20;
 const MAP_LIST_LIMIT = 50;
 const SERVER_CLUSTER_MIN_LEVEL = 8;
+// 클러스터 마커 zIndex가 10 + 매장 수(최대 1010)까지 올라가므로 그보다 위에 둔다.
+const STORE_BUBBLE_Z = 2000;
+// CSS의 .store-map-info { bottom: 58px }와 같은 값: 매장 마커 높이(48px) + 꼬리와 여백.
+const STORE_BUBBLE_GAP_PX = 58;
+const STORE_BUBBLE_EDGE_PX = 12;
 
 function formatDistance(distanceKm?: number) {
   if (typeof distanceKm !== 'number' || !Number.isFinite(distanceKm)) return '';
@@ -51,7 +58,8 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
 }
 
-function buildInfoWindow(store: Store, onDirections: () => void) {
+// 카카오 기본 InfoWindow는 테두리·꼬리를 직접 그려 모서리를 둥글게 할 수 없어서, CustomOverlay용 말풍선을 만든다.
+function buildStoreBubble(store: Store, actions: { onDirections: () => void; onReserve: () => void }) {
   const root = document.createElement('div');
   root.className = 'store-map-info';
 
@@ -61,13 +69,22 @@ function buildInfoWindow(store: Store, onDirections: () => void) {
   address.textContent = store.address;
   const hours = document.createElement('small');
   hours.textContent = store.businessHours || '영업시간 정보 없음';
+
+  const buttons = document.createElement('div');
+  buttons.className = 'store-map-info-actions';
   const directionsButton = document.createElement('button');
   directionsButton.type = 'button';
   directionsButton.className = 'store-map-info-directions';
   directionsButton.textContent = '길찾기';
-  directionsButton.addEventListener('click', onDirections);
+  directionsButton.addEventListener('click', actions.onDirections);
+  const reserveButton = document.createElement('button');
+  reserveButton.type = 'button';
+  reserveButton.className = 'store-map-info-reserve';
+  reserveButton.textContent = '방문 예약';
+  reserveButton.addEventListener('click', actions.onReserve);
+  buttons.append(directionsButton, reserveButton);
 
-  root.append(name, address, hours, directionsButton);
+  root.append(name, address, hours, buttons);
   return root;
 }
 
@@ -91,13 +108,22 @@ export function setupStoreLocator(): () => void {
   const prevPageButton = document.querySelector<HTMLButtonElement>('#storePrevPage');
   const nextPageButton = document.querySelector<HTMLButtonElement>('#storeNextPage');
   const viewportSearchButton = document.querySelector<HTMLButtonElement>('#storeViewportSearch');
+  const mapLinkElement = document.querySelector<HTMLAnchorElement>('#kakaoMapLink');
+  const resultBarElement = mapLinkElement?.closest<HTMLElement>('.store-result-bar') ?? null;
+  const listReserveButton = document.querySelector<HTMLButtonElement>('.stores-list .reserve-main');
 
   if (!mapElement || !listElement || !searchInput || !searchButton || !statusElement
     || !countElement) return () => {};
 
   let maps: KakaoMapsApi | null = null;
   let map: KakaoMap | null = null;
-  let infoWindow: KakaoInfoWindow | null = null;
+  let storeBubble: KakaoCustomOverlay | null = null;
+  let bubbleFrameId: number | undefined;
+
+  const closeStoreBubble = () => {
+    storeBubble?.setMap(null);
+    storeBubble = null;
+  };
   let markers: Array<{ storeId: number | string; marker: KakaoMarker; clickHandler: KakaoEventHandler }> = [];
   let stores: Store[] = [];
   let selectedStoreId: number | null = null;
@@ -118,6 +144,38 @@ export function setupStoreLocator(): () => void {
   let mapClickHandler: KakaoEventHandler | null = null;
   let directionsActive = false;
   let viewBeforeDirections: { center: KakaoLatLng; level: number } | null = null;
+  let routeLinkUrl: string | null = null;
+
+  const showMapLink = (url: string | null) => {
+    if (!mapLinkElement) return;
+    if (url) mapLinkElement.href = url;
+    else mapLinkElement.removeAttribute('href');
+    mapLinkElement.hidden = !url;
+    resultBarElement?.classList.toggle('with-map-link', Boolean(url));
+  };
+
+  // 카카오맵 링크: 길찾기 중엔 경로, 아니면 선택한 매장, 선택이 없으면 지금 보고 있는 지도 중심을 연다.
+  const updateMapLink = () => {
+    if (directionsActive) {
+      showMapLink(routeLinkUrl);
+      return;
+    }
+    const selected = stores.find((store) => store.storeId === selectedStoreId);
+    if (selected) {
+      showMapLink(kakaoMapPlaceUrl({
+        name: selected.storeName,
+        latitude: selected.latitude,
+        longitude: selected.longitude,
+      }));
+      return;
+    }
+    if (!map) {
+      showMapLink(null);
+      return;
+    }
+    const center = map.getCenter();
+    showMapLink(kakaoMapPlaceUrl({ name: '지도 중심', latitude: center.getLat(), longitude: center.getLng() }));
+  };
 
   const setStoreMarkersVisible = (visible: boolean) => {
     markers.forEach(({ marker }) => marker.setMap(visible ? map : null));
@@ -125,7 +183,9 @@ export function setupStoreLocator(): () => void {
 
   const enterDirections = () => {
     directionsActive = true;
-    infoWindow?.close();
+    routeLinkUrl = null;
+    updateMapLink();
+    closeStoreBubble();
     hideViewportSearch();
     setStoreMarkersVisible(false);
     if (map) viewBeforeDirections = { center: map.getCenter(), level: map.getLevel() };
@@ -133,6 +193,8 @@ export function setupStoreLocator(): () => void {
 
   const exitDirections = () => {
     directionsActive = false;
+    routeLinkUrl = null;
+    updateMapLink();
     setStoreMarkersVisible(true);
     if (map && viewBeforeDirections) {
       suppressViewportUntil = Date.now() + 800;
@@ -162,6 +224,10 @@ export function setupStoreLocator(): () => void {
     getOrigin: getDirectionsOrigin,
     onEnter: enterDirections,
     onExit: exitDirections,
+    onRouteLink: (url) => {
+      routeLinkUrl = url;
+      updateMapLink();
+    },
   });
 
   const showViewportSearch = () => {
@@ -270,15 +336,16 @@ export function setupStoreLocator(): () => void {
       marker.setMap(null);
     });
     markers = [];
-    infoWindow?.close();
+    closeStoreBubble();
   };
 
   const clearStoreSelection = () => {
     selectedStoreId = null;
-    infoWindow?.close();
+    closeStoreBubble();
     listElement.querySelectorAll('[data-store-id].active').forEach((button) => {
       button.classList.remove('active');
     });
+    updateMapLink();
   };
 
   const createNumberedMarkerImage = (number: number) => {
@@ -297,17 +364,56 @@ export function setupStoreLocator(): () => void {
     listElement.querySelectorAll<HTMLElement>('[data-store-id]').forEach((button) => {
       button.classList.toggle('active', Number(button.dataset.storeId) === store.storeId);
     });
+    updateMapLink();
 
     document.dispatchEvent(new CustomEvent('ubot:store-selected', {
       detail: { id: store.storeId, name: store.storeName },
     }));
 
     const markerEntry = markers.find((entry) => entry.storeId === store.storeId);
-    if (!map || !markerEntry) return;
+    if (!map || !maps || !markerEntry) return;
 
-    if (moveMap) map.panTo(markerEntry.marker.getPosition());
-    infoWindow?.setContent(buildInfoWindow(store, () => directionsController.openForStore(store)));
-    infoWindow?.open(map, markerEntry.marker);
+    const position = markerEntry.marker.getPosition();
+    closeStoreBubble();
+    const content = buildStoreBubble(store, {
+        onDirections: () => directionsController.openForStore(store),
+        // 목록 하단의 '선택한 매장 방문 예약'과 똑같이 동작하도록 그 버튼을 대신 누른다.
+        onReserve: () => listReserveButton?.click(),
+    });
+    storeBubble = new maps.CustomOverlay({
+      position,
+      content,
+      xAnchor: 0.5,
+      yAnchor: 1,
+      zIndex: STORE_BUBBLE_Z,
+      clickable: true,
+    });
+    storeBubble.setMap(map);
+
+    // 말풍선 크기는 화면에 붙은 뒤에야 잴 수 있어서 다음 프레임에 지도를 옮긴다.
+    // 목록에서 고른 경우(moveMap)엔 '가운데로 옮긴 뒤' 기준으로 넘침을 계산해 한 번에 이동한다.
+    const currentMap = map;
+    if (bubbleFrameId !== undefined) window.cancelAnimationFrame(bubbleFrameId);
+    bubbleFrameId = window.requestAnimationFrame(() => {
+      if (disposed || !storeBubble) return;
+      const marker = currentMap.getProjection().containerPointFromCoords(position);
+      const mapWidth = mapElement.clientWidth;
+      const mapHeight = mapElement.clientHeight;
+      const shift = bubblePanOffset({
+        marker: { x: marker.x, y: marker.y },
+        desired: moveMap ? { x: mapWidth / 2, y: mapHeight / 2 } : { x: marker.x, y: marker.y },
+        bubbleWidth: content.offsetWidth,
+        bubbleHeight: content.offsetHeight,
+        gap: STORE_BUBBLE_GAP_PX,
+        mapWidth,
+        mapHeight,
+        padding: STORE_BUBBLE_EDGE_PX,
+      });
+      if (Math.abs(shift.x) < 1 && Math.abs(shift.y) < 1) return;
+      // 마커를 눌러 말풍선만 맞추는 이동은 사용자가 지도를 옮긴 게 아니라 '이 지역 검색'을 띄우지 않는다.
+      if (!moveMap) suppressViewportUntil = Date.now() + 800;
+      currentMap.panBy(shift.x, shift.y);
+    });
   };
 
   const renderList = (
@@ -656,9 +762,9 @@ export function setupStoreLocator(): () => void {
         createdMap.setMinLevel(KOREA_MAP_LIMIT.minLevel);
         createdMap.setMaxLevel(KOREA_MAP_LIMIT.maxLevel);
         createdMap.addControl(new loadedMaps.ZoomControl(), loadedMaps.ControlPosition.RIGHT);
-        infoWindow = new loadedMaps.InfoWindow({ zIndex: 5 });
         mapIdleHandler = () => {
           if (directionsActive) return;
+          updateMapLink();
           if (Date.now() < suppressViewportUntil) return;
           if (keepMapInsideKorea()) return;
 
@@ -873,13 +979,14 @@ export function setupStoreLocator(): () => void {
     window.clearTimeout(routeTimerId);
     if (clusterFrameId !== undefined) window.cancelAnimationFrame(clusterFrameId);
     if (mapInitFrameId !== undefined) window.cancelAnimationFrame(mapInitFrameId);
+    if (bubbleFrameId !== undefined) window.cancelAnimationFrame(bubbleFrameId);
     if (maps && map && pendingClusterSearchHandler) {
       maps.event.removeListener(map, 'idle', pendingClusterSearchHandler);
     }
     if (maps && map && mapIdleHandler) maps.event.removeListener(map, 'idle', mapIdleHandler);
     if (maps && map && mapClickHandler) maps.event.removeListener(map, 'click', mapClickHandler);
     clearMarkers();
-    infoWindow?.close();
+    closeStoreBubble();
     searchButton.removeEventListener('click', searchLocation);
     searchInput.removeEventListener('keydown', handleSearchKeydown);
     locationButton?.removeEventListener('click', useCurrentLocation);

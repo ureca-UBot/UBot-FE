@@ -1111,9 +1111,18 @@ to{transform:scaleX(1)}
   .ubot-user-app .store-service-filter,.ubot-user-app .store-region-search button{grid-column:1/-1}
 }
 
-/* Store map info window — 길찾기 진입점 */
-.ubot-user-app .store-map-info-directions{width:100%;min-height:32px;margin-top:8px;padding:0 12px;border:0;border-radius:9px;color:#fff;background:var(--ink);font-size:11px;font-weight:800;cursor:pointer}
-.ubot-user-app .store-map-info-directions:hover{background:#000}
+/* 매장 말풍선 — 매장 마커(높이 48px) 위에 뜨도록 올리고, 파란 포인트와 둥근 모서리를 준다 */
+.ubot-user-app .store-map-info{position:relative;bottom:58px;width:max-content;min-width:230px;max-width:290px;padding:14px 16px 14px 18px;border:1px solid #cfe1ff;border-radius:18px;box-shadow:0 12px 30px rgba(22,90,180,.18)}
+.ubot-user-app .store-map-info:before{position:absolute;top:16px;bottom:16px;left:0;width:3px;border-radius:0 3px 3px 0;background:#1677ff;content:""}
+.ubot-user-app .store-map-info:after{position:absolute;bottom:-7px;left:50%;width:12px;height:12px;border-right:1px solid #cfe1ff;border-bottom:1px solid #cfe1ff;background:#fff;transform:translateX(-50%) rotate(45deg);content:""}
+.ubot-user-app .store-map-info strong{color:#123a73;white-space:normal;word-break:keep-all}
+.ubot-user-app .store-map-info span,.ubot-user-app .store-map-info small{white-space:normal;word-break:keep-all}
+.ubot-user-app .store-map-info-actions{display:grid;grid-template-columns:1fr 1fr;margin-top:8px;gap:6px}
+.ubot-user-app .store-map-info-directions,.ubot-user-app .store-map-info-reserve{min-height:32px;padding:0 10px;border:1px solid #1677ff;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;transition:background .15s ease,color .15s ease}
+.ubot-user-app .store-map-info-directions{color:#fff;background:#1677ff}
+.ubot-user-app .store-map-info-directions:hover{border-color:#0968d8;background:#0968d8}
+.ubot-user-app .store-map-info-reserve{color:#1677ff;background:#fff}
+.ubot-user-app .store-map-info-reserve:hover{background:#eaf3ff}
 
 /* Directions panel (길찾기) — 가까운 대리점 목록 자리에 슬라이드로 등장 */
 .ubot-user-app .stores-list{position:relative}
@@ -1177,19 +1186,44 @@ to{transform:scaleX(1)}
 .ubot-user-app .direction-stat small{display:block;color:#84878e;font-size:11px;font-weight:700;line-height:1.2;white-space:nowrap}
 .ubot-user-app .direction-stat b{display:block;color:#1b1c1f;font-size:14px;font-weight:800;letter-spacing:-.02em;line-height:1.2;white-space:nowrap}
 .ubot-user-app .direction-summary[data-stat-count="4"] .direction-stat b{font-size:13px}
-.ubot-user-app .direction-steps::before{color:#1b1c1f;font-size:12px;font-weight:900;content:"상세 경로"}
+/* 상세 경로 접기/펼치기: 머리줄 전체를 눌러 토글한다 */
+.ubot-user-app .direction-steps-panel[hidden]{display:none}
+.ubot-user-app .direction-steps-toggle{display:flex;align-items:center;width:100%;padding:0;gap:6px;border:0;color:#1b1c1f;background:transparent;text-align:left;cursor:pointer}
+.ubot-user-app .direction-steps-toggle span{font-size:12px;font-weight:900;line-height:1.2}
+.ubot-user-app .direction-steps-toggle small{color:#84878e;font-size:11px;font-weight:700;line-height:1.2}
+.ubot-user-app .direction-steps-toggle svg{flex:0 0 auto;width:14px;height:14px;margin-left:auto;fill:none;stroke:#8b8e95;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease}
+.ubot-user-app .direction-steps-toggle:hover span{color:#1677ff}
+.ubot-user-app .direction-steps-panel.expanded .direction-steps-toggle svg{transform:rotate(180deg)}
+.ubot-user-app .direction-steps-panel.expanded .direction-steps{margin-top:10px}
+/* 버스·지하철: 승차 → (중간 역·정류장) → 하차를 아이콘 열의 노선 색 선으로 잇는다.
+   열 위치 — 번호 열 가운데 19px, 아이콘 열 가운데 56px, 글자 열 시작 78px */
+.ubot-user-app .direction-guide-item.expandable{grid-template-columns:30px 28px minmax(0,1fr) 16px}
+.ubot-user-app .direction-guide-chevron{display:grid;place-items:center;color:#8b8e95}
+.ubot-user-app .direction-guide-chevron svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease}
+.ubot-user-app .direction-guide-item[aria-expanded="true"] .direction-guide-chevron svg{transform:rotate(180deg)}
+.ubot-user-app .direction-guide-item.ride-board::after,.ubot-user-app .direction-guide-item.ride-alight::after,.ubot-user-app .direction-substops::after{position:absolute;left:55px;width:2px;background:var(--line-color,#c9ccd1);content:""}
+.ubot-user-app .direction-guide-item.ride-board::after{top:50%;bottom:-1px}
+.ubot-user-app .direction-guide-item.ride-alight::after{top:0;bottom:50%}
+.ubot-user-app .direction-substops::after{top:0;bottom:0}
+/* 한 번의 승하차는 한 묶음이라 사이 구분선을 없앤다 */
+.ubot-user-app .direction-guide-item.ride-board{border-bottom-color:transparent}
+.ubot-user-app .direction-substops[hidden]{display:none}
+.ubot-user-app .direction-substops{position:relative;display:grid;padding:4px 4px 10px 78px;gap:7px}
+.ubot-user-app .direction-substops::before{position:absolute;top:0;bottom:0;left:18px;border-left:2px dotted #d5d7db;content:""}
+.ubot-user-app .direction-substops span{position:relative;color:#4f535b;font-size:11px;font-weight:600;line-height:1.3}
+.ubot-user-app .direction-substops span::before{position:absolute;top:50%;left:-26px;width:4px;height:4px;border:2px solid var(--line-color,#c9ccd1);border-radius:50%;background:#fff;transform:translateY(-50%);content:""}
 /* 카카오맵 링크: 검색 결과 줄을 지도·목록과 같은 열로 나눠 지도 오른쪽 끝에 맞춘다 */
-.ubot-user-app .direction-map-link[hidden]{display:none}
-.ubot-user-app .direction-map-link{margin-left:auto;color:#1677ff;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap}
-.ubot-user-app .direction-map-link:hover{text-decoration:underline}
-.ubot-user-app .store-result-bar.with-direction-link{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(360px,.75fr);column-gap:22px}
-.ubot-user-app .store-result-bar.with-direction-link>div{min-width:0}
+.ubot-user-app .kakao-map-link[hidden]{display:none}
+.ubot-user-app .kakao-map-link{margin-left:auto;color:#1677ff;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap}
+.ubot-user-app .kakao-map-link:hover{text-decoration:underline}
+.ubot-user-app .store-result-bar.with-map-link{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(360px,.75fr);column-gap:22px}
+.ubot-user-app .store-result-bar.with-map-link>div{min-width:0}
 @media(max-width:1100px) and (min-width:768px){
-  .ubot-user-app .store-result-bar.with-direction-link{grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr)}
+  .ubot-user-app .store-result-bar.with-map-link{grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr)}
 }
 @media(max-width:767px){
-  .ubot-user-app .store-result-bar.with-direction-link{display:flex;flex-wrap:wrap}
-  .ubot-user-app .store-result-bar.with-direction-link>div{flex:1 0 100%}
+  .ubot-user-app .store-result-bar.with-map-link{display:flex;flex-wrap:wrap}
+  .ubot-user-app .store-result-bar.with-map-link>div{flex:1 0 100%}
 }
 .ubot-user-app .direction-candidates{display:grid;gap:8px;margin-bottom:12px}
 .ubot-user-app .direction-candidate{display:grid;width:100%;padding:12px 14px;gap:10px;border:1px solid #e0e1e5;border-radius:12px;background:#fff;text-align:left;cursor:pointer;transition:border-color .15s ease,background .15s ease}
@@ -1208,32 +1242,37 @@ to{transform:scaleX(1)}
 .ubot-user-app .direction-chips{display:flex;flex-wrap:wrap;margin-top:4px;gap:4px}
 .ubot-user-app .direction-chip{padding:1px 6px;border:1px solid var(--chip-color);border-radius:5px;color:var(--chip-color);background:#fff;font-size:10px;font-weight:800;line-height:1.5}
 .ubot-user-app .direction-chip.solid{color:#fff;background:var(--chip-color)}
-.ubot-user-app .direction-steps{display:grid;gap:8px}
+.ubot-user-app .direction-steps{display:grid;gap:0}
 
-/* 자동차 경로 안내 — 번호 목록 + 지도 번호 마커 + 안내 말풍선 */
-.ubot-user-app .direction-guide-item{display:grid;grid-template-columns:34px 30px minmax(0,1fr);align-items:center;width:100%;padding:10px 12px;gap:8px;border:1px solid #ececef;border-radius:12px;background:#fff;text-align:left;cursor:pointer;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}
-.ubot-user-app .direction-guide-item:hover{border-color:#8dbfff;background:#f6faff}
-.ubot-user-app .direction-guide-item.active{border-color:#1677ff;background:#f3f8ff;box-shadow:inset 3px 0 0 #1677ff}
-.ubot-user-app .direction-guide-no{display:grid;justify-self:start;min-width:24px;height:24px;padding:0 5px;place-items:center;border:2px solid #1677ff;border-radius:999px;color:#1677ff;background:#fff;font-size:10px;font-weight:900}
+/* 상세 경로 목록: 칸 대신 구분선으로 나누고, 번호끼리는 옅은 회색 점선으로 잇는다 */
+.ubot-user-app .direction-guide-item{position:relative;display:grid;grid-template-columns:30px 28px minmax(0,1fr);align-items:center;width:100%;padding:10px 4px;gap:8px;border:0;border-bottom:1px solid #f0f1f4;border-radius:0;background:transparent;text-align:left;cursor:pointer;transition:background .15s ease}
+.ubot-user-app .direction-guide-item:last-child{border-bottom:0}
+.ubot-user-app .direction-guide-item::before{position:absolute;top:0;bottom:-1px;left:18px;border-left:2px dotted #d5d7db;content:""}
+.ubot-user-app .direction-guide-item:first-child::before{top:50%}
+.ubot-user-app .direction-guide-item:last-child::before{bottom:50%}
+.ubot-user-app .direction-guide-item:hover,.ubot-user-app .direction-guide-item.hovered{background:#f6faff}
+.ubot-user-app .direction-guide-item.active{background:#eef5ff}
+.ubot-user-app .direction-guide-no{position:relative;z-index:1;display:grid;justify-self:center;min-width:20px;height:20px;padding:0 4px;place-items:center;border:1.5px solid #1677ff;border-radius:999px;color:#1677ff;background:#fff;font-size:9px;font-weight:900;line-height:1}
 .ubot-user-app .direction-guide-no.start{color:#fff;background:#1677ff}
 .ubot-user-app .direction-guide-no.end{border-color:var(--pink-dark);color:#fff;background:var(--pink)}
-.ubot-user-app .direction-guide-item.active .direction-guide-no.step{color:#fff;background:#1677ff}
+.ubot-user-app .direction-guide-item.hovered .direction-guide-no.step,.ubot-user-app .direction-guide-item.active .direction-guide-no.step{color:#fff;background:#1677ff}
 .ubot-user-app .direction-guide-icon{display:grid;width:30px;height:30px;place-items:center;border-radius:9px;color:#1677ff;background:#eaf3ff}
+.ubot-user-app .direction-guide-item .direction-guide-icon{position:relative;z-index:1;width:28px;height:28px;border-radius:8px}
 .ubot-user-app .direction-guide-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.ubot-user-app .direction-guide-item .direction-guide-icon svg{width:18px;height:18px}
 .ubot-user-app .direction-guide-icon svg.filled{fill:currentColor;stroke:none}
-.ubot-user-app .direction-guide-item.active .direction-guide-icon{color:#fff;background:#1677ff}
+.ubot-user-app .direction-guide-item.hovered .direction-guide-icon,.ubot-user-app .direction-guide-item.active .direction-guide-icon{color:#fff;background:#1677ff}
 .ubot-user-app .direction-guide-icon.tinted{color:#fff;background:var(--icon-color)}
-.ubot-user-app .direction-guide-item.active .direction-guide-icon.tinted{background:var(--icon-color);box-shadow:0 0 0 2px #fff,0 0 0 4px var(--icon-color)}
-.ubot-user-app .direction-step-marker{display:grid;width:26px;height:26px;place-items:center;border:2px solid #fff;border-radius:50%;color:#fff;background:var(--icon-color,#1677ff);box-shadow:0 2px 6px rgba(23,23,26,.3);cursor:pointer;transition:transform .15s ease}
-.ubot-user-app .direction-step-marker svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.ubot-user-app .direction-step-marker:hover{transform:scale(1.12)}
-.ubot-user-app .direction-step-marker.active{transform:scale(1.3);box-shadow:0 0 0 3px rgba(255,255,255,.9),0 3px 10px rgba(23,23,26,.35)}
+.ubot-user-app .direction-guide-item.hovered .direction-guide-icon.tinted,.ubot-user-app .direction-guide-item.active .direction-guide-icon.tinted{background:var(--icon-color);box-shadow:0 0 0 2px #fff,0 0 0 4px var(--icon-color)}
 .ubot-user-app .direction-guide-body{min-width:0}
 .ubot-user-app .direction-guide-text{display:block;color:#1b1c1f;font-size:12px;font-weight:700;line-height:1.45}
 .ubot-user-app .direction-guide-body small{display:block;margin-top:3px;color:#84878e;font-size:10px}
-.ubot-user-app .direction-guide-marker{display:grid;min-width:24px;height:24px;padding:0 5px;place-items:center;border:2px solid #1677ff;border-radius:999px;color:#1677ff;background:#fff;box-shadow:0 2px 6px rgba(23,23,26,.25);font-size:11px;font-weight:900;line-height:1;cursor:pointer;transition:transform .15s ease,background .15s ease,color .15s ease}
-.ubot-user-app .direction-guide-marker:hover{transform:scale(1.12)}
-.ubot-user-app .direction-guide-marker.active{color:#fff;background:#1677ff;transform:scale(1.25)}
+/* 지도 마커는 지도를 덜 가리도록 목록 배지보다 더 작게 */
+.ubot-user-app .direction-guide-marker{display:grid;min-width:14px;height:14px;padding:0 2px;place-items:center;border:1px solid #1677ff;border-radius:999px;color:#1677ff;background:#fff;box-shadow:0 1px 3px rgba(23,23,26,.25);font-size:8px;font-weight:900;line-height:1;cursor:pointer;transition:transform .15s ease,background .15s ease,color .15s ease}
+.ubot-user-app .direction-guide-marker:hover,.ubot-user-app .direction-guide-marker.hovered,.ubot-user-app .direction-guide-marker.active{color:#fff;background:#1677ff;transform:scale(1.4)}
+.ubot-user-app .direction-step-marker{display:grid;width:20px;height:20px;place-items:center;border:1.5px solid #fff;border-radius:50%;color:#fff;background:var(--icon-color,#1677ff);box-shadow:0 1px 4px rgba(23,23,26,.3);cursor:pointer;transition:transform .15s ease}
+.ubot-user-app .direction-step-marker svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.ubot-user-app .direction-step-marker:hover,.ubot-user-app .direction-step-marker.hovered,.ubot-user-app .direction-step-marker.active{transform:scale(1.3);box-shadow:0 0 0 2px rgba(255,255,255,.9),0 2px 8px rgba(23,23,26,.35)}
 .ubot-user-app .direction-endpoint-marker{display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 2px 3px rgba(23,23,26,.3));pointer-events:none}
 .ubot-user-app .direction-endpoint-marker span{padding:4px 9px;border:2px solid #fff;border-radius:999px;color:#fff;background:#1677ff;font-size:11px;font-weight:900;line-height:1.2;white-space:nowrap}
 .ubot-user-app .direction-endpoint-marker i{width:0;height:0;margin-top:-2px;border-top:8px solid #1677ff;border-right:5px solid transparent;border-left:5px solid transparent}

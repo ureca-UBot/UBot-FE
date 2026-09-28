@@ -12,7 +12,8 @@ export type RouteIconType =
   | 'car'
   | 'search'
   | 'locate'
-  | 'recent';
+  | 'recent'
+  | 'chevron';
 
 export interface RouteIcon {
   type: RouteIconType;
@@ -75,6 +76,7 @@ export const ROUTE_ICON_PATHS: Record<RouteIconType, { paths: string[]; filled?:
     paths: ['M12 16a4 4 0 1 1 0-8a4 4 0 1 1 0 8z', 'M12 2.5v3', 'M12 18.5v3', 'M2.5 12h3', 'M18.5 12h3'],
   },
   recent: { paths: ['M12 21a9 9 0 1 1 0-18a9 9 0 1 1 0 18z', 'M12 7.5V12l3 2'] },
+  chevron: { paths: ['M6 9l6 6 6-6'] },
 };
 
 // 도보 안내는 지명이 섞인 문장이라 '우체국'의 '우'처럼 한 글자로 판정하면 오탐이 난다.

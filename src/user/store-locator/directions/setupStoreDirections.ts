@@ -11,12 +11,15 @@ import type {
 import { formatDistance, formatDuration, formatFare, formatTransitFare } from './format';
 import { createRouteIcon, turnIconType, type RouteIcon } from './icons';
 import { createOriginPicker } from './originPicker';
+import { offsetPathToRight } from './routeGeometry';
+import { kakaoRouteUrl } from '../kakao/links';
 import {
   MAX_VEHICLE_CHIPS,
   alightStopName,
   boardStopName,
+  intermediateStopNames,
   isRideStep,
-  stepColor,
+  stepColors,
   stepIconType,
   uniqueVehicles,
 } from './transit';
@@ -39,12 +42,15 @@ interface RouteItem {
   point: DirectionsPoint | null;
   marker: 'number' | 'icon' | 'none';
   chips: RouteChip[];
+  // 버스·지하철 승차 항목을 펼쳤을 때 보여줄 중간 역·정류장.
+  substops?: { names: string[]; color: string };
+  // 버스·지하철은 승차·하차 두 항목으로 나누고, 목록에서 노선 색 선으로 잇는다.
+  ride?: { role: 'board' | 'alight'; color: string };
 }
 
 interface RouteLine {
   path: DirectionsPoint[];
   color: string;
-  dashed?: boolean;
 }
 
 interface RoutePlaces {
@@ -53,6 +59,8 @@ interface RoutePlaces {
 }
 
 const ROUTE_COLOR = '#1677ff';
+// 같은 도로를 왕복(유턴)해도 두 선이 겹치지 않도록 진행 방향 오른쪽으로 미는 거리.
+const ROUTE_OFFSET_PX = 4;
 const MARKER_Z = 3;
 const MARKER_ACTIVE_Z = 6;
 const ENDPOINT_MARKER_Z = 8;
@@ -156,9 +164,8 @@ function buildWalkItems(
   return [startItem(places, origin), ...items, endItem(places, destination)];
 }
 
-function vehicleChips(step: DirectionsStep): RouteChip[] {
+function vehicleChips(step: DirectionsStep, color: string): RouteChip[] {
   const vehicles = uniqueVehicles(step);
-  const color = stepColor(step);
   const solid = step.type === 'SUBWAY';
   const chips = vehicles.slice(0, MAX_VEHICLE_CHIPS).map((text) => ({ text, color, solid }));
   if (vehicles.length > MAX_VEHICLE_CHIPS) {
@@ -174,27 +181,43 @@ function buildTransitItems(
   destination: DirectionsPoint,
 ): RouteItem[] {
   const items: RouteItem[] = [startItem(places, origin)];
+  const colors = stepColors(steps);
+  let stepNumber = 0;
 
   steps.forEach((step, index) => {
-    const icon = { type: stepIconType(step), color: stepColor(step) };
+    const color = colors[index];
+    const icon = { type: stepIconType(step), color };
     const point = step.path[0] ?? null;
-    const label = String(index + 1);
 
     if (isRideStep(step)) {
       const stopCount = Math.max(1, step.stops.length - 1);
       const unit = step.type === 'SUBWAY' ? '개 역' : '개 정류장';
       items.push({
         kind: 'step',
-        label,
-        text: `${boardStopName(step)} → ${alightStopName(step)}`,
+        label: String(++stepNumber),
+        text: `${boardStopName(step)} 승차`,
         meta: `${stopCount}${unit} 이동 · 약 ${formatDuration(step.durationSeconds)}`,
         icon,
         point,
         marker: 'icon',
-        chips: vehicleChips(step),
+        chips: vehicleChips(step, color),
+        substops: { names: intermediateStopNames(step), color },
+        ride: { role: 'board', color },
+      });
+      items.push({
+        kind: 'step',
+        label: String(++stepNumber),
+        text: `${alightStopName(step)} 하차`,
+        meta: '',
+        icon,
+        point: step.path[step.path.length - 1] ?? null,
+        marker: 'icon',
+        chips: [],
+        ride: { role: 'alight', color },
       });
       return;
     }
+    const label = String(++stepNumber);
 
     const nextRide = steps.slice(index + 1).find(isRideStep);
     const hasPreviousRide = steps.slice(0, index).some(isRideStep);
@@ -258,6 +281,8 @@ interface DirectionsControllerDeps {
   getOrigin: () => Promise<{ latitude: number; longitude: number }>;
   onEnter?: () => void;
   onExit?: () => void;
+  // 길찾기 중에 보여줄 카카오맵 링크. 길찾기 밖의 링크는 매장 찾기 쪽이 관리한다.
+  onRouteLink?: (url: string | null) => void;
 }
 
 export interface DirectionsController {
@@ -285,27 +310,23 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   const listBackButton = document.querySelector<HTMLButtonElement>('#directionListBack');
   const summaryEl = document.querySelector<HTMLElement>('#directionSummary');
   const candidatesEl = document.querySelector<HTMLElement>('#directionCandidates');
+  const stepsPanelEl = document.querySelector<HTMLElement>('#directionStepsPanel');
+  const stepsToggleEl = document.querySelector<HTMLButtonElement>('#directionStepsToggle');
+  const stepsCountEl = document.querySelector<HTMLElement>('#directionStepsCount');
   const stepsEl = document.querySelector<HTMLElement>('#directionSteps');
-  const mapLinkEl = document.querySelector<HTMLAnchorElement>('#directionMapLink');
-  const resultBarEl = mapLinkEl?.closest<HTMLElement>('.store-result-bar');
   const originInput = document.querySelector<HTMLInputElement>('#directionOriginInput');
   const originLocateButton = document.querySelector<HTMLButtonElement>('#directionOriginLocate');
   const originResultsEl = document.querySelector<HTMLElement>('#directionOriginResults');
   const searchButton = document.querySelector<HTMLButtonElement>('#directionSearchButton');
 
   if (!panel || !backButton || !closeButton || !destNameEl || !destAddressEl || !modeTabs || !statusEl
-    || !routeHeadEl || !routeHeadInfoEl || !listBackButton || !summaryEl || !candidatesEl || !stepsEl
-    || !mapLinkEl || !resultBarEl || !originInput || !originLocateButton || !originResultsEl || !searchButton) {
+    || !routeHeadEl || !routeHeadInfoEl || !listBackButton || !summaryEl || !candidatesEl
+    || !stepsPanelEl || !stepsToggleEl || !stepsCountEl || !stepsEl
+    || !originInput || !originLocateButton || !originResultsEl || !searchButton) {
     return NOOP_CONTROLLER;
   }
 
-  // 카카오맵 링크는 지도 위 '검색 결과' 줄의 지도 오른쪽 끝에 둔다.
-  const setMapLink = (url: string | null) => {
-    if (url) mapLinkEl.href = url;
-    else mapLinkEl.removeAttribute('href');
-    mapLinkEl.hidden = !url;
-    resultBarEl.classList.toggle('with-direction-link', Boolean(url));
-  };
+  const setRouteLink = (url: string | null) => deps.onRouteLink?.(url);
 
   let currentStore: Store | null = null;
   let currentMode: DirectionsMode = 'CAR';
@@ -313,7 +334,10 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   let currentOrigin: { latitude: number; longitude: number; label: string | null } | null = null;
   let requestId = 0;
   let closeTimeoutId: number | undefined;
-  let polylines: KakaoPolyline[] = [];
+  let drawnLines: Array<{ line: RouteLine; polylines: KakaoPolyline[] }> = [];
+  let zoomHandler: (() => void) | null = null;
+  let stepsExpanded = true;
+  let routeFallbackUrl: string | null = null;
   let routeItems: RouteItem[] = [];
   let itemEls: HTMLButtonElement[] = [];
   let itemMarkers: Array<{ overlay: KakaoCustomOverlay; element: HTMLElement } | null> = [];
@@ -387,8 +411,35 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   };
 
   const clearLines = () => {
-    polylines.forEach((polyline) => polyline.setMap(null));
-    polylines = [];
+    drawnLines.forEach(({ polylines }) => polylines.forEach((polyline) => polyline.setMap(null)));
+    drawnLines = [];
+    const maps = deps.getMaps();
+    const map = deps.getMap();
+    if (maps && map && zoomHandler) maps.event.removeListener(map, 'zoom_changed', zoomHandler);
+    zoomHandler = null;
+  };
+
+  // 오른쪽 이동량은 화면 픽셀 기준이라 확대 수준이 바뀔 때마다 좌표를 다시 계산한다.
+  const shiftedPath = (maps: KakaoMapsApi, map: KakaoMap, path: DirectionsPoint[]) => {
+    const projection = map.getProjection();
+    return offsetPathToRight(
+      path.map((point) => new maps.LatLng(point.latitude, point.longitude)),
+      {
+        toScreen: (position) => projection.containerPointFromCoords(position),
+        fromScreen: ({ x, y }) => projection.coordsFromContainerPoint(new maps.Point(x, y)),
+      },
+      ROUTE_OFFSET_PX,
+    );
+  };
+
+  const reshapeLines = () => {
+    const maps = deps.getMaps();
+    const map = deps.getMap();
+    if (!maps || !map) return;
+    drawnLines.forEach(({ line, polylines }) => {
+      const path = shiftedPath(maps, map, line.path);
+      polylines.forEach((polyline) => polyline.setPath(path));
+    });
   };
 
   const drawLines = (lines: RouteLine[]) => {
@@ -399,21 +450,36 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
 
     const bounds = new maps.LatLngBounds();
     let hasPoint = false;
-    lines.forEach(({ path, color, dashed }) => {
-      if (!path.length) return;
-      const kakaoPath = path.map((point) => new maps.LatLng(point.latitude, point.longitude));
-      const polyline = new maps.Polyline({
-        path: kakaoPath,
-        strokeWeight: dashed ? 5 : 6,
-        strokeColor: color,
-        strokeOpacity: 0.9,
-        strokeStyle: dashed ? 'shortdash' : 'solid',
-      });
-      polyline.setMap(map);
-      polylines.push(polyline);
-      kakaoPath.forEach((point) => bounds.extend(point));
+    lines.forEach((line) => {
+      if (!line.path.length) return;
+      const path = shiftedPath(maps, map, line.path);
+      // 실선 경로 안에 흰 점선을 한 겹 더 그려 지도 위에서 진행 방향이 잘 보이게 한다.
+      const polylines = [
+        new maps.Polyline({
+          path,
+          strokeWeight: 7,
+          strokeColor: line.color,
+          strokeOpacity: 0.95,
+          strokeStyle: 'solid',
+          zIndex: 1,
+        }),
+        new maps.Polyline({
+          path,
+          strokeWeight: 2,
+          strokeColor: '#ffffff',
+          strokeOpacity: 0.9,
+          strokeStyle: 'shortdash',
+          zIndex: 2,
+        }),
+      ];
+      polylines.forEach((polyline) => polyline.setMap(map));
+      drawnLines.push({ line, polylines });
+      line.path.forEach((point) => bounds.extend(new maps.LatLng(point.latitude, point.longitude)));
       hasPoint = true;
     });
+
+    zoomHandler = reshapeLines;
+    maps.event.addListener(map, 'zoom_changed', zoomHandler);
     if (hasPoint) map.setBounds(bounds);
   };
 
@@ -440,6 +506,15 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     else item?.removeAttribute('aria-current');
     marker?.element.classList.toggle('active', active);
     marker?.overlay.setZIndex(active ? MARKER_ACTIVE_Z : MARKER_Z);
+  };
+
+  // 마우스를 올리면 목록·지도 양쪽에 같은 항목을 강조만 한다. 말풍선과 지도 이동은 클릭했을 때만 한다.
+  const setItemHovered = (index: number, hovered: boolean) => {
+    itemEls[index]?.classList.toggle('hovered', hovered);
+    const marker = itemMarkers[index];
+    if (!marker) return;
+    marker.element.classList.toggle('hovered', hovered);
+    marker.overlay.setZIndex(hovered || index === activeIndex ? MARKER_ACTIVE_Z : MARKER_Z);
   };
 
   const closePopup = () => {
@@ -511,14 +586,36 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     }
     element.title = item.text;
     element.addEventListener('click', () => selectItem(index));
+    element.addEventListener('mouseenter', () => {
+      setItemHovered(index, true);
+      if (stepsExpanded) itemEls[index]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+    element.addEventListener('mouseleave', () => setItemHovered(index, false));
     return element;
+  };
+
+  // 상세 경로가 접혀 있으면 자동차·도보의 번호 마커도 지도에서 숨긴다. 대중교통 구간 아이콘은 그대로 둔다.
+  const applyStepsExpanded = () => {
+    stepsToggleEl.setAttribute('aria-expanded', String(stepsExpanded));
+    stepsPanelEl.classList.toggle('expanded', stepsExpanded);
+    stepsEl.hidden = !stepsExpanded;
+    const map = deps.getMap();
+    routeItems.forEach((item, index) => {
+      if (item.marker === 'number') itemMarkers[index]?.overlay.setMap(stepsExpanded ? map : null);
+    });
+    if (!stepsExpanded) closePopup();
+  };
+
+  const toggleSteps = () => {
+    stepsExpanded = !stepsExpanded;
+    applyStepsExpanded();
   };
 
   const renderRouteItems = (items: RouteItem[]) => {
     clearItems();
     stepsEl.replaceChildren();
     if (!items.length) {
-      stepsEl.hidden = true;
+      stepsPanelEl.hidden = true;
       return;
     }
 
@@ -530,6 +627,14 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       const el = document.createElement('button');
       el.type = 'button';
       el.className = 'direction-guide-item';
+      if (item.ride) {
+        el.classList.add(`ride-${item.ride.role}`);
+        el.style.setProperty('--line-color', item.ride.color);
+      }
+      el.addEventListener('mouseenter', () => setItemHovered(index, true));
+      el.addEventListener('mouseleave', () => setItemHovered(index, false));
+      el.addEventListener('focus', () => setItemHovered(index, true));
+      el.addEventListener('blur', () => setItemHovered(index, false));
       const number = document.createElement('span');
       number.className = `direction-guide-no ${item.kind}`;
       number.textContent = item.label;
@@ -547,9 +652,37 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
         body.appendChild(meta);
       }
       el.append(number, icon, body);
-      el.addEventListener('click', () => selectItem(index));
       stepsEl.appendChild(el);
       itemEls.push(el);
+
+      const substops = item.substops?.names.length ? item.substops : null;
+      if (substops) {
+        // 버스·지하철 구간은 눌러서 중간 역·정류장을 펼친다. 지도에서 구간을 선택하는 동작은 그대로 둔다.
+        const listId = `directionSubstops${index}`;
+        const list = document.createElement('div');
+        list.id = listId;
+        list.className = 'direction-substops';
+        list.style.setProperty('--line-color', substops.color);
+        list.hidden = true;
+        substops.names.forEach((name) => {
+          const stop = document.createElement('span');
+          stop.textContent = name;
+          list.appendChild(stop);
+        });
+        el.classList.add('expandable');
+        el.setAttribute('aria-expanded', 'false');
+        el.setAttribute('aria-controls', listId);
+        el.appendChild(createRouteIcon({ type: 'chevron' }, 'direction-guide-chevron'));
+        el.addEventListener('click', () => {
+          const expanded = list.hidden;
+          list.hidden = !expanded;
+          el.setAttribute('aria-expanded', String(expanded));
+          selectItem(index);
+        });
+        stepsEl.appendChild(list);
+      } else {
+        el.addEventListener('click', () => selectItem(index));
+      }
 
       // 출발·도착 지점은 showEndpoints()의 핀 마커가 대신 표시한다.
       if (item.marker === 'none' || !maps || !map || !item.point) {
@@ -565,11 +698,17 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
         zIndex: MARKER_Z,
         clickable: true,
       });
-      overlay.setMap(map);
       itemMarkers.push({ overlay, element });
     });
 
-    stepsEl.hidden = false;
+    const stepCount = items.filter((item) => item.kind === 'step').length;
+    stepsCountEl.textContent = `안내 ${stepCount}개`;
+    stepsPanelEl.hidden = false;
+    // 마커를 지도에 올릴지(접힘 여부)는 여기서 한 번에 정한다.
+    items.forEach((item, index) => {
+      if (item.marker !== 'number') itemMarkers[index]?.overlay.setMap(map);
+    });
+    applyStepsExpanded();
   };
 
   const setStatus = (message: string, isError = false) => {
@@ -584,14 +723,13 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   };
 
   const clearResults = () => {
-    setMapLink(null);
     routeHeadEl.hidden = true;
     routeHeadInfoEl.replaceChildren();
     summaryEl.hidden = true;
     summaryEl.replaceChildren();
     candidatesEl.hidden = true;
     candidatesEl.replaceChildren();
-    stepsEl.hidden = true;
+    stepsPanelEl.hidden = true;
     stepsEl.replaceChildren();
   };
 
@@ -626,7 +764,8 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       summaryEl.appendChild(cell);
     });
 
-    setMapLink(result.landingUrl);
+    // 카카오가 준 결과 링크(도보·대중교통)를 우선 쓰고, 없으면(자동차) 출발·도착으로 만든 링크를 쓴다.
+    setRouteLink(result.landingUrl ?? routeFallbackUrl);
     summaryEl.hidden = false;
   };
 
@@ -651,10 +790,10 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
         origin,
         { latitude: store.latitude, longitude: store.longitude },
       ));
-      drawLines(detail.steps.map((step) => ({
+      const colors = stepColors(detail.steps);
+      drawLines(detail.steps.map((step, stepIndex) => ({
         path: step.path,
-        color: stepColor(step),
-        dashed: step.type === 'WALKING',
+        color: colors[stepIndex],
       })));
       setStatus('');
     } catch (error) {
@@ -675,15 +814,18 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     const route = document.createElement('span');
     route.className = 'direction-candidate-route';
     const rides = candidate.steps.filter(isRideStep);
-    rides.forEach((step) => {
+    // 도보 구간은 버스 순번에 영향이 없어서 탑승 구간만으로 계산해도 상세 화면과 같은 색이 나온다.
+    const rideColors = stepColors(rides);
+    rides.forEach((step, rideIndex) => {
+      const color = rideColors[rideIndex];
       const row = document.createElement('span');
       row.className = 'direction-candidate-stop';
-      const icon = createRouteIcon({ type: stepIconType(step), color: stepColor(step) }, 'direction-candidate-icon');
+      const icon = createRouteIcon({ type: stepIconType(step), color }, 'direction-candidate-icon');
       const body = document.createElement('span');
       const name = document.createElement('span');
       name.className = 'direction-candidate-stop-name';
       name.textContent = boardStopName(step);
-      body.append(name, createChips(vehicleChips(step)));
+      body.append(name, createChips(vehicleChips(step, color)));
       row.append(icon, body);
       route.appendChild(row);
     });
@@ -722,6 +864,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     clearResults();
     clearRouteOverlays();
     renderTransitCandidates(transitCandidates);
+    setRouteLink(routeFallbackUrl);
     setStatus('');
   };
 
@@ -758,6 +901,11 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       if (myRequestId !== requestId) return;
       places = { origin: originLabel, destination: store.storeName };
       originPicker.setValue(originLabel);
+      routeFallbackUrl = kakaoRouteUrl(
+        { name: originLabel, latitude: origin.latitude, longitude: origin.longitude },
+        { name: store.storeName, latitude: store.latitude, longitude: store.longitude },
+      );
+      setRouteLink(routeFallbackUrl);
 
       if (!results.length) {
         setStatus('경로를 찾을 수 없습니다.', true);
@@ -859,7 +1007,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     panel.classList.remove('open');
     clearRouteOverlays();
     clearEndpoints();
-    setMapLink(null);
+    routeFallbackUrl = null;
     currentStore = null;
     closeTimeoutId = window.setTimeout(() => {
       if (!panel.classList.contains('open')) panel.hidden = true;
@@ -872,6 +1020,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   closeButton.addEventListener('click', close);
   listBackButton.addEventListener('click', showTransitCandidates);
   searchButton.addEventListener('click', handleSearchClick);
+  stepsToggleEl.addEventListener('click', toggleSteps);
 
   const openForStore = (store: Store) => {
     window.clearTimeout(closeTimeoutId);
@@ -893,10 +1042,10 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     closeButton.removeEventListener('click', close);
     listBackButton.removeEventListener('click', showTransitCandidates);
     searchButton.removeEventListener('click', handleSearchClick);
+    stepsToggleEl.removeEventListener('click', toggleSteps);
     originPicker.dispose();
     clearRouteOverlays();
     clearEndpoints();
-    setMapLink(null);
   };
 
   return { openForStore, close, dispose };
