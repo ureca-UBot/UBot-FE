@@ -11,6 +11,7 @@ import { loadKakaoMaps } from './kakao/sdk';
 import type {
   KakaoEventHandler,
   KakaoInfoWindow,
+  KakaoLatLng,
   KakaoMap,
   KakaoMapsApi,
   KakaoMarker,
@@ -115,6 +116,33 @@ export function setupStoreLocator(): () => void {
   let mapInitFrameId: number | undefined;
   let mapIdleHandler: KakaoEventHandler | null = null;
   let mapClickHandler: KakaoEventHandler | null = null;
+  let directionsActive = false;
+  let viewBeforeDirections: { center: KakaoLatLng; level: number } | null = null;
+
+  const setStoreMarkersVisible = (visible: boolean) => {
+    markers.forEach(({ marker }) => marker.setMap(visible ? map : null));
+  };
+
+  const enterDirections = () => {
+    directionsActive = true;
+    infoWindow?.close();
+    hideViewportSearch();
+    setStoreMarkersVisible(false);
+    if (map) viewBeforeDirections = { center: map.getCenter(), level: map.getLevel() };
+  };
+
+  const exitDirections = () => {
+    directionsActive = false;
+    setStoreMarkersVisible(true);
+    if (map && viewBeforeDirections) {
+      suppressViewportUntil = Date.now() + 800;
+      map.setLevel(viewBeforeDirections.level);
+      map.setCenter(viewBeforeDirections.center);
+    }
+    viewBeforeDirections = null;
+    const selected = stores.find((store) => store.storeId === selectedStoreId);
+    if (selected) selectStore(selected, { moveMap: false });
+  };
 
   const getDirectionsOrigin = (): Promise<{ latitude: number; longitude: number }> => new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -132,6 +160,8 @@ export function setupStoreLocator(): () => void {
     getMap: () => map,
     getMaps: () => maps,
     getOrigin: getDirectionsOrigin,
+    onEnter: enterDirections,
+    onExit: exitDirections,
   });
 
   const showViewportSearch = () => {
@@ -381,6 +411,7 @@ export function setupStoreLocator(): () => void {
       markers.push({ storeId: store.storeId, marker, clickHandler });
     });
 
+    if (directionsActive) return;
     markers.forEach(({ marker }) => marker.setMap(currentMap));
 
     if (selectedStoreId) {
@@ -473,7 +504,7 @@ export function setupStoreLocator(): () => void {
 
     clusters.forEach((cluster, index) => {
       const marker = new currentMaps.Marker({
-        map: currentMap,
+        map: directionsActive ? undefined : currentMap,
         position: new currentMaps.LatLng(cluster.latitude, cluster.longitude),
         title: `매장 ${cluster.count}곳`,
         image: createClusterMarkerImage(cluster.count),
@@ -627,6 +658,7 @@ export function setupStoreLocator(): () => void {
         createdMap.addControl(new loadedMaps.ZoomControl(), loadedMaps.ControlPosition.RIGHT);
         infoWindow = new loadedMaps.InfoWindow({ zIndex: 5 });
         mapIdleHandler = () => {
+          if (directionsActive) return;
           if (Date.now() < suppressViewportUntil) return;
           if (keepMapInsideKorea()) return;
 
@@ -691,6 +723,7 @@ export function setupStoreLocator(): () => void {
       return;
     }
 
+    directionsController.close();
     searchButton.disabled = true;
     setStatus(`“${query}” 위치를 찾고 있습니다.`);
     try {
@@ -713,6 +746,7 @@ export function setupStoreLocator(): () => void {
   const searchStoresByRegion = async (page = 0) => {
     const sido = sidoSelect?.value.trim() || '';
     const sigungu = sigunguSelect?.value.trim() || '';
+    directionsController.close();
     viewportAbortController?.abort();
     viewportAbortController = null;
     lastViewportRequestKey = '';
@@ -758,6 +792,7 @@ export function setupStoreLocator(): () => void {
       return;
     }
 
+    directionsController.close();
     if (locationButton) locationButton.disabled = true;
     setStatus('현재 위치를 확인하고 있습니다.');
     navigator.geolocation.getCurrentPosition(

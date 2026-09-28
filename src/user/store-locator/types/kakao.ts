@@ -103,6 +103,17 @@ export interface KakaoMapsApi {
         address: string,
         callback: (results: Array<{ x: string; y: string }>, status: string) => void,
       ): void;
+      coord2Address(
+        longitude: number,
+        latitude: number,
+        callback: (
+          results: Array<{
+            address: { address_name: string } | null;
+            road_address: { address_name: string } | null;
+          }>,
+          status: string,
+        ) => void,
+      ): void;
     };
     Status: { OK: string };
   };

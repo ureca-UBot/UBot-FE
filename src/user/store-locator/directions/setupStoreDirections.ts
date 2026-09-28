@@ -7,8 +7,11 @@ type GuideKind = 'start' | 'end' | 'step';
 
 const GUIDE_MARKER_Z = 3;
 const GUIDE_MARKER_ACTIVE_Z = 6;
+const ENDPOINT_MARKER_Z = 8;
 const GUIDE_POPUP_Z = 10;
 const GUIDE_FOCUS_MAX_LEVEL = 4;
+const ORIGIN_FALLBACK_LABEL = '현재 위치';
+const REVERSE_GEOCODE_TIMEOUT_MS = 3000;
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
@@ -103,12 +106,25 @@ function createGuideIcon(type: GuideIconType, className: string) {
   return wrapper;
 }
 
-function describeGuide(guide: CarGuide, kind: GuideKind) {
-  if (kind === 'start') return '출발';
-  const action = kind === 'end' ? '목적지 도착' : (guide.guidance || '직진');
+interface RoutePlaces {
+  origin: string;
+  destination: string;
+}
+
+function describeGuide(guide: CarGuide, kind: GuideKind, places: RoutePlaces) {
+  if (kind === 'start') return `출발 · ${places.origin}`;
+  if (kind === 'end') return `도착 · ${places.destination}`;
+  const action = guide.guidance || '직진';
   if (!guide.distanceMeters) return action;
   const road = guide.name && !/출발지|목적지/.test(guide.name) ? `${guide.name} ` : '';
   return `${road}${formatDistance(guide.distanceMeters)} 이동, ${action}`;
+}
+
+function describeGuideMeta(guide: CarGuide, kind: GuideKind) {
+  const parts: string[] = [];
+  if (kind === 'end' && guide.distanceMeters > 0) parts.push(`${formatDistance(guide.distanceMeters)} 이동`);
+  if (guide.durationSeconds > 0) parts.push(`약 ${formatDuration(guide.durationSeconds)}`);
+  return parts.join(' · ');
 }
 
 function createIconButton(text: string, ariaLabel: string, onClick: () => void, disabled = false) {
@@ -125,15 +141,19 @@ interface DirectionsControllerDeps {
   getMap: () => KakaoMap | null;
   getMaps: () => KakaoMapsApi | null;
   getOrigin: () => Promise<{ latitude: number; longitude: number }>;
+  onEnter?: () => void;
+  onExit?: () => void;
 }
 
 export interface DirectionsController {
   openForStore(store: Store): void;
+  close(): void;
   dispose(): void;
 }
 
 const NOOP_CONTROLLER: DirectionsController = {
   openForStore: () => {},
+  close: () => {},
   dispose: () => {},
 };
 
@@ -165,6 +185,71 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   let guideMarkers: Array<{ overlay: KakaoCustomOverlay; element: HTMLElement } | null> = [];
   let guidePopup: KakaoCustomOverlay | null = null;
   let activeGuideIndex = -1;
+  let endpointMarkers: KakaoCustomOverlay[] = [];
+  let originAddress: { key: string; label: string } | null = null;
+  let places: RoutePlaces = { origin: ORIGIN_FALLBACK_LABEL, destination: '' };
+
+  const resolveOriginLabel = (origin: { latitude: number; longitude: number }) => new Promise<string>((resolve) => {
+    const key = `${origin.latitude.toFixed(5)},${origin.longitude.toFixed(5)}`;
+    if (originAddress?.key === key) {
+      resolve(originAddress.label);
+      return;
+    }
+    const maps = deps.getMaps();
+    if (!maps) {
+      resolve(ORIGIN_FALLBACK_LABEL);
+      return;
+    }
+
+    let settled = false;
+    const timeoutId = window.setTimeout(() => {
+      settled = true;
+      resolve(ORIGIN_FALLBACK_LABEL);
+    }, REVERSE_GEOCODE_TIMEOUT_MS);
+    new maps.services.Geocoder().coord2Address(origin.longitude, origin.latitude, (results, status) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      const first = status === maps.services.Status.OK ? results[0] : undefined;
+      const label = first?.road_address?.address_name || first?.address?.address_name || ORIGIN_FALLBACK_LABEL;
+      originAddress = { key, label };
+      resolve(label);
+    });
+  });
+
+  const clearEndpoints = () => {
+    endpointMarkers.forEach((overlay) => overlay.setMap(null));
+    endpointMarkers = [];
+  };
+
+  const showEndpoints = (origin: { latitude: number; longitude: number }, store: Store) => {
+    clearEndpoints();
+    const maps = deps.getMaps();
+    const map = deps.getMap();
+    if (!maps || !map) return;
+
+    const endpoints = [
+      { kind: 'start', label: '출발', latitude: origin.latitude, longitude: origin.longitude },
+      { kind: 'end', label: '도착', latitude: store.latitude, longitude: store.longitude },
+    ];
+    endpoints.forEach(({ kind, label, latitude, longitude }) => {
+      const element = document.createElement('div');
+      element.className = `direction-endpoint-marker ${kind}`;
+      const text = document.createElement('span');
+      text.textContent = label;
+      const tail = document.createElement('i');
+      element.append(text, tail);
+      const overlay = new maps.CustomOverlay({
+        position: new maps.LatLng(latitude, longitude),
+        content: element,
+        xAnchor: 0.5,
+        yAnchor: 1,
+        zIndex: ENDPOINT_MARKER_Z,
+      });
+      overlay.setMap(map);
+      endpointMarkers.push(overlay);
+    });
+  };
 
   const clearPolyline = () => {
     polyline?.setMap(null);
@@ -212,7 +297,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     const icon = createGuideIcon(guideIconType(guide, kind), 'direction-guide-icon');
     const text = document.createElement('span');
     text.className = 'direction-guide-popup-text';
-    text.textContent = describeGuide(guide, kind);
+    text.textContent = describeGuide(guide, kind, places);
 
     const nav = document.createElement('div');
     nav.className = 'direction-guide-popup-nav';
@@ -344,7 +429,8 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     nextGuides.forEach((guide, index) => {
       const kind = guideKind(nextGuides, index);
       const label = labels[index];
-      const description = describeGuide(guide, kind);
+      const description = describeGuide(guide, kind, places);
+      const metaText = describeGuideMeta(guide, kind);
 
       const item = document.createElement('button');
       item.type = 'button';
@@ -359,9 +445,9 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       text.className = 'direction-guide-text';
       text.textContent = description;
       body.appendChild(text);
-      if (guide.durationSeconds > 0) {
+      if (metaText) {
         const meta = document.createElement('small');
-        meta.textContent = `약 ${formatDuration(guide.durationSeconds)}`;
+        meta.textContent = metaText;
         body.appendChild(meta);
       }
       item.append(number, icon, body);
@@ -369,7 +455,8 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       stepsEl.appendChild(item);
       guideItems.push(item);
 
-      if (!maps || !map || !guide.point) {
+      // 출발·도착 지점은 showEndpoints()의 핀 마커가 대신 표시한다.
+      if (kind !== 'step' || !maps || !map || !guide.point) {
         guideMarkers.push(null);
         return;
       }
@@ -506,9 +593,14 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       const origin = currentOrigin ?? await deps.getOrigin();
       if (myRequestId !== requestId) return;
       currentOrigin = origin;
+      showEndpoints(origin, store);
 
-      const results = await getStoreDirections(store.storeId, currentMode, origin.latitude, origin.longitude);
+      const [results, originLabel] = await Promise.all([
+        getStoreDirections(store.storeId, currentMode, origin.latitude, origin.longitude),
+        resolveOriginLabel(origin),
+      ]);
       if (myRequestId !== requestId) return;
+      places = { origin: originLabel, destination: store.storeName };
 
       if (!results.length) {
         setStatus('경로를 찾을 수 없습니다.', true);
@@ -543,13 +635,18 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   };
 
   const close = () => {
+    if (!currentStore) return;
     window.clearTimeout(closeTimeoutId);
+    // 진행 중인 조회가 닫힌 뒤에 결과·마커를 다시 그리지 않도록 무효화한다.
+    requestId += 1;
     panel.classList.remove('open');
     clearRouteOverlays();
+    clearEndpoints();
     currentStore = null;
     closeTimeoutId = window.setTimeout(() => {
       if (!panel.classList.contains('open')) panel.hidden = true;
     }, 240);
+    deps.onExit?.();
   };
 
   modeTabs.addEventListener('click', handleModeClick);
@@ -558,6 +655,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
 
   const openForStore = (store: Store) => {
     window.clearTimeout(closeTimeoutId);
+    if (!currentStore) deps.onEnter?.();
     currentStore = store;
     currentMode = 'CAR';
     destNameEl.textContent = store.storeName;
@@ -574,7 +672,8 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     backButton.removeEventListener('click', close);
     closeButton.removeEventListener('click', close);
     clearRouteOverlays();
+    clearEndpoints();
   };
 
-  return { openForStore, dispose };
+  return { openForStore, close, dispose };
 }
