@@ -1152,3 +1152,35 @@ to{transform:scaleX(1)}
 .ubot-user-app .direction-step-head span{font-size:12px;font-weight:700}
 .ubot-user-app .direction-step small{display:block;margin-top:4px;color:#84878e;font-size:10px}
 .ubot-user-app .direction-step-vehicles{color:#1677ff!important;font-weight:700}
+
+/* 자동차 경로 안내 — 번호 목록 + 지도 번호 마커 + 안내 말풍선 */
+.ubot-user-app .direction-guide-item{display:grid;grid-template-columns:34px 30px minmax(0,1fr);align-items:start;width:100%;padding:10px 12px;gap:8px;border:1px solid #ececef;border-radius:12px;background:#fff;text-align:left;cursor:pointer;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}
+.ubot-user-app .direction-guide-item:hover{border-color:#8dbfff;background:#f6faff}
+.ubot-user-app .direction-guide-item.active{border-color:#1677ff;background:#f3f8ff;box-shadow:inset 3px 0 0 #1677ff}
+.ubot-user-app .direction-guide-no{display:grid;justify-self:start;min-width:24px;height:24px;padding:0 5px;place-items:center;border:2px solid #1677ff;border-radius:999px;color:#1677ff;background:#fff;font-size:10px;font-weight:900}
+.ubot-user-app .direction-guide-no.start{color:#fff;background:#1677ff}
+.ubot-user-app .direction-guide-no.end{border-color:var(--pink-dark);color:#fff;background:var(--pink)}
+.ubot-user-app .direction-guide-item.active .direction-guide-no.step{color:#fff;background:#1677ff}
+.ubot-user-app .direction-guide-icon{display:grid;width:30px;height:30px;place-items:center;border-radius:9px;color:#1677ff;background:#eaf3ff}
+.ubot-user-app .direction-guide-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.ubot-user-app .direction-guide-icon svg.filled{fill:currentColor;stroke:none}
+.ubot-user-app .direction-guide-item.active .direction-guide-icon{color:#fff;background:#1677ff}
+.ubot-user-app .direction-guide-body{min-width:0;padding-top:5px}
+.ubot-user-app .direction-guide-text{display:block;color:#1b1c1f;font-size:12px;font-weight:700;line-height:1.45}
+.ubot-user-app .direction-guide-body small{display:block;margin-top:3px;color:#84878e;font-size:10px}
+.ubot-user-app .direction-guide-marker{display:grid;min-width:24px;height:24px;padding:0 5px;place-items:center;border:2px solid #1677ff;border-radius:999px;color:#1677ff;background:#fff;box-shadow:0 2px 6px rgba(23,23,26,.25);font-size:11px;font-weight:900;line-height:1;cursor:pointer;transition:transform .15s ease,background .15s ease,color .15s ease}
+.ubot-user-app .direction-guide-marker:hover{transform:scale(1.12)}
+.ubot-user-app .direction-guide-marker.start{color:#fff;background:#1677ff}
+.ubot-user-app .direction-guide-marker.end{border-color:var(--pink-dark);color:#fff;background:var(--pink)}
+.ubot-user-app .direction-guide-marker.active{color:#fff;background:#1677ff;transform:scale(1.25)}
+.ubot-user-app .direction-guide-marker.end.active{background:var(--pink-dark)}
+.ubot-user-app .direction-guide-popup{position:relative;bottom:22px;display:flex;align-items:center;width:max-content;min-width:230px;max-width:min(460px,80vw);padding:10px 8px 10px 16px;gap:10px;border-radius:12px;background:#fff;box-shadow:0 10px 28px rgba(23,23,26,.2)}
+.ubot-user-app .direction-guide-popup:before{position:absolute;top:10px;bottom:10px;left:0;width:3px;border-radius:0 3px 3px 0;background:#1677ff;content:""}
+.ubot-user-app .direction-guide-popup:after{position:absolute;bottom:-5px;left:50%;width:10px;height:10px;background:#fff;transform:translateX(-50%) rotate(45deg);content:""}
+.ubot-user-app .direction-guide-popup .direction-guide-icon{flex:0 0 auto}
+.ubot-user-app .direction-guide-popup-text{flex:1 1 auto;min-width:0;color:#1b1c1f;font-size:12px;font-weight:700;line-height:1.4;white-space:normal;word-break:keep-all}
+.ubot-user-app .direction-guide-popup-nav{display:flex;flex:0 0 auto;gap:4px}
+.ubot-user-app .direction-guide-popup button{display:grid;width:24px;height:24px;padding:0;place-items:center;border:1px solid #d9dce2;border-radius:50%;color:#4f535b;background:#fff;font-size:14px;line-height:1;cursor:pointer}
+.ubot-user-app .direction-guide-popup button:hover:not(:disabled){border-color:#8dbfff;color:#075fc7;background:#f3f8ff}
+.ubot-user-app .direction-guide-popup button:disabled{cursor:default;opacity:.35}
+.ubot-user-app .direction-guide-popup .direction-guide-popup-close{align-self:flex-start;border:0;color:#8b8e95;font-size:16px}

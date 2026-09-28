@@ -32,6 +32,13 @@ export interface KakaoPolyline {
   setPath(path: KakaoLatLng[]): void;
 }
 
+export interface KakaoCustomOverlay {
+  setMap(map: KakaoMap | null): void;
+  setPosition(position: KakaoLatLng): void;
+  setContent(content: HTMLElement | string): void;
+  setZIndex(zIndex: number): void;
+}
+
 export interface KakaoMap {
   addControl(control: object, position: unknown): void;
   getBounds(): KakaoBounds;
@@ -76,6 +83,14 @@ export interface KakaoMapsApi {
     strokeOpacity?: number;
     strokeStyle?: string;
   }) => KakaoPolyline;
+  CustomOverlay: new (options: {
+    position: KakaoLatLng;
+    content: HTMLElement | string;
+    xAnchor?: number;
+    yAnchor?: number;
+    zIndex?: number;
+    clickable?: boolean;
+  }) => KakaoCustomOverlay;
   ZoomControl: new () => object;
   ControlPosition: { RIGHT: unknown };
   event: {

@@ -1,7 +1,14 @@
 import { getStoreDirections, getTransitDetail } from '../api/directions';
-import type { KakaoMap, KakaoMapsApi, KakaoPolyline } from '../types/kakao';
+import type { KakaoCustomOverlay, KakaoMap, KakaoMapsApi, KakaoPolyline } from '../types/kakao';
 import type { Store } from '../types/store';
-import type { DirectionsMode, DirectionsResult } from '../types/directions';
+import type { CarGuide, DirectionsMode, DirectionsResult } from '../types/directions';
+
+type GuideKind = 'start' | 'end' | 'step';
+
+const GUIDE_MARKER_Z = 3;
+const GUIDE_MARKER_ACTIVE_Z = 6;
+const GUIDE_POPUP_Z = 10;
+const GUIDE_FOCUS_MAX_LEVEL = 4;
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
@@ -35,6 +42,83 @@ function transitTypeLabel(type: string | undefined) {
   if (type === 'BUS') return '버스';
   if (type === 'SUBWAY') return '지하철';
   return '버스+지하철';
+}
+
+// 카카오는 경로 첫/마지막 guide로 출발지·목적지를 함께 내려준다.
+function guideKind(guides: CarGuide[], index: number): GuideKind {
+  const guidance = guides[index].guidance ?? '';
+  if (index === 0 && /출발/.test(guidance)) return 'start';
+  if (index === guides.length - 1 && /목적지|도착/.test(guidance)) return 'end';
+  return 'step';
+}
+
+// 출발·도착은 번호에서 빼고, 중간 안내만 1부터 센다.
+function guideLabels(guides: CarGuide[]) {
+  let stepNumber = 0;
+  return guides.map((_, index) => {
+    const kind = guideKind(guides, index);
+    if (kind === 'start') return '출발';
+    if (kind === 'end') return '도착';
+    stepNumber += 1;
+    return String(stepNumber);
+  });
+}
+
+type GuideIconType = 'start' | 'end' | 'straight' | 'left' | 'right' | 'uturn';
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+const GUIDE_ICON_PATHS: Record<GuideIconType, { paths: string[]; filled?: boolean }> = {
+  start: { paths: ['M12 7a5 5 0 1 1 0 10a5 5 0 1 1 0-10z'], filled: true },
+  end: { paths: ['M6 21V4', 'M6 4h11l-2.5 4 2.5 4H6'] },
+  straight: { paths: ['M12 20V5', 'M6.5 10.5 12 5l5.5 5.5'] },
+  right: { paths: ['M7 20v-7a4 4 0 0 1 4-4h8', 'M15 5l4 4-4 4'] },
+  left: { paths: ['M17 20v-7a4 4 0 0 0-4-4H5', 'M9 5 5 9l4 4'] },
+  uturn: { paths: ['M16 20V9a4 4 0 0 0-8 0v7', 'M4.5 12.5 8 16l3.5-3.5'] },
+};
+
+function guideIconType(guide: CarGuide, kind: GuideKind): GuideIconType {
+  if (kind === 'start' || kind === 'end') return kind;
+  const guidance = guide.guidance ?? '';
+  if (/유턴/.test(guidance)) return 'uturn';
+  if (/좌/.test(guidance)) return 'left';
+  if (/우/.test(guidance)) return 'right';
+  return 'straight';
+}
+
+function createGuideIcon(type: GuideIconType, className: string) {
+  const wrapper = document.createElement('span');
+  wrapper.className = className;
+  wrapper.setAttribute('aria-hidden', 'true');
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  const { paths, filled } = GUIDE_ICON_PATHS[type];
+  paths.forEach((d) => {
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', d);
+    svg.appendChild(path);
+  });
+  if (filled) svg.classList.add('filled');
+  wrapper.appendChild(svg);
+  return wrapper;
+}
+
+function describeGuide(guide: CarGuide, kind: GuideKind) {
+  if (kind === 'start') return '출발';
+  const action = kind === 'end' ? '목적지 도착' : (guide.guidance || '직진');
+  if (!guide.distanceMeters) return action;
+  const road = guide.name && !/출발지|목적지/.test(guide.name) ? `${guide.name} ` : '';
+  return `${road}${formatDistance(guide.distanceMeters)} 이동, ${action}`;
+}
+
+function createIconButton(text: string, ariaLabel: string, onClick: () => void, disabled = false) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = text;
+  button.setAttribute('aria-label', ariaLabel);
+  button.disabled = disabled;
+  button.addEventListener('click', onClick);
+  return button;
 }
 
 interface DirectionsControllerDeps {
@@ -76,11 +160,101 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   let requestId = 0;
   let polyline: KakaoPolyline | null = null;
   let closeTimeoutId: number | undefined;
+  let guides: CarGuide[] = [];
+  let guideItems: HTMLButtonElement[] = [];
+  let guideMarkers: Array<{ overlay: KakaoCustomOverlay; element: HTMLElement } | null> = [];
+  let guidePopup: KakaoCustomOverlay | null = null;
+  let activeGuideIndex = -1;
 
   const clearPolyline = () => {
     polyline?.setMap(null);
     polyline = null;
   };
+
+  const clearGuides = () => {
+    guideMarkers.forEach((marker) => marker?.overlay.setMap(null));
+    guidePopup?.setMap(null);
+    guides = [];
+    guideItems = [];
+    guideMarkers = [];
+    guidePopup = null;
+    activeGuideIndex = -1;
+  };
+
+  const clearRouteOverlays = () => {
+    clearPolyline();
+    clearGuides();
+  };
+
+  const setGuideActive = (index: number, active: boolean) => {
+    const item = guideItems[index];
+    const marker = guideMarkers[index];
+    item?.classList.toggle('active', active);
+    if (active) item?.setAttribute('aria-current', 'step');
+    else item?.removeAttribute('aria-current');
+    marker?.element.classList.toggle('active', active);
+    marker?.overlay.setZIndex(active ? GUIDE_MARKER_ACTIVE_Z : GUIDE_MARKER_Z);
+  };
+
+  const closeGuidePopup = () => {
+    guidePopup?.setMap(null);
+    guidePopup = null;
+    if (activeGuideIndex !== -1) setGuideActive(activeGuideIndex, false);
+    activeGuideIndex = -1;
+  };
+
+  const buildGuidePopup = (index: number) => {
+    const guide = guides[index];
+    const kind = guideKind(guides, index);
+    const root = document.createElement('div');
+    root.className = 'direction-guide-popup';
+
+    const icon = createGuideIcon(guideIconType(guide, kind), 'direction-guide-icon');
+    const text = document.createElement('span');
+    text.className = 'direction-guide-popup-text';
+    text.textContent = describeGuide(guide, kind);
+
+    const nav = document.createElement('div');
+    nav.className = 'direction-guide-popup-nav';
+    nav.append(
+      createIconButton('‹', '이전 안내', () => selectGuide(index - 1), index === 0),
+      createIconButton('›', '다음 안내', () => selectGuide(index + 1), index === guides.length - 1),
+    );
+    const close = createIconButton('×', '안내 닫기', closeGuidePopup);
+    close.className = 'direction-guide-popup-close';
+
+    root.append(icon, text, nav, close);
+    return root;
+  };
+
+  function selectGuide(index: number) {
+    const guide = guides[index];
+    if (!guide) return;
+
+    if (activeGuideIndex !== -1) setGuideActive(activeGuideIndex, false);
+    activeGuideIndex = index;
+    setGuideActive(index, true);
+    guideItems[index]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+    guidePopup?.setMap(null);
+    guidePopup = null;
+    const maps = deps.getMaps();
+    const map = deps.getMap();
+    if (!maps || !map || !guide.point) return;
+
+    const position = new maps.LatLng(guide.point.latitude, guide.point.longitude);
+    guidePopup = new maps.CustomOverlay({
+      position,
+      content: buildGuidePopup(index),
+      xAnchor: 0.5,
+      yAnchor: 1,
+      zIndex: GUIDE_POPUP_Z,
+      clickable: true,
+    });
+    guidePopup.setMap(map);
+    if (map.getLevel() > GUIDE_FOCUS_MAX_LEVEL) map.setLevel(GUIDE_FOCUS_MAX_LEVEL);
+    map.panTo(position);
+  }
 
   const drawPath = (path: DirectionsResult['path']) => {
     const maps = deps.getMaps();
@@ -154,26 +328,68 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     stepsEl.hidden = false;
   };
 
-  const renderCarGuides = (guides: NonNullable<DirectionsResult['carInfo']>['guides']) => {
+  const renderCarGuides = (nextGuides: CarGuide[]) => {
+    clearGuides();
     stepsEl.replaceChildren();
-    if (!guides.length) {
+    if (!nextGuides.length) {
       stepsEl.hidden = true;
       return;
     }
 
-    guides.forEach((guide) => {
-      const item = document.createElement('div');
-      item.className = 'direction-step';
-      const head = document.createElement('div');
-      head.className = 'direction-step-head';
-      const guidance = document.createElement('span');
-      guidance.textContent = guide.guidance || guide.name;
-      head.appendChild(guidance);
-      const meta = document.createElement('small');
-      meta.textContent = `${formatDistance(guide.distanceMeters)} · ${formatDuration(guide.durationSeconds)}`;
-      item.append(head, meta);
+    guides = nextGuides;
+    const maps = deps.getMaps();
+    const map = deps.getMap();
+    const labels = guideLabels(nextGuides);
+
+    nextGuides.forEach((guide, index) => {
+      const kind = guideKind(nextGuides, index);
+      const label = labels[index];
+      const description = describeGuide(guide, kind);
+
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'direction-guide-item';
+      const number = document.createElement('span');
+      number.className = `direction-guide-no ${kind}`;
+      number.textContent = label;
+      const icon = createGuideIcon(guideIconType(guide, kind), 'direction-guide-icon');
+      const body = document.createElement('span');
+      body.className = 'direction-guide-body';
+      const text = document.createElement('span');
+      text.className = 'direction-guide-text';
+      text.textContent = description;
+      body.appendChild(text);
+      if (guide.durationSeconds > 0) {
+        const meta = document.createElement('small');
+        meta.textContent = `약 ${formatDuration(guide.durationSeconds)}`;
+        body.appendChild(meta);
+      }
+      item.append(number, icon, body);
+      item.addEventListener('click', () => selectGuide(index));
       stepsEl.appendChild(item);
+      guideItems.push(item);
+
+      if (!maps || !map || !guide.point) {
+        guideMarkers.push(null);
+        return;
+      }
+      const element = document.createElement('div');
+      element.className = `direction-guide-marker ${kind}`;
+      element.textContent = label;
+      element.title = description;
+      element.addEventListener('click', () => selectGuide(index));
+      const overlay = new maps.CustomOverlay({
+        position: new maps.LatLng(guide.point.latitude, guide.point.longitude),
+        content: element,
+        xAnchor: 0.5,
+        yAnchor: 0.5,
+        zIndex: GUIDE_MARKER_Z,
+        clickable: true,
+      });
+      overlay.setMap(map);
+      guideMarkers.push({ overlay, element });
     });
+
     stepsEl.hidden = false;
   };
 
@@ -282,7 +498,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     if (!currentStore) return;
     const store = currentStore;
     clearResults();
-    clearPolyline();
+    clearRouteOverlays();
     setStatus('경로를 찾고 있습니다.');
     const myRequestId = ++requestId;
 
@@ -329,7 +545,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   const close = () => {
     window.clearTimeout(closeTimeoutId);
     panel.classList.remove('open');
-    clearPolyline();
+    clearRouteOverlays();
     currentStore = null;
     closeTimeoutId = window.setTimeout(() => {
       if (!panel.classList.contains('open')) panel.hidden = true;
@@ -357,7 +573,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     modeTabs.removeEventListener('click', handleModeClick);
     backButton.removeEventListener('click', close);
     closeButton.removeEventListener('click', close);
-    clearPolyline();
+    clearRouteOverlays();
   };
 
   return { openForStore, dispose };

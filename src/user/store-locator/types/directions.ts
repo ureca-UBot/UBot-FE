@@ -37,7 +37,7 @@ export interface CarGuide {
   guidance: string;
   distanceMeters: number;
   durationSeconds: number;
-  point: DirectionsPoint;
+  point: DirectionsPoint | null;
 }
 
 export interface CarInfo {
