@@ -8,7 +8,11 @@ export type RouteIconType =
   | 'crosswalk'
   | 'walk'
   | 'bus'
-  | 'subway';
+  | 'subway'
+  | 'car'
+  | 'search'
+  | 'locate'
+  | 'recent';
 
 export interface RouteIcon {
   type: RouteIconType;
@@ -18,7 +22,8 @@ export interface RouteIcon {
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 // 모든 아이콘은 24x24 viewBox에서 같은 선 굵기로 그려지도록 stroke 기반으로 정의한다.
-const ICON_PATHS: Record<RouteIconType, { paths: string[]; filled?: boolean }> = {
+// JS로 그리는 경로 아이콘과 React 마크업의 버튼 아이콘이 같은 정의를 쓴다.
+export const ROUTE_ICON_PATHS: Record<RouteIconType, { paths: string[]; filled?: boolean }> = {
   start: { paths: ['M12 7a5 5 0 1 1 0 10a5 5 0 1 1 0-10z'], filled: true },
   end: { paths: ['M6 21V4', 'M6 4h11l-2.5 4 2.5 4H6'] },
   straight: { paths: ['M12 20V5', 'M6.5 10.5 12 5l5.5 5.5'] },
@@ -55,6 +60,21 @@ const ICON_PATHS: Record<RouteIconType, { paths: string[]; filled?: boolean }> =
       'M15 17l2 4',
     ],
   },
+  car: {
+    paths: [
+      'M4 17v-5l2.2-5.2A2 2 0 0 1 8 5.5h8a2 2 0 0 1 1.8 1.3L20 12v5z',
+      'M4 12h16',
+      'M7 17v2',
+      'M17 17v2',
+      'M7.5 14.5h.01',
+      'M16.5 14.5h.01',
+    ],
+  },
+  search: { paths: ['M11 18a7 7 0 1 1 0-14a7 7 0 1 1 0 14z', 'M20 20l-4-4'] },
+  locate: {
+    paths: ['M12 16a4 4 0 1 1 0-8a4 4 0 1 1 0 8z', 'M12 2.5v3', 'M12 18.5v3', 'M2.5 12h3', 'M18.5 12h3'],
+  },
+  recent: { paths: ['M12 21a9 9 0 1 1 0-18a9 9 0 1 1 0 18z', 'M12 7.5V12l3 2'] },
 };
 
 // 도보 안내는 지명이 섞인 문장이라 '우체국'의 '우'처럼 한 글자로 판정하면 오탐이 난다.
@@ -78,7 +98,7 @@ export function createRouteIcon(icon: RouteIcon, className: string) {
 
   const svg = document.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
-  const { paths, filled } = ICON_PATHS[icon.type];
+  const { paths, filled } = ROUTE_ICON_PATHS[icon.type];
   paths.forEach((d) => {
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('d', d);

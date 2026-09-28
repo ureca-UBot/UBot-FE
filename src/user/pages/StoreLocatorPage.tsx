@@ -1,8 +1,18 @@
 import { useEffect } from 'react';
+import { ROUTE_ICON_PATHS, type RouteIconType } from '../store-locator/directions/icons';
 import { setupStoreLocator } from '../store-locator/setupStoreLocator';
 
 interface PageProps {
   active: boolean;
+}
+
+function DirectionIcon({ type }: { type: RouteIconType }) {
+  const { paths, filled } = ROUTE_ICON_PATHS[type];
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={filled ? 'filled' : undefined}>
+      {paths.map((d) => <path key={d} d={d} />)}
+    </svg>
+  );
 }
 
 export function StoreLocatorPage({ active }: PageProps) {
@@ -75,10 +85,21 @@ export function StoreLocatorPage({ active }: PageProps) {
                 </div>
                 <button type="button" id="directionCloseButton" className="direction-panel-close" aria-label="닫기">×</button>
               </div>
-              <div className="direction-mode-tabs" id="directionModeTabs" role="tablist">
-                <button type="button" data-mode="CAR" className="active" role="tab">자동차</button>
-                <button type="button" data-mode="TRANSIT" role="tab">대중교통</button>
-                <button type="button" data-mode="WALK" role="tab">도보</button>
+              <div className="direction-origin">
+                <div className="direction-origin-field">
+                  <span className="direction-origin-badge">출발</span>
+                  <input id="directionOriginInput" type="text" placeholder="출발지 검색 (주소, 건물명, 지명)" autoComplete="off" aria-label="출발지" role="combobox" aria-expanded="false" aria-controls="directionOriginResults" aria-autocomplete="list" />
+                  <button type="button" id="directionOriginLocate" className="direction-origin-locate" aria-label="현재 위치를 출발지로 설정" title="현재 위치"><DirectionIcon type="locate" /></button>
+                </div>
+                <ul className="direction-origin-results" id="directionOriginResults" role="listbox" aria-label="출발지 검색 결과" hidden></ul>
+              </div>
+              <div className="direction-controls">
+                <div className="direction-mode-tabs" id="directionModeTabs" role="tablist" aria-label="이동수단">
+                  <button type="button" data-mode="CAR" className="active" role="tab" aria-label="자동차" title="자동차"><DirectionIcon type="car" /></button>
+                  <button type="button" data-mode="TRANSIT" role="tab" aria-label="대중교통" title="대중교통"><DirectionIcon type="bus" /></button>
+                  <button type="button" data-mode="WALK" role="tab" aria-label="도보" title="도보"><DirectionIcon type="walk" /></button>
+                </div>
+                <button type="button" id="directionSearchButton" className="direction-search-button" aria-label="경로 검색" title="경로 검색"><DirectionIcon type="search" /></button>
               </div>
               <div className="direction-panel-body">
                 <p className="direction-status" id="directionStatus" aria-live="polite"></p>

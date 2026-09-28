@@ -1126,9 +1126,42 @@ to{transform:scaleX(1)}
 .ubot-user-app .direction-panel-dest span{display:block;color:var(--pink-dark);font-size:9px;font-weight:900;letter-spacing:.1em}
 .ubot-user-app .direction-panel-dest b{display:block;overflow:hidden;font-size:14px;text-overflow:ellipsis;white-space:nowrap}
 .ubot-user-app .direction-panel-dest small{display:block;overflow:hidden;color:var(--muted);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
-.ubot-user-app .direction-mode-tabs{display:grid;grid-template-columns:repeat(3,1fr);padding:10px;gap:6px;border-bottom:1px solid #ececef}
-.ubot-user-app .direction-mode-tabs button{min-height:38px;border:1px solid #d8d9dd;border-radius:10px;background:#fff;color:#4f535b;font-size:12px;font-weight:800;cursor:pointer}
-.ubot-user-app .direction-mode-tabs button.active{border-color:var(--ink);color:#fff;background:var(--ink)}
+.ubot-user-app .direction-origin{position:relative;padding:10px 10px 0}
+.ubot-user-app .direction-origin-field{display:flex;align-items:center;min-height:42px;padding:0 4px 0 10px;gap:8px;border:1px solid #d8d9dd;border-radius:10px;background:#fff;transition:border-color .15s ease,box-shadow .15s ease}
+.ubot-user-app .direction-origin-field:focus-within{border-color:#8dbfff;box-shadow:0 0 0 3px rgba(22,119,255,.09)}
+.ubot-user-app .direction-origin-badge{flex:0 0 auto;padding:3px 7px;border-radius:999px;color:#fff;background:#1677ff;font-size:10px;font-weight:900;line-height:1.2}
+.ubot-user-app .direction-origin-field input{flex:1;min-width:0;height:40px;padding:0;border:0;outline:0;background:transparent;color:#1b1c1f;font-size:13px}
+.ubot-user-app .direction-origin-locate{display:grid;flex:0 0 auto;width:32px;height:32px;padding:0;place-items:center;border:0;border-radius:8px;color:#383a40;background:#f0f1f4}
+.ubot-user-app .direction-origin-locate:hover:not(:disabled){color:#1677ff;background:#eaf3ff}
+.ubot-user-app .direction-origin-locate:disabled{cursor:default}
+.ubot-user-app .direction-origin-locate.locating{color:#1677ff}
+.ubot-user-app .direction-origin-locate.locating svg{animation:direction-spin 1s linear infinite}
+@keyframes direction-spin{to{transform:rotate(360deg)}}
+/* 탭·검색·현재 위치 버튼의 아이콘 공통 */
+.ubot-user-app .direction-origin-locate svg,.ubot-user-app .direction-mode-tabs svg,.ubot-user-app .direction-search-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ubot-user-app .direction-origin-locate svg{width:18px;height:18px}
+.ubot-user-app .direction-origin-results[hidden]{display:none}
+.ubot-user-app .direction-origin-results{position:absolute;top:calc(100% + 4px);right:10px;left:10px;z-index:20;max-height:280px;padding:6px;margin:0;overflow:auto;list-style:none;border:1px solid #d9dce2;border-radius:12px;background:#fff;box-shadow:0 14px 34px rgba(24,37,58,.16)}
+.ubot-user-app .direction-origin-section{padding:8px 10px 4px;color:#84878e;font-size:10px;font-weight:900;letter-spacing:.02em}
+.ubot-user-app .direction-origin-section:not(:first-child){margin-top:4px;border-top:1px solid #f0f1f4}
+.ubot-user-app .direction-origin-option{display:flex;align-items:center;padding:8px 10px;gap:8px;border-radius:8px;cursor:pointer}
+.ubot-user-app .direction-origin-option:hover,.ubot-user-app .direction-origin-option.active{background:#f3f8ff}
+.ubot-user-app .direction-origin-option-icon{display:grid;flex:0 0 auto;color:#9aa0a6}
+.ubot-user-app .direction-origin-option-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ubot-user-app .direction-origin-option-text{flex:1;min-width:0}
+.ubot-user-app .direction-origin-option-text b{display:block;overflow:hidden;color:#1b1c1f;font-size:12px;font-weight:800;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.ubot-user-app .direction-origin-option-text small{display:block;overflow:hidden;margin-top:2px;color:#84878e;font-size:10px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.ubot-user-app .direction-origin-remove{display:grid;flex:0 0 auto;width:24px;height:24px;padding:0;place-items:center;border:0;border-radius:50%;color:#9aa0a6;background:transparent;font-size:16px;line-height:1}
+.ubot-user-app .direction-origin-remove:hover{color:#c42e53;background:#fff0f3}
+.ubot-user-app .direction-origin-empty{padding:10px;color:var(--muted);font-size:12px}
+.ubot-user-app .direction-controls{display:grid;padding:10px;gap:8px;border-bottom:1px solid #ececef}
+.ubot-user-app .direction-mode-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ubot-user-app .direction-mode-tabs button{display:grid;min-height:40px;place-items:center;border:1px solid #d8d9dd;border-radius:10px;color:#1677ff;background:#fff;cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.ubot-user-app .direction-mode-tabs button:hover:not(.active){border-color:#8dbfff;background:#f6faff}
+.ubot-user-app .direction-mode-tabs button.active{border-color:#1677ff;background:#eaf3ff;box-shadow:inset 0 0 0 1px #1677ff}
+.ubot-user-app .direction-search-button{display:grid;width:100%;min-height:40px;place-items:center;border:0;border-radius:10px;color:#fff;background:#1677ff;cursor:pointer;transition:background .15s ease}
+.ubot-user-app .direction-search-button:hover:not(:disabled){background:#0968d8}
+.ubot-user-app .direction-search-button:disabled{cursor:default;opacity:.6}
 .ubot-user-app .direction-panel-body{min-height:0;padding:14px 16px 18px;overflow:auto;flex:1}
 .ubot-user-app .direction-status{min-height:18px;margin:0 0 8px;color:var(--muted);font-size:12px}
 .ubot-user-app .direction-status:empty{min-height:0;margin:0}

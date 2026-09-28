@@ -101,7 +101,15 @@ export interface KakaoMapsApi {
     Geocoder: new () => {
       addressSearch(
         address: string,
-        callback: (results: Array<{ x: string; y: string }>, status: string) => void,
+        callback: (
+          results: Array<{
+            x: string;
+            y: string;
+            address_name: string;
+            road_address: { address_name: string } | null;
+          }>,
+          status: string,
+        ) => void,
       ): void;
       coord2Address(
         longitude: number,
@@ -113,6 +121,22 @@ export interface KakaoMapsApi {
           }>,
           status: string,
         ) => void,
+      ): void;
+    };
+    Places: new () => {
+      keywordSearch(
+        keyword: string,
+        callback: (
+          results: Array<{
+            place_name: string;
+            address_name: string;
+            road_address_name: string;
+            x: string;
+            y: string;
+          }>,
+          status: string,
+        ) => void,
+        options?: { size?: number },
       ): void;
     };
     Status: { OK: string };

@@ -151,7 +151,7 @@ export function setupStoreLocator(): () => void {
     }
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => resolve({ latitude: coords.latitude, longitude: coords.longitude }),
-      () => reject(new Error('현재 위치 권한을 허용하면 길찾기를 이용할 수 있습니다.')),
+      () => reject(new Error('현재 위치를 확인할 수 없습니다.')),
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
     );
   });

@@ -10,6 +10,7 @@ import type {
 } from '../types/directions';
 import { formatDistance, formatDuration, formatFare, formatTransitFare } from './format';
 import { createRouteIcon, turnIconType, type RouteIcon } from './icons';
+import { createOriginPicker } from './originPicker';
 import {
   MAX_VEHICLE_CHIPS,
   alightStopName,
@@ -287,10 +288,14 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   const stepsEl = document.querySelector<HTMLElement>('#directionSteps');
   const mapLinkEl = document.querySelector<HTMLAnchorElement>('#directionMapLink');
   const resultBarEl = mapLinkEl?.closest<HTMLElement>('.store-result-bar');
+  const originInput = document.querySelector<HTMLInputElement>('#directionOriginInput');
+  const originLocateButton = document.querySelector<HTMLButtonElement>('#directionOriginLocate');
+  const originResultsEl = document.querySelector<HTMLElement>('#directionOriginResults');
+  const searchButton = document.querySelector<HTMLButtonElement>('#directionSearchButton');
 
   if (!panel || !backButton || !closeButton || !destNameEl || !destAddressEl || !modeTabs || !statusEl
     || !routeHeadEl || !routeHeadInfoEl || !listBackButton || !summaryEl || !candidatesEl || !stepsEl
-    || !mapLinkEl || !resultBarEl) {
+    || !mapLinkEl || !resultBarEl || !originInput || !originLocateButton || !originResultsEl || !searchButton) {
     return NOOP_CONTROLLER;
   }
 
@@ -304,7 +309,8 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
 
   let currentStore: Store | null = null;
   let currentMode: DirectionsMode = 'CAR';
-  let currentOrigin: { latitude: number; longitude: number } | null = null;
+  // label이 null이면 현재 위치에서 온 좌표라 주소를 역지오코딩으로 채운다.
+  let currentOrigin: { latitude: number; longitude: number; label: string | null } | null = null;
   let requestId = 0;
   let closeTimeoutId: number | undefined;
   let polylines: KakaoPolyline[] = [];
@@ -728,18 +734,30 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     setStatus('경로를 찾고 있습니다.');
     const myRequestId = ++requestId;
 
-    try {
-      const origin = currentOrigin ?? await deps.getOrigin();
-      if (myRequestId !== requestId) return;
-      currentOrigin = origin;
-      showEndpoints(origin, store);
+    let origin = currentOrigin;
+    if (!origin) {
+      try {
+        const located = await deps.getOrigin();
+        if (myRequestId !== requestId) return;
+        origin = { ...located, label: null };
+        currentOrigin = origin;
+      } catch (error) {
+        if (myRequestId !== requestId) return;
+        setStatus(`${errorMessage(error)} 출발지를 검색해 주세요.`, true);
+        originPicker.focus();
+        return;
+      }
+    }
 
+    try {
+      showEndpoints(origin, store);
       const [results, originLabel] = await Promise.all([
         getStoreDirections(store.storeId, currentMode, origin.latitude, origin.longitude),
-        resolveOriginLabel(origin),
+        origin.label ?? resolveOriginLabel(origin),
       ]);
       if (myRequestId !== requestId) return;
       places = { origin: originLabel, destination: store.storeName };
+      originPicker.setValue(originLabel);
 
       if (!results.length) {
         setStatus('경로를 찾을 수 없습니다.', true);
@@ -773,6 +791,57 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     }
   };
 
+  const locateOrigin = async () => {
+    originPicker.setLocating(true);
+    try {
+      const located = await deps.getOrigin();
+      currentOrigin = { ...located, label: null };
+      if (currentStore) void loadDirections();
+    } catch (error) {
+      setStatus(`${errorMessage(error)} 출발지를 검색해 주세요.`, true);
+    } finally {
+      originPicker.setLocating(false);
+    }
+  };
+
+  const originPicker = createOriginPicker({
+    input: originInput,
+    locateButton: originLocateButton,
+    results: originResultsEl,
+    getMaps: deps.getMaps,
+    onPick: (candidate) => {
+      currentOrigin = { latitude: candidate.latitude, longitude: candidate.longitude, label: candidate.name };
+      if (currentStore) void loadDirections();
+    },
+    onLocate: () => void locateOrigin(),
+  });
+
+  // 검색 버튼: 입력칸이 비었으면 현재 위치, 지금 출발지 그대로면 선택된 이동수단으로 재검색,
+  // 새로 입력한 글자면 첫 검색 결과를 출발지로 정한 뒤 검색한다.
+  const searchRoute = async () => {
+    if (!currentStore) return;
+    const text = originInput.value.trim();
+    if (!text) {
+      void locateOrigin();
+      return;
+    }
+    if (currentOrigin && text === places.origin) {
+      void loadDirections();
+      return;
+    }
+
+    searchButton.disabled = true;
+    setStatus(`'${text}' 위치를 찾고 있습니다.`);
+    try {
+      const picked = await originPicker.pickFirstMatch(text);
+      if (!picked) setStatus(`'${text}' 검색 결과가 없습니다. 다른 검색어를 입력해 주세요.`, true);
+    } finally {
+      searchButton.disabled = false;
+    }
+  };
+
+  const handleSearchClick = () => void searchRoute();
+
   const handleModeClick = (event: Event) => {
     if (!(event.target instanceof Element)) return;
     const target = event.target.closest<HTMLButtonElement>('button[data-mode]');
@@ -802,6 +871,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   backButton.addEventListener('click', close);
   closeButton.addEventListener('click', close);
   listBackButton.addEventListener('click', showTransitCandidates);
+  searchButton.addEventListener('click', handleSearchClick);
 
   const openForStore = (store: Store) => {
     window.clearTimeout(closeTimeoutId);
@@ -822,6 +892,8 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     backButton.removeEventListener('click', close);
     closeButton.removeEventListener('click', close);
     listBackButton.removeEventListener('click', showTransitCandidates);
+    searchButton.removeEventListener('click', handleSearchClick);
+    originPicker.dispose();
     clearRouteOverlays();
     clearEndpoints();
     setMapLink(null);
