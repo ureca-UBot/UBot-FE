@@ -22,7 +22,7 @@ export interface TransitFare {
 }
 
 export interface TransitInfo {
-  fare: TransitFare;
+  fare: TransitFare | null;
   transfers: number;
   type: string;
 }
@@ -41,7 +41,7 @@ export interface CarGuide {
 }
 
 export interface CarInfo {
-  fare: CarFare;
+  fare: CarFare | null;
   guides: CarGuide[];
 }
 

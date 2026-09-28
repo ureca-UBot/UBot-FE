@@ -42,7 +42,7 @@ export function StoreLocatorPage({ active }: PageProps) {
           <div className="store-help-strip"><span><b>TIP</b> 지도를 움직인 뒤 ‘이 지역 검색’을 누르면 현재 영역의 매장을 보여드려요.</span><span>지역이나 서비스 조건을 선택하면 결과를 더 빠르게 좁힐 수 있습니다.</span></div>
         </section>
         <div className="store-result-bar">
-          <div><b>검색 결과</b><span id="storeResultCount"></span></div>
+          <div><b>검색 결과</b><span id="storeResultCount"></span><a className="direction-map-link" id="directionMapLink" target="_blank" rel="noreferrer" hidden>카카오맵에서 보기 ↗</a></div>
           <p className="store-search-status" id="storeSearchStatus" aria-live="polite">매장 데이터를 불러오는 중입니다.</p>
         </div>
         <div className="stores-grid">
@@ -82,6 +82,10 @@ export function StoreLocatorPage({ active }: PageProps) {
               </div>
               <div className="direction-panel-body">
                 <p className="direction-status" id="directionStatus" aria-live="polite"></p>
+                <div className="direction-route-head" id="directionRouteHead" hidden>
+                  <button type="button" id="directionListBack" className="direction-panel-back" aria-label="경로 목록으로 돌아가기">‹</button>
+                  <span className="direction-candidate-head" id="directionRouteHeadInfo"></span>
+                </div>
                 <div className="direction-summary" id="directionSummary" hidden></div>
                 <div className="direction-candidates" id="directionCandidates" hidden></div>
                 <div className="direction-steps" id="directionSteps" hidden></div>
