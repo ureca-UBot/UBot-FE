@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export function DashboardPage() {
   return (
     <section>
@@ -11,6 +13,7 @@ export function DashboardPage() {
         <article className="dashboard-card"><p className="dashboard-card__label">FAQ 관리</p><p className="dashboard-card__value">바로가기</p></article>
         <article className="dashboard-card"><p className="dashboard-card__label">삭제된 FAQ</p><p className="dashboard-card__value">바로가기</p></article>
         <article className="dashboard-card"><p className="dashboard-card__label">매장 관리</p><p className="dashboard-card__value">준비 중</p></article>
+        <Link className="dashboard-card dashboard-card--link" to="/admin/forbidden-words"><p className="dashboard-card__label">금지어 관리</p><p className="dashboard-card__value">바로가기</p></Link>
       </div>
     </section>
   )
