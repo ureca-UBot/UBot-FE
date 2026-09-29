@@ -52,7 +52,7 @@ UBot 프론트엔드입니다. React 19 · TypeScript · Vite 8 로 만들었습
 - [x] 인기 질문, 새 대화, 문맥 표시 UI
 - [x] 로그인 상태별 대화 세션 UI
 - [x] 시연용 AI 응답 및 오류 재시도 흐름(Mock)
-- [ ] 실제 AI 답변 API 연동
+- [x] 실제 AI 답변 API 연동 (질문 전송·답변 재시도)
 
 #### 매장 찾기
 
@@ -230,3 +230,4 @@ HTTP 클라이언트는 `src/shared/api/client.ts`를 사용합니다. 도메인
 ## 참고 문서
 - 본인이 구현한 파트 정리는 AI에게 맡겨 MD파일로 정리할 수 있도록 하면 다른 팀원이 이해하기 쉽습니다.
 - [관리자 FAQ 작업 정리](docs/ADMIN_FAQ_WORK_SUMMARY.md)
+- [채팅 API 연동 작업 정리 및 테스트 방법](docs/CHAT_API_WORK_SUMMARY.md)

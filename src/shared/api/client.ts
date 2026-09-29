@@ -11,12 +11,14 @@ const REFRESH_PATH = '/api/auth/refresh';
 export class ApiRequestError extends Error {
   readonly code?: string;
   readonly status: number;
+  readonly data?: unknown;
 
-  constructor(message: string, status: number, code?: string) {
+  constructor(message: string, status: number, code?: string, data?: unknown) {
     super(message);
     this.name = 'ApiRequestError';
     this.status = status;
     this.code = code;
+    this.data = data;
   }
 }
 
@@ -91,7 +93,7 @@ async function send<T>(path: string, init: RequestInit, withAuth: boolean): Prom
   const body = (await response.json().catch(() => null)) as ApiResponse<T> | null;
 
   if (!response.ok || !body?.success) {
-    throw new ApiRequestError(body?.message || '요청을 처리하지 못했습니다.', response.status, body?.code);
+    throw new ApiRequestError(body?.message || '요청을 처리하지 못했습니다.', response.status, body?.code, body?.data);
   }
 
   return body.data;
@@ -99,9 +101,10 @@ async function send<T>(path: string, init: RequestInit, withAuth: boolean): Prom
 
 export const apiClient = {
   get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, data?: unknown, withAuth = true) => request<T>(path, {
+  post: <T>(path: string, data?: unknown, withAuth = true, headers?: Record<string, string>) => request<T>(path, {
     method: 'POST',
     ...(data === undefined ? {} : { body: JSON.stringify(data) }),
+    ...(headers === undefined ? {} : { headers }),
   }, withAuth),
   patch: <T>(path: string, data: unknown) => request<T>(path, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),

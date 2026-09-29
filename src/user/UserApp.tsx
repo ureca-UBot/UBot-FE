@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
+import { useCallback, useEffect, useState, type KeyboardEvent, type MouseEvent } from 'react'
+import { useAuth } from '../auth/hooks/useAuth'
+import { useChat } from './ai/hooks/useChat'
 import { useAiDemo } from './ai/useAiDemo'
 import { UserDialogs, type UserDialog } from './components/UserDialogs'
 import { UserLoginModal } from './components/UserLoginModal'
@@ -26,6 +28,10 @@ export default function UserApp() {
   const { page, navigate } = useUserNavigation()
   const { heroIndex, previous, next, goTo } = useHeroCarousel()
   const [loggedIn, setLoggedIn] = useState(false)
+  const { user, isInitializing } = useAuth()
+  const chat = useChat()
+  const { sendQuestion } = chat
+  const [isAiDemo, setIsAiDemo] = useState(false)
   // 실제 로그인한 사용자 이름. 헤더·홈에서 로그인 여부 표시와 MY 이동에 씁니다.
   const memberName = useMyProfile().profile?.name ?? null
   const {
@@ -41,7 +47,6 @@ export default function UserApp() {
   const [activeDialog, setActiveDialog] = useState<UserDialog>(null)
   const [toast, setToast] = useState('')
   const [productTitle, setProductTitle] = useState('Galaxy S26')
-  const pendingAiPrompt = useRef('')
 
   useScrollReveal()
 
@@ -64,20 +69,13 @@ export default function UserApp() {
     return () => window.clearTimeout(timer)
   }, [toast])
 
-  useEffect(() => {
-    if (page !== 'ai' || !pendingAiPrompt.current) return
-    const prompt = pendingAiPrompt.current
-    pendingAiPrompt.current = ''
-    const timer = window.setTimeout(() => void sendAi(prompt), 180)
-    return () => window.clearTimeout(timer)
-  }, [page, sendAi])
-
   const runDemo = useCallback(async (scenario: string) => {
     setActiveDialog(null)
     if (scenario === '9') {
       setActiveDialog('reserve')
       return
     }
+    setIsAiDemo(true)
     if (scenario === '3') markNextFailure()
     if (scenario === '5') {
       setLoggedIn(false)
@@ -111,7 +109,10 @@ export default function UserApp() {
     const route = target.dataset.route
     if (isUserPage(route)) {
       event.preventDefault()
-      if (target.dataset.aiPrompt) pendingAiPrompt.current = target.dataset.aiPrompt
+      if (route === 'ai') {
+        setIsAiDemo(false)
+        if (target.dataset.aiPrompt) void sendQuestion(target.dataset.aiPrompt)
+      }
       navigate(route)
       return
     }
@@ -124,6 +125,8 @@ export default function UserApp() {
 	  routerNavigate('/auth/login')
 	  return
 	}
+    // 실제 채팅의 입력·재시도는 채팅 컴포넌트에서 처리합니다.
+    if (target.closest('[data-live-chat]')) return
     if (target.id === 'demoOpen' || target.id === 'mobileDemoOpen') {
       setActiveDialog('demo')
       return
@@ -168,13 +171,15 @@ export default function UserApp() {
       setProductTitle(target.dataset.productLink)
       navigate('product')
     }
-  }, [goTo, navigate, next, previous, resetConversation, routerNavigate, runDemo, sendAi])
+  }, [goTo, navigate, next, previous, resetConversation, routerNavigate, runDemo, sendAi, sendQuestion])
 
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'Enter' || event.shiftKey || !(event.target instanceof HTMLTextAreaElement)) return
+    if (!isAiDemo || !(event.target instanceof HTMLTextAreaElement)
+      || !event.target.closest('[data-page="ai"]') || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
+    if (event.key !== 'Enter' || event.shiftKey) return
     event.preventDefault()
     void sendAi(event.target.value)
-  }, [sendAi])
+  }, [isAiDemo, sendAi])
 
   const handleLoginSuccess = useCallback(() => {
     setLoggedIn(true)
@@ -194,7 +199,12 @@ export default function UserApp() {
         <BenefitsPage active={page === 'benefits'} />
         <SupportPage active={page === 'support'} />
         <StoreLocatorPage active={page === 'stores'} />
-        <AiPage active={page === 'ai'} loggedIn={loggedIn} chatActive={chatActive} messages={messages} context={context} />
+        <AiPage
+          key={`${isAiDemo ? 'demo' : 'live'}:${user?.id ?? 'guest'}`}
+          active={page === 'ai'} loggedIn={isAiDemo ? loggedIn : Boolean(user)}
+          chatActive={chatActive} messages={messages} context={context}
+          chat={isAiDemo ? undefined : chat} isInitializing={isInitializing} memberName={memberName}
+        />
       </main>
       <MobileBottomNav page={page} />
       <UserDialogs activeDialog={activeDialog} onClose={() => setActiveDialog(null)} />
