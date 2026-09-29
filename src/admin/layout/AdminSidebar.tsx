@@ -4,6 +4,7 @@ const menuItems = [
   { label: '대시보드', to: '/admin/dashboard' },
   { label: 'FAQ 관리', to: '/admin/faqs' },
   { label: '매장 관리', to: '/admin/stores' },
+  { label: '금지어 관리', to: '/admin/forbidden-words' },
 ]
 
 export function AdminSidebar() {
