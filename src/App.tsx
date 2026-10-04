@@ -7,6 +7,7 @@ import { DeletedFaqListPage } from './admin/pages/faq/DeletedFaqListPage'
 import { FaqCategoryListPage } from './admin/pages/faq/FaqCategoryListPage'
 import { StoreListPage } from './admin/pages/store/StoreListPage'
 import { ForbiddenWordListPage } from './admin/pages/forbidden-word/ForbiddenWordListPage'
+import { UnansweredGroupListPage } from './admin/pages/unanswered/UnansweredGroupListPage'
 import { AdminLayout } from './admin/layout/AdminLayout'
 import { RequireAdmin } from './admin/routes/RequireAdmin'
 import { AuthProvider } from './auth/context/AuthProvider'
@@ -40,6 +41,7 @@ function App() {
               </Route>
               <Route path="stores" element={<StoreListPage />} />
               <Route path="forbidden-words" element={<ForbiddenWordListPage />} />
+              <Route path="unanswered-groups" element={<UnansweredGroupListPage />} />
 
               <Route path="*" element={<Navigate replace to="dashboard" />} />
             </Route>
