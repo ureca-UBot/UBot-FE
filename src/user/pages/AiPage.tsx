@@ -23,7 +23,7 @@ interface PageProps {
 export function AiPage({ active, loggedIn, chatActive, messages, context, chat, isInitializing = false, memberName }: PageProps) {
   const [inputVersion, setInputVersion] = useState(0)
   const hasConversation = chat ? chat.turns.length > 0 : chatActive
-  const inputDisabled = chat ? !loggedIn || isInitializing || chat.isPending : false
+  const inputDisabled = chat ? isInitializing || chat.isPending : false
   const startNewChat = chat ? () => {
     chat.resetConversation()
     setInputVersion((current) => current + 1)
@@ -47,7 +47,7 @@ export function AiPage({ active, loggedIn, chatActive, messages, context, chat, 
 
           <section className="ai-center">
             {chat && (isInitializing || !loggedIn) && (
-              <p className="status-line" role="status">{isInitializing ? '로그인 상태를 확인하는 중입니다.' : '질문을 보내려면 로그인이 필요합니다.'}
+              <p className="status-line" role="status">{isInitializing ? '로그인 상태를 확인하는 중입니다.' : '비회원은 질문할 수 있는 횟수가 제한됩니다.'}
                 {!isInitializing && <button className="open-login" type="button">로그인하기</button>}
               </p>
             )}
@@ -84,7 +84,7 @@ export function AiPage({ active, loggedIn, chatActive, messages, context, chat, 
           </section>
 
           <aside className="ai-right desktop-only">
-            <div className="side-context-card"><small>현재 상태</small><b id="rightLoginState">{loggedIn ? '로그인 완료' : '비회원'}</b><p id="rightLoginDesc">{chat ? '로그인한 계정으로 질문하고 답변을 받을 수 있어요.' : loggedIn ? '개인 요금제와 혜택 조회가 가능해요.' : '개인 정보 조회 질문은 로그인 후 이용할 수 있어요.'}</p><button className="open-login">로그인하기</button></div>
+            <div className="side-context-card"><small>현재 상태</small><b id="rightLoginState">{loggedIn ? '로그인 완료' : '비회원'}</b><p id="rightLoginDesc">{chat ? loggedIn ? '로그인한 계정으로 질문하고 답변을 받을 수 있어요.' : '비회원도 질문할 수 있지만 횟수가 제한돼요.' : loggedIn ? '개인 요금제와 혜택 조회가 가능해요.' : '개인 정보 조회 질문은 로그인 후 이용할 수 있어요.'}</p><button className="open-login">로그인하기</button></div>
             <div className="side-context-card"><small>가까운 대리점</small><b>U봇 강남직영점</b><p>현재 위치 기준 420m</p><button data-route="stores">지도에서 보기</button></div>
             <div className="side-context-card muted"><small>대화 세션</small><b id="threadState">{chat ? '현재 화면의 대화' : loggedIn ? 'MEMBER-SESSION' : 'GUEST-8F21'}</b><p>{chat ? '새로고침하면 화면의 대화가 초기화됩니다.' : '로그인 전후 같은 Thread를 유지합니다.'}</p></div>
           </aside>
