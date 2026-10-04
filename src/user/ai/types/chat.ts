@@ -19,4 +19,5 @@ export interface ChatTurn {
   isPending: boolean
   response: ChatResponse | null
   error: string | null
+  errorCode: string | null
 }

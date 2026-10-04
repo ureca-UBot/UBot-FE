@@ -8,6 +8,8 @@ interface ChatMessagesProps {
   onRetry: (turnId: number) => Promise<boolean>
 }
 
+const GUEST_QUESTION_LIMIT_CODE = 'CHAT-017'
+
 // 응답 원본은 유지하고 화면에는 모델의 답변 문장만 표시합니다.
 function getAnswerText(answer = ''): string {
   try {
@@ -48,6 +50,11 @@ export function ChatMessages({ active, turns, disabled, onRetry }: ChatMessagesP
                     <h4>답변을 완료하지 못했습니다.</h4>
                     <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{turn.error}</p>
                     {turn.response && turn.response.attemptCount > 0 && <small>시도 횟수: {turn.response.attemptCount}회</small>}
+                    {turn.errorCode === GUEST_QUESTION_LIMIT_CODE && (
+                      <div className="answer-actions">
+                        <button className="retry-btn primary open-login" type="button">로그인하기</button>
+                      </div>
+                    )}
                     {turn.response?.status === 'FAIL' && turn.response.retryable && turn.response.idempotencyKey && (
                       <div className="answer-actions">
                         <button className="retry-btn primary" type="button" disabled={disabled} onClick={() => void onRetry(turn.id)}>답변 재시도</button>

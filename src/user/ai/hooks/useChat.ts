@@ -48,7 +48,6 @@ export function useChat() {
     if (!session.current || session.current.userId !== userId || activeRequest.current) return false
     let error: string | null = null
     if (isInitializing) error = '로그인 상태를 확인하는 중입니다.'
-    else if (!userId) error = '로그인 후 질문을 보내 주세요.'
     else if (!turn.question) error = '질문을 입력해 주세요.'
     else if (turn.question.length > 4000) error = '질문은 4,000자 이내로 입력해 주세요.'
     if (error) {
@@ -59,7 +58,7 @@ export function useChat() {
     // React가 다시 렌더링되기 전의 연속 클릭도 한 요청으로 제한합니다.
     const requestId = {}
     activeRequest.current = requestId
-    const pendingTurn: ChatTurn = { ...turn, isPending: true, response: null, error: null }
+    const pendingTurn: ChatTurn = { ...turn, isPending: true, response: null, error: null, errorCode: null }
     setState((current) => ({
       ...current,
       error: null,
@@ -70,6 +69,7 @@ export function useChat() {
 
     let response: ChatResponse | null = null
     let responseError: string | null = null
+    let responseErrorCode: string | null = null
     try {
       const result = await request()
       if (isChatResponse(result)) {
@@ -81,6 +81,7 @@ export function useChat() {
     } catch (cause) {
       if (cause instanceof ApiRequestError) {
         responseError = cause.message
+        responseErrorCode = cause.code ?? null
         if (isChatResponse(cause.data) && cause.data.status === 'FAIL') response = cause.data
       } else {
         responseError = '서버 응답을 받지 못했습니다. 연결 상태를 확인해 주세요.'
@@ -93,7 +94,7 @@ export function useChat() {
     setState((current) => current.userId !== userId ? current : {
       ...current,
       turns: current.turns.map((item) => item.id === turn.id
-        ? { ...item, isPending: false, response, error: responseError }
+        ? { ...item, isPending: false, response, error: responseError, errorCode: responseErrorCode }
         : item),
     })
     return true
