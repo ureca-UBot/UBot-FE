@@ -95,6 +95,16 @@
 .forbidden-word-status { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .forbidden-word-status--active { color: #047857; background: #ecfdf5; }
 .forbidden-word-status--inactive { color: #6b7280; background: #f3f4f6; }
+.unanswered-modal { max-height: calc(100vh - 48px); overflow-y: auto; }
+.unanswered-filters { display: flex; flex-wrap: wrap; gap: 12px; }
+.unanswered-status { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.unanswered-status--pending { color: #b45309; background: #fffbeb; }
+.unanswered-status--approved { color: #047857; background: #ecfdf5; }
+.unanswered-status--on_hold { color: #4338ca; background: #eef2ff; }
+.unanswered-status--rejected { color: #6b7280; background: #f3f4f6; }
+.unanswered-question-list { display: grid; gap: 8px; max-height: 240px; overflow-y: auto; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; }
+.unanswered-question-list p { display: grid; gap: 2px; margin: 4px 0; font-size: 14px; }
+.unanswered-question-list small, .unanswered-hint { color: #6b7280; font-size: 12px; }
 .admin-store-tabs { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid #e5e7eb; }
 .admin-store-tab { padding: 10px 14px; border: 0; border-bottom: 2px solid transparent; color: #6b7280; background: transparent; font-size: 14px; font-weight: 700; cursor: pointer; }
 .admin-store-tab:hover { color: #4338ca; }
