@@ -14,6 +14,8 @@ import { AuthProvider } from './auth/context/AuthProvider'
 import { LoginPage } from './auth/pages/LoginPage'
 import { UserSignupPage } from './user/auth/pages/UserSignupPage'
 import { MyProfileProvider } from './user/my/context/MyProfileProvider'
+import { ChatProvider } from './user/ai/context/ChatProvider'
+import { GuestChatSettingsPage } from './admin/pages/guest-chat/GuestChatSettingsPage'
 
 import UserApp from './user/UserApp'
 import './App.css'
@@ -22,6 +24,7 @@ function App() {
   return (
     <HashRouter>
       <AuthProvider>
+        <ChatProvider>
         <Routes>
           {/* 인증 */}
           <Route path="/auth/login" element={<LoginPage />} />
@@ -42,6 +45,7 @@ function App() {
               <Route path="stores" element={<StoreListPage />} />
               <Route path="forbidden-words" element={<ForbiddenWordListPage />} />
               <Route path="unanswered-groups" element={<UnansweredGroupListPage />} />
+              <Route path="guest-chat-settings" element={<GuestChatSettingsPage />} />
 
               <Route path="*" element={<Navigate replace to="dashboard" />} />
             </Route>
@@ -50,6 +54,7 @@ function App() {
           {/* 일반 사용자 - 공개 */}
           <Route path="/*" element={<MyProfileProvider><UserApp /></MyProfileProvider>} />
         </Routes>
+        </ChatProvider>
       </AuthProvider>
     </HashRouter>
   )

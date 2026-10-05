@@ -33,4 +33,4 @@ export interface FaqCategoryResponse { faqCategoryId: number; name: string; crea
 export interface FaqCategoryCreateRequest { name: string }
 export interface FaqCategoryUpdateRequest { afterName: string }
 export interface FaqLogResponse { id: number; questionLogId: number; faqId: number; rank: number; similarity: number; createdAt: string }
-export interface OldFaqResponse { faqId: number; version: number; categoryId: number; question: string; answer: string; createdById: number; updatedById: number; updatedAt: string }
+export interface OldFaqResponse { faqId: number; version: number; categoryId: number; question: string; answer: string; intent: FaqIntent; createdById: number; updatedById: number; updatedAt: string }
