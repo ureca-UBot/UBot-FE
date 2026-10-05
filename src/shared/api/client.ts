@@ -5,6 +5,8 @@ import type { ApiResponse } from '../types/api';
 const apiBaseUrl =
   (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')// 현재 바뀐 api 규칙대로 통일하기위한 변경입니다
 const EXPIRED_ACCESS_TOKEN_CODE = 'JWT-007';
+// JWT-004: 유효하지 않은 access token, JWT-005: 삭제된 유저의 토큰
+const REJECTED_ACCESS_TOKEN_CODES = new Set(['JWT-004', 'JWT-005']);
 // authApi.refresh와 같은 경로입니다. authApi가 이 파일을 import하므로 순환 참조를 피하려고 직접 호출합니다.
 const REFRESH_PATH = '/api/auth/refresh';
 
@@ -64,7 +66,15 @@ async function request<T>(path: string, init: RequestInit = {}, withAuth = true)
   try {
     return await send<T>(path, init, withAuth);
   } catch (error) {
-    if (!withAuth || !(error instanceof ApiRequestError) || error.code !== EXPIRED_ACCESS_TOKEN_CODE) throw error;
+    if (!withAuth || !(error instanceof ApiRequestError)) throw error;
+
+    // 유효하지 않거나 탈퇴한 계정의 토큰은 재발급으로 고칠 수 없으므로 지우고 로그아웃 상태로 돌립니다.
+    if (error.code !== undefined && REJECTED_ACCESS_TOKEN_CODES.has(error.code)) {
+      tokenStorage.clear();
+      sessionExpiredListeners.forEach((listener) => listener());
+      throw error;
+    }
+    if (error.code !== EXPIRED_ACCESS_TOKEN_CODE) throw error;
 
     const result = await refreshTokens();
     if (result === 'refreshed') return send<T>(path, init, withAuth);
