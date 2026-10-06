@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { ChatTurn, FaqAnswerSelection } from '../types/chat'
+import type { ChatIntent, ChatLocation, ChatTurn, FaqAnswerSelection } from '../types/chat'
 
 export interface ChatContextValue {
   turns: ChatTurn[]
@@ -9,6 +9,8 @@ export interface ChatContextValue {
   sendQuestion: (question: string) => Promise<boolean>
   sendFaqAnswer: (faq: FaqAnswerSelection) => Promise<boolean>
   retryAnswer: (turnId: number) => Promise<boolean>
+  // 성공한 답변의 질문을 선택한 의도로 다시 검색합니다. 결과는 해당 turn의 researches에 쌓입니다.
+  researchAnswer: (turnId: number, intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
   resetConversation: () => void
 }
 

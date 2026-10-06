@@ -1,11 +1,15 @@
 import { Fragment, useEffect, useRef } from 'react'
-import type { ChatTurn } from '../types/chat'
+import { CHAT_INTENT_LABELS, type ChatIntent, type ChatLocation, type ChatResearch, type ChatTurn } from '../types/chat'
+import { ResearchIntentButtons } from './ResearchIntentButtons'
 
 interface ChatMessagesProps {
   active: boolean
   turns: ChatTurn[]
   disabled: boolean
+  // 로그인한 회원에게만 의도 선택 버튼을 보여줍니다.
+  canResearch: boolean
   onRetry: (turnId: number) => Promise<boolean>
+  onResearch: (turnId: number, intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
 }
 
 const GUEST_QUESTION_LIMIT_CODE = 'CHAT-017'
@@ -38,7 +42,30 @@ function getAnswerText(answer = ''): string {
   return answer
 }
 
-export function ChatMessages({ active, turns, disabled, onRetry }: ChatMessagesProps) {
+// 원래 답변 아래에 의도별로 다시 검색한 결과를 보여줍니다.
+function ResearchResult({ research }: { research: ChatResearch }) {
+  const label = CHAT_INTENT_LABELS[research.intent]
+
+  return (
+    <div className="research-result">
+      <small className="research-result-title">'{label}' 의도로 다시 검색한 결과</small>
+      {research.isPending ? (
+        <div className="status-line" role="status">'{label}' 의도로 다시 검색하고 있습니다.</div>
+      ) : research.error ? (
+        <div className="chat-card error-card">
+          <div className="chat-card-pad">
+            <h4>다시 검색하지 못했습니다.</h4>
+            <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{research.error}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(research.response?.answer)}</div>
+      )}
+    </div>
+  )
+}
+
+export function ChatMessages({ active, turns, disabled, canResearch, onRetry, onResearch }: ChatMessagesProps) {
   const thread = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -76,7 +103,19 @@ export function ChatMessages({ active, turns, disabled, onRetry }: ChatMessagesP
                   </div>
                 </div>
               ) : (
-                <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(turn.response?.answer)}</div>
+                <>
+                  <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(turn.response?.answer)}</div>
+                  {canResearch && turn.response?.status === 'SUCCESS' && turn.response.idempotencyKey && (
+                    <ResearchIntentButtons
+                      researches={turn.researches}
+                      disabled={disabled}
+                      onResearch={(intent, location) => onResearch(turn.id, intent, location)}
+                    />
+                  )}
+                  {turn.researches.map((research) => (
+                    <ResearchResult key={research.intent} research={research} />
+                  ))}
+                </>
               )}
             </div>
           </div>
