@@ -9,6 +9,7 @@ import type {
   ChatResearchRequest,
   ChatResponse,
   ChatTurn,
+  FaqAnswerSelection,
 } from '../types/chat'
 import { ChatContext, type ChatContextValue } from './ChatContext'
 
@@ -166,6 +167,34 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     return runRequest({ id: ++nextTurnId.current, question }, () => chatApi.createQuestion({ question }))
   }, [runRequest])
 
+  // 랭킹 API는 FAQ ID와 검증된 질문·답변을 함께 내려주므로 AI 생성 요청 없이 바로 대화에 추가합니다.
+  const sendFaqAnswer = useCallback((faq: FaqAnswerSelection): Promise<boolean> => {
+    const question = faq.question.trim()
+    const answer = faq.answer.trim()
+    let error: string | null = null
+    if (isInitializing) error = '로그인 상태를 확인하는 중입니다.'
+    else if (!question || !answer) error = 'FAQ 답변을 확인할 수 없습니다.'
+    else if (activeRequest.current) return Promise.resolve(false)
+
+    if (error) {
+      setState((current) => ({ ...current, error }))
+      return Promise.resolve(false)
+    }
+
+    const turn: ChatTurn = {
+      id: ++nextTurnId.current,
+      faqId: faq.faqId,
+      question,
+      isPending: false,
+      response: { answer, status: 'SUCCESS', idempotencyKey: null, attemptCount: 0, retryable: false },
+      error: null,
+      errorCode: null,
+      researches: [],
+    }
+    setState((current) => ({ ...current, error: null, turns: [...current.turns, turn] }))
+    return Promise.resolve(true)
+  }, [isInitializing])
+
   const retryAnswer = useCallback((turnId: number) => {
     const turn = state.turns.find((item) => item.id === turnId)
     const response = turn?.response
@@ -242,10 +271,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     isPending: state.turns.some((turn) => turn.isPending || turn.researches.some((item) => item.isPending)),
     error: state.error,
     sendQuestion,
+    sendFaqAnswer,
     retryAnswer,
     researchAnswer,
     resetConversation,
-  }), [researchAnswer, resetConversation, retryAnswer, sendQuestion, state.error, state.turns])
+  }), [researchAnswer, resetConversation, retryAnswer, sendFaqAnswer, sendQuestion, state.error, state.turns])
 
   return <ChatContext value={value}>{children}</ChatContext>
 }

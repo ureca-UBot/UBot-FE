@@ -33,7 +33,8 @@ export default function UserApp() {
   const { sendQuestion } = chat
   const [isAiDemo, setIsAiDemo] = useState(false)
   // 실제 로그인한 사용자 이름. 헤더·홈에서 로그인 여부 표시와 MY 이동에 씁니다.
-  const memberName = useMyProfile().profile?.name ?? null
+  const { profile } = useMyProfile()
+  const memberName = profile?.name ?? null
   const {
     messages,
     chatActive,
@@ -204,6 +205,7 @@ export default function UserApp() {
           active={page === 'ai'} loggedIn={isAiDemo ? loggedIn : Boolean(user)}
           chatActive={chatActive} messages={messages} context={context}
           chat={isAiDemo ? undefined : chat} isInitializing={isInitializing} memberName={memberName}
+          residenceArea={profile?.residenceArea}
         />
       </main>
       <MobileBottomNav page={page} />

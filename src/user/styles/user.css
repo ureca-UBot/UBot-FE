@@ -2527,16 +2527,341 @@
 }
 
 .ubot-user-app .ai-center {
+  position: relative;
   display: flex;
   min-width: 0;
+  min-height: 660px;
   flex-direction: column
+}
+
+.ubot-user-app .ai-center>.ranking-faq {
+  position: absolute;
+  top: 14px;
+  right: 24px;
+  left: 24px;
+  margin: 0
+}
+
+.ubot-user-app .ai-center>.status-line {
+  position: absolute;
+  top: 84px;
+  left: 24px;
+  z-index: 1
 }
 
 .ubot-user-app .ai-home-view {
   width: 100%;
   max-width: 760px;
-  padding: 64px 24px 48px;
+  padding: 106px 24px 48px;
   margin: auto
+}
+
+.ubot-user-app .ranking-faq {
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+  border: 1px solid rgba(87, 91, 100, .28);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .05);
+  box-shadow: 0 4px 14px rgba(23, 23, 26, .04);
+  transition: border-color .22s ease, background .22s ease, box-shadow .22s ease;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px)
+}
+
+.ubot-user-app .ranking-faq:is(:hover, :focus-within),
+.ubot-user-app .ranking-faq.is-open {
+  border-color: rgba(255, 255, 255, .72);
+  background: linear-gradient(135deg, rgba(255, 240, 247, .78) 0%, rgba(255, 255, 255, .72) 58%, rgba(242, 239, 255, .76) 100%);
+  box-shadow: 0 14px 32px rgba(23, 23, 26, .16);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15)
+}
+
+.ubot-user-app .ranking-faq__header {
+  display: flex;
+  min-height: 62px;
+  padding: 12px 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer
+}
+
+.ubot-user-app .ranking-faq__header:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: -3px
+}
+
+.ubot-user-app .ranking-faq__title-wrap {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+  opacity: .4;
+  transition: opacity .22s ease
+}
+
+.ubot-user-app .ranking-faq__spark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 11px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pink), #a664ef);
+  box-shadow: 0 7px 15px rgba(247, 37, 133, .21);
+  font-size: 18px
+}
+
+.ubot-user-app .ranking-faq__title-wrap p,
+.ubot-user-app .ranking-faq__title-wrap h2 {
+  margin: 0
+}
+
+.ubot-user-app .ranking-faq__title-wrap p {
+  margin-bottom: 1px;
+  color: var(--pink-dark);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: -.01em
+}
+
+.ubot-user-app .ranking-faq__title-wrap h2 {
+  font-size: 16px;
+  letter-spacing: -.04em;
+  line-height: 1.35
+}
+
+.ubot-user-app .ranking-faq__toggle {
+  display: flex;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 9px 0 11px;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 750;
+  transition: border-color .18s ease, background .18s ease, color .18s ease
+}
+
+.ubot-user-app .ranking-faq:is(:hover, :focus-within) .ranking-faq__toggle,
+.ubot-user-app .ranking-faq.is-open .ranking-faq__toggle {
+  border-color: rgba(226, 227, 231, .78);
+  background: rgba(255, 255, 255, .5)
+}
+
+.ubot-user-app .ranking-faq:is(:hover, :focus-within) .ranking-faq__title-wrap,
+.ubot-user-app .ranking-faq.is-open .ranking-faq__title-wrap {
+  opacity: 1
+}
+
+.ubot-user-app .ranking-faq__header:hover .ranking-faq__toggle {
+  color: var(--ink);
+  background: #fff
+}
+
+.ubot-user-app .ranking-faq__toggle svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .2s ease
+}
+
+.ubot-user-app .ranking-faq.is-open .ranking-faq__toggle svg {
+  transform: rotate(180deg)
+}
+
+.ubot-user-app .ranking-faq__content {
+  padding: 0 16px 14px;
+  border-top: 1px solid rgba(255, 255, 255, .52);
+  background: rgba(255, 255, 255, .34)
+}
+
+.ubot-user-app .ranking-faq__tabs {
+  display: flex;
+  padding: 13px 0 11px;
+  overflow: auto;
+  gap: 6px;
+  scrollbar-width: none
+}
+
+.ubot-user-app .ranking-faq__tabs::-webkit-scrollbar {
+  display: none
+}
+
+.ubot-user-app .ranking-faq__tabs button {
+  min-height: 30px;
+  padding: 0 11px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(226, 227, 231, .78);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, .46);
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+  transition: border-color .18s ease, color .18s ease, background .18s ease
+}
+
+.ubot-user-app .ranking-faq__tabs button:hover {
+  border-color: #f2accb;
+  color: var(--pink-dark);
+  background: rgba(255, 247, 250, .68)
+}
+
+.ubot-user-app .ranking-faq__tabs button.active {
+  border-color: var(--ink);
+  color: #fff;
+  background: var(--ink)
+}
+
+.ubot-user-app .ranking-faq__results {
+  padding: 0 12px 2px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .42)
+}
+
+.ubot-user-app .ranking-faq__results-head {
+  display: flex;
+  padding: 10px 2px 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px
+}
+
+.ubot-user-app .ranking-faq__results-head b {
+  font-size: 12px;
+  letter-spacing: -.02em
+}
+
+.ubot-user-app .ranking-faq__results-head small {
+  color: var(--subtle);
+  font-size: 10px
+}
+
+.ubot-user-app .ranking-faq__results ol {
+  padding: 0;
+  margin: 0;
+  list-style: none
+}
+
+.ubot-user-app .ranking-faq__status {
+  display: grid;
+  min-height: 102px;
+  padding: 12px;
+  place-items: center;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center
+}
+
+.ubot-user-app .ranking-faq__status.error {
+  color: #c42e53
+}
+
+.ubot-user-app .ranking-faq__results li+li {
+  border-top: 1px solid #ededef
+}
+
+.ubot-user-app .ranking-faq__results li button {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto 12px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  text-align: left
+}
+
+.ubot-user-app .ranking-faq__results li button:not(:disabled):hover span {
+  text-decoration: underline;
+  text-underline-offset: 3px
+}
+
+.ubot-user-app .ranking-faq__results li button:disabled {
+  cursor: wait;
+  opacity: .56
+}
+
+.ubot-user-app .ranking-faq__results li strong {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 7px;
+  color: #fff;
+  background: var(--ink);
+  font-size: 10px;
+  line-height: 1
+}
+
+.ubot-user-app .ranking-faq__results li:nth-child(2) strong {
+  color: #4f535b;
+  background: #eceef1
+}
+
+.ubot-user-app .ranking-faq__results li:nth-child(3) strong {
+  color: #74777e;
+  background: #f3f3f5
+}
+
+.ubot-user-app .ranking-faq__results li span {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.ubot-user-app .ranking-faq__results li em {
+  color: var(--pink-dark);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap
+}
+
+.ubot-user-app .ranking-faq__results li i {
+  color: #9b9da3;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1
+}
+
+@media (hover:none) {
+  .ubot-user-app .ranking-faq {
+    border-color: rgba(255, 255, 255, .72);
+    background: linear-gradient(135deg, rgba(255, 240, 247, .78) 0%, rgba(255, 255, 255, .72) 58%, rgba(242, 239, 255, .76) 100%);
+    box-shadow: 0 14px 32px rgba(23, 23, 26, .16);
+    opacity: 1;
+    backdrop-filter: blur(14px) saturate(1.15);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15)
+  }
+
+  .ubot-user-app .ranking-faq__title-wrap {
+    opacity: 1
+  }
+
+  .ubot-user-app .ranking-faq__toggle {
+    border-color: rgba(226, 227, 231, .78);
+    background: rgba(255, 255, 255, .5)
+  }
 }
 
 .ubot-user-app .ai-greeting {
@@ -2601,72 +2926,10 @@
   background: var(--ink)
 }
 
-.ubot-user-app .trending-panel {
-  margin-top: 28px;
-  border-top: 1px solid var(--line)
-}
-
-.ubot-user-app .trending-head {
-  display: flex;
-  justify-content: space-between;
-  padding: 18px 0 9px
-}
-
-.ubot-user-app .trending-head>div {
-  display: flex;
-  align-items: center;
-  gap: 8px
-}
-
-.ubot-user-app .live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--pink);
-  box-shadow: 0 0 0 5px rgba(247, 37, 133, .08)
-}
-
-.ubot-user-app .trending-head b {
-  font-size: 14px
-}
-
-.ubot-user-app .trending-head small {
-  color: var(--subtle);
-  font-size: 12px
-}
-
-.ubot-user-app .trending-panel>button {
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
-  align-items: center;
-  width: 100%;
-  min-height: 49px;
-  padding: 0;
-  border: 0;
-  border-top: 1px solid #eeeef0;
-  background: #fff;
-  text-align: left
-}
-
-.ubot-user-app .trending-panel em {
-  color: var(--subtle);
-  font-size: 13px;
-  font-style: normal
-}
-
-.ubot-user-app .trending-panel span {
-  font-size: 14px
-}
-
-.ubot-user-app .trending-panel i {
-  color: var(--pink-dark);
-  font-size: 12px;
-  font-style: normal
-}
-
 .ubot-user-app .ai-chat-view {
   display: grid;
   height: 660px;
+  padding-top: 76px;
   grid-template-rows: minmax(0, 1fr) auto
 }
 
@@ -2847,19 +3110,6 @@
   margin-top: 14px
 }
 
-.ubot-user-app .research-result {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line)
-}
-
-.ubot-user-app .research-result-title {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--subtle);
-  font-size: 11px
-}
-
 .ubot-user-app .research-prompt {
   margin: 0;
   color: var(--muted);
@@ -2879,6 +3129,19 @@
 .ubot-user-app .research-actions button:disabled {
   opacity: .45;
   cursor: not-allowed
+}
+
+.ubot-user-app .research-result {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line)
+}
+
+.ubot-user-app .research-result-title {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--subtle);
+  font-size: 11px
 }
 
 .ubot-user-app .product-list-mini,
@@ -4670,8 +4933,44 @@
     min-height: 0
   }
 
+  .ubot-user-app .ai-center {
+    min-height: 0
+  }
+
+  .ubot-user-app .ai-center>.ranking-faq {
+    top: 12px;
+    right: 18px;
+    left: 18px
+  }
+
+  .ubot-user-app .ai-center>.status-line {
+    top: 78px;
+    left: 18px
+  }
+
   .ubot-user-app .ai-home-view {
-    padding: 38px 18px 28px
+    padding: 96px 18px 28px
+  }
+
+  .ubot-user-app .ranking-faq__header {
+    min-height: 62px;
+    padding: 12px 14px
+  }
+
+  .ubot-user-app .ranking-faq__content {
+    padding: 0 14px 12px
+  }
+
+  .ubot-user-app .ranking-faq__title-wrap h2 {
+    font-size: 17px
+  }
+
+  .ubot-user-app .ranking-faq__toggle {
+    padding: 0 7px
+  }
+
+  .ubot-user-app .ranking-faq__toggle span {
+    display: none
   }
 
   .ubot-user-app .ai-greeting h1 {
@@ -4683,12 +4982,10 @@
     line-height: 1.6
   }
 
-  .ubot-user-app .trending-panel>button {
-    min-height: 52px
-  }
-
   .ubot-user-app .ai-chat-view {
-    height: calc(100vh - 176px)
+    height: calc(100vh - 176px);
+    min-height: 0;
+    padding-top: 72px
   }
 
   .ubot-user-app .chat-thread {

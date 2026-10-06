@@ -12,6 +12,12 @@ export interface ChatResponse {
   retryable: boolean
 }
 
+export interface FaqAnswerSelection {
+  faqId: number
+  question: string
+  answer: string
+}
+
 // BE Intent enum: 재검색에서 사용자가 고를 수 있는 질문 의도입니다.
 export type ChatIntent = 'GENERAL' | 'STORE_DATA' | 'USER_DATA'
 
@@ -35,6 +41,7 @@ export interface ChatResearch {
 export interface ChatTurn {
   id: number
   question: string
+  faqId?: number
   isPending: boolean
   response: ChatResponse | null
   error: string | null

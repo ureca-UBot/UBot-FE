@@ -110,7 +110,7 @@ async function send<T>(path: string, init: RequestInit, withAuth: boolean): Prom
 }
 
 export const apiClient = {
-  get: <T>(path: string) => request<T>(path),
+  get: <T>(path: string, init?: RequestInit) => request<T>(path, init),
   post: <T>(path: string, data?: unknown, withAuth = true, headers?: Record<string, string>) => request<T>(path, {
     method: 'POST',
     ...(data === undefined ? {} : { body: JSON.stringify(data) }),
