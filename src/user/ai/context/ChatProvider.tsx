@@ -73,7 +73,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const requestId = {}
     const requestConversation = conversation.current
     activeRequest.current = requestId
-    const pendingTurn: ChatTurn = { ...turn, isPending: true, response: null, error: null, errorCode: null }
+    const pendingTurn: ChatTurn = { ...turn, isPending: true, response: null, error: null, errorCode: null, researches: [], }
     setState((current) => ({
       ...current,
       error: null,
