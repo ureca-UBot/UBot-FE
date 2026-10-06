@@ -42,3 +42,9 @@ export interface ChatTurn {
   // 답변 성공 후 사용자가 고른 의도별 재검색 결과입니다.
   researches: ChatResearch[]
 }
+
+// 브라우저 위치 조회 결과입니다. 매장 의도 재검색에만 사용합니다.
+export interface ChatLocation {
+  latitude: number
+  longitude: number
+}

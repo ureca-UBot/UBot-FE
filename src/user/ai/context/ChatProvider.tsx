@@ -2,13 +2,26 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useAuth } from '../../../auth/hooks/useAuth'
 import { ApiRequestError } from '../../../shared/api/client'
 import { chatApi } from '../api/chatApi'
-import type { ChatResponse, ChatTurn } from '../types/chat'
+import type {
+  ChatIntent,
+  ChatLocation,
+  ChatResearch,
+  ChatResearchRequest,
+  ChatResponse,
+  ChatTurn,
+} from '../types/chat'
 import { ChatContext, type ChatContextValue } from './ChatContext'
 
 interface ChatState {
   userId: string | null
   turns: ChatTurn[]
   error: string | null
+}
+
+interface SettledResult {
+  response: ChatResponse | null
+  error: string | null
+  errorCode: string | null
 }
 
 // 공통 오류의 data는 검증 오류 목록이나 null일 수도 있습니다.
@@ -21,6 +34,50 @@ function isChatResponse(value: unknown): value is ChatResponse {
     && typeof data.attemptCount === 'number'
     && Number.isInteger(data.attemptCount) && data.attemptCount >= 0
     && typeof data.retryable === 'boolean'
+}
+
+// 요청 결과와 오류를 화면에 보여줄 값으로 정리합니다. 예외는 던지지 않습니다.
+async function settleRequest(request: () => Promise<ChatResponse>): Promise<SettledResult> {
+  try {
+    const result = await request()
+    if (isChatResponse(result)) {
+      return {
+        response: result,
+        error: result.status === 'FAIL' ? result.answer : null,
+        errorCode: null,
+      }
+    }
+    return { response: null, error: '서버의 답변 응답을 확인할 수 없습니다.', errorCode: null }
+  } catch (cause) {
+    if (cause instanceof ApiRequestError) {
+      return {
+        response: isChatResponse(cause.data) && cause.data.status === 'FAIL' ? cause.data : null,
+        error: cause.message,
+        errorCode: cause.code ?? null,
+      }
+    }
+    return { response: null, error: '서버 응답을 받지 못했습니다. 연결 상태를 확인해 주세요.', errorCode: null }
+  }
+}
+
+// 같은 의도의 재검색 결과가 있으면 바꾸고, 없으면 뒤에 추가합니다.
+function upsertResearch(turns: ChatTurn[], turnId: number, research: ChatResearch): ChatTurn[] {
+  return turns.map((turn) => {
+    if (turn.id !== turnId) return turn
+    const exists = turn.researches.some((item) => item.intent === research.intent)
+    return {
+      ...turn,
+      researches: exists
+        ? turn.researches.map((item) => item.intent === research.intent ? research : item)
+        : [...turn.researches, research],
+    }
+  })
+}
+
+// 서버에 닿지 못한 실패(네트워크 오류)만 다시 누를 수 있습니다.
+// 서버가 처리한 재검색은 성공·실패와 관계없이 그 의도를 사용한 것으로 보기 때문입니다.
+function canResearchAgain(research: ChatResearch) {
+  return !research.isPending && research.response === null && research.errorCode === null
 }
 
 // 게스트가 로그인하면 서버가 게스트 대화를 회원에게 승계하므로 화면의 대화도 유지합니다.
@@ -73,7 +130,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const requestId = {}
     const requestConversation = conversation.current
     activeRequest.current = requestId
-    const pendingTurn: ChatTurn = { ...turn, isPending: true, response: null, error: null, errorCode: null, researches: [], }
+    const pendingTurn: ChatTurn = {
+      ...turn,
+      isPending: true,
+      response: null,
+      error: null,
+      errorCode: null,
+      // 재검색은 답변이 성공한 뒤에만 가능하고, 재시도 대상은 실패한 답변뿐이라 항상 비어 있습니다.
+      researches: [],
+    }
     setState((current) => ({
       ...current,
       error: null,
@@ -82,26 +147,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         : [...current.turns, pendingTurn],
     }))
 
-    let response: ChatResponse | null = null
-    let responseError: string | null = null
-    let responseErrorCode: string | null = null
-    try {
-      const result = await request()
-      if (isChatResponse(result)) {
-        response = result
-        responseError = result.status === 'FAIL' ? result.answer : null
-      } else {
-        responseError = '서버의 답변 응답을 확인할 수 없습니다.'
-      }
-    } catch (cause) {
-      if (cause instanceof ApiRequestError) {
-        responseError = cause.message
-        responseErrorCode = cause.code ?? null
-        if (isChatResponse(cause.data) && cause.data.status === 'FAIL') response = cause.data
-      } else {
-        responseError = '서버 응답을 받지 못했습니다. 연결 상태를 확인해 주세요.'
-      }
-    }
+    const { response, error: responseError, errorCode: responseErrorCode } = await settleRequest(request)
 
     // 새 대화·로그아웃 후의 응답은 반영하지 않습니다. 서버 작업 취소와는 별개입니다.
     if (conversation.current !== requestConversation) return true
@@ -130,6 +176,61 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     return runRequest(turn, () => chatApi.retryAnswer(idempotencyKey))
   }, [runRequest, state.turns])
 
+  // 원래 turn의 답변은 그대로 두고, 선택한 의도의 결과만 turn.researches에 반영합니다.
+  const researchAnswer = useCallback(async (
+    turnId: number,
+    intent: ChatIntent,
+    location?: ChatLocation,
+  ): Promise<boolean> => {
+    if (activeRequest.current) return false
+    const turn = state.turns.find((item) => item.id === turnId)
+    const original = turn?.response
+    if (!turn || turn.isPending || original?.status !== 'SUCCESS' || !original.idempotencyKey) return false
+    const used = turn.researches.find((item) => item.intent === intent)
+    if (used && !canResearchAgain(used)) return false
+
+    let error: string | null = null
+    if (isInitializing) error = '로그인 상태를 확인하는 중입니다.'
+    else if (userId === null) error = '로그인 후 이용할 수 있습니다.'
+    if (error) {
+      setState((current) => ({ ...current, error }))
+      return false
+    }
+
+    const idempotencyKey = original.idempotencyKey
+    // 위도·경도는 함께 있을 때만 보냅니다.
+    const body: ChatResearchRequest = location
+      ? { intent, latitude: location.latitude, longitude: location.longitude }
+      : { intent }
+
+    // React가 다시 렌더링되기 전의 연속 클릭도 한 요청으로 제한합니다.
+    const requestId = {}
+    const requestConversation = conversation.current
+    activeRequest.current = requestId
+    setState((current) => ({
+      ...current,
+      error: null,
+      turns: upsertResearch(current.turns, turnId, {
+        intent,
+        isPending: true,
+        response: null,
+        error: null,
+        errorCode: null,
+      }),
+    }))
+
+    const result = await settleRequest(() => chatApi.researchAnswer(idempotencyKey, body))
+
+    // 새 대화·로그아웃 후의 응답은 반영하지 않습니다. 서버 작업 취소와는 별개입니다.
+    if (conversation.current !== requestConversation) return true
+    if (activeRequest.current === requestId) activeRequest.current = null
+    setState((current) => ({
+      ...current,
+      turns: upsertResearch(current.turns, turnId, { intent, isPending: false, ...result }),
+    }))
+    return true
+  }, [isInitializing, state.turns, userId])
+
   const resetConversation = useCallback(() => {
     conversation.current = {}
     activeRequest.current = null
@@ -138,12 +239,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<ChatContextValue>(() => ({
     turns: state.turns,
-    isPending: state.turns.some((turn) => turn.isPending),
+    isPending: state.turns.some((turn) => turn.isPending || turn.researches.some((item) => item.isPending)),
     error: state.error,
     sendQuestion,
     retryAnswer,
+    researchAnswer,
     resetConversation,
-  }), [resetConversation, retryAnswer, sendQuestion, state.error, state.turns])
+  }), [researchAnswer, resetConversation, retryAnswer, sendQuestion, state.error, state.turns])
 
   return <ChatContext value={value}>{children}</ChatContext>
 }
