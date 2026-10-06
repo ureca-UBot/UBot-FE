@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ChatIntent, ChatLocation, ChatResearch } from '../types/chat'
+import { CHAT_INTENT_LABELS, type ChatIntent, type ChatLocation, type ChatResearch } from '../types/chat'
 import { getCurrentLocation } from '../utils/getCurrentLocation'
 
 interface ResearchIntentButtonsProps {
@@ -10,11 +10,7 @@ interface ResearchIntentButtonsProps {
     onResearch: (intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
 }
 
-const INTENT_OPTIONS: { intent: ChatIntent; label: string }[] = [
-    { intent: 'GENERAL', label: '일반 문의' },
-    { intent: 'STORE_DATA', label: '매장 찾기' },
-    { intent: 'USER_DATA', label: '내 정보 확인' },
-]
+const INTENTS: ChatIntent[] = ['GENERAL', 'STORE_DATA', 'USER_DATA']
 
 // 요청 중이거나 서버가 처리한 결과가 있으면 그 의도는 사용한 것입니다.
 // 서버에 닿지 못한 실패(응답과 오류 코드가 모두 없음)만 다시 누를 수 있으며,
@@ -52,14 +48,14 @@ export function ResearchIntentButtons({ researches, disabled, onResearch }: Rese
         <div className="research-actions">
             <p className="research-prompt">혹시 질문이 다른 의도였나요?</p>
             <div className="answer-actions" role="group" aria-label="질문 의도 선택">
-                {INTENT_OPTIONS.map(({ intent, label }) => (
+                {INTENTS.map((intent) => (
                     <button
                         key={intent}
                         type="button"
                         disabled={disabled || isLocating || isUsed(researches.find((item) => item.intent === intent))}
                         onClick={() => void handleClick(intent)}
                     >
-                        {isLocating && intent === 'STORE_DATA' ? '위치 확인 중...' : label}
+                        {isLocating && intent === 'STORE_DATA' ? '위치 확인 중...' : CHAT_INTENT_LABELS[intent]}
                     </button>
                 ))}
             </div>

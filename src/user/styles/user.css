@@ -2847,6 +2847,19 @@
   margin-top: 14px
 }
 
+.ubot-user-app .research-result {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line)
+}
+
+.ubot-user-app .research-result-title {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--subtle);
+  font-size: 11px
+}
+
 .ubot-user-app .research-prompt {
   margin: 0;
   color: var(--muted);

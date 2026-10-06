@@ -48,3 +48,10 @@ export interface ChatLocation {
   latitude: number
   longitude: number
 }
+
+// 화면에 보이는 의도 이름입니다.
+export const CHAT_INTENT_LABELS: Record<ChatIntent, string> = {
+  GENERAL: '일반 문의',
+  STORE_DATA: '매장 찾기',
+  USER_DATA: '내 정보 확인',
+}
