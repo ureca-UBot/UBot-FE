@@ -12,10 +12,17 @@ export interface ChatResponse {
   retryable: boolean
 }
 
+export interface FaqAnswerSelection {
+  faqId: number
+  question: string
+  answer: string
+}
+
 // 한 질문의 화면 상태입니다. 재시도는 같은 항목의 결과를 갱신합니다.
 export interface ChatTurn {
   id: number
   question: string
+  faqId?: number
   isPending: boolean
   response: ChatResponse | null
   error: string | null

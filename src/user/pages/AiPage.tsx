@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChatInput } from '../ai/components/ChatInput'
 import { ChatMessages } from '../ai/components/ChatMessages'
+import { RankingFaqPanel } from '../ai/components/RankingFaqPanel'
 import type { useChat } from '../ai/hooks/useChat'
 
 export interface AiMessage {
@@ -18,9 +19,10 @@ interface PageProps {
   chat?: ReturnType<typeof useChat>;
   isInitializing?: boolean;
   memberName?: string | null;
+  residenceArea?: string | null;
 }
 
-export function AiPage({ active, loggedIn, chatActive, messages, context, chat, isInitializing = false, memberName }: PageProps) {
+export function AiPage({ active, loggedIn, chatActive, messages, context, chat, isInitializing = false, memberName, residenceArea }: PageProps) {
   const [inputVersion, setInputVersion] = useState(0)
   const hasConversation = chat ? chat.turns.length > 0 : chatActive
   const inputDisabled = chat ? isInitializing || chat.isPending : false
@@ -52,17 +54,16 @@ export function AiPage({ active, loggedIn, chatActive, messages, context, chat, 
               </p>
             )}
             {chat?.error && <p role="alert">{chat.error}</p>}
+            <RankingFaqPanel
+              active={active}
+              disabled={inputDisabled}
+              onSelectFaq={chat ? (faq) => void chat.sendFaqAnswer(faq) : undefined}
+              residenceArea={residenceArea}
+            />
             <div className={`ai-home-view${hasConversation ? ' hidden' : ''}`} id="aiHomeView">
               <div className="ai-greeting"><small>AI 검색</small><h1>무엇을 찾고 계세요?</h1><p>상품, 요금제, 혜택, 매장, 고객지원 정보를 대화하듯 찾아보세요.</p></div>
               {chat ? <ChatInput key={inputVersion} id="aiHeroInput" large disabled={inputDisabled} onSend={chat.sendQuestion} />
                 : <div className="ai-searchbox large"><textarea id="aiHeroInput" rows={1} placeholder="궁금한 내용을 입력해 주세요." aria-label="AI 검색어"></textarea><button className="voice" aria-label="음성 입력">◉</button><button className="send-ai" aria-label="질문 보내기">↑</button></div>}
-              <div className="trending-panel">
-                <div className="trending-head"><div><span className="live-dot"></span><b>실시간 인기 질문</b></div><small>최근 30분</small></div>
-                <button data-ai-q="최신 폰 어떤게 있어?" disabled={inputDisabled} onClick={chat ? () => void chat.sendQuestion('최신 폰 어떤게 있어?') : undefined}><em>1</em><span>최신 폰 어떤게 있어?</span><i>↗ 38%</i></button>
-                <button data-ai-q="5G 요금제 뭐 있어요?" disabled={inputDisabled} onClick={chat ? () => void chat.sendQuestion('5G 요금제 뭐 있어요?') : undefined}><em>2</em><span>5G 요금제 뭐 있어요?</span><i>↗ 22%</i></button>
-                <button data-ai-q="인터넷 이전 설치 어떻게 해?" disabled={inputDisabled} onClick={chat ? () => void chat.sendQuestion('인터넷 이전 설치 어떻게 해?') : undefined}><em>3</em><span>인터넷 이전 설치 어떻게 해?</span><i>↗ 17%</i></button>
-                <button data-ai-q="가까운 대리점을 찾고 싶어" disabled={inputDisabled} onClick={chat ? () => void chat.sendQuestion('가까운 대리점을 찾고 싶어') : undefined}><em>4</em><span>가까운 대리점을 찾고 싶어</span><i>↗ 9%</i></button>
-              </div>
             </div>
 
             <div className={`ai-chat-view${hasConversation ? '' : ' hidden'}`} id="aiChatView">
