@@ -4,6 +4,7 @@ import { useChat } from './ai/hooks/useChat'
 import { useAiDemo } from './ai/useAiDemo'
 import { UserDialogs, type UserDialog } from './components/UserDialogs'
 import { UserLoginModal } from './components/UserLoginModal'
+import type { ReservationStore } from './reservation/types/reservation'
 import { useMyProfile } from './my/hooks/useMyProfile'
 import { useHeroCarousel } from './hooks/useHeroCarousel'
 import { useScrollReveal } from './hooks/useScrollReveal'
@@ -46,10 +47,19 @@ export default function UserApp() {
   const [scrolled, setScrolled] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [activeDialog, setActiveDialog] = useState<UserDialog>(null)
+  const [reserveStore, setReserveStore] = useState<ReservationStore | null>(null)
   const [toast, setToast] = useState('')
   const [productTitle, setProductTitle] = useState('Galaxy S26')
 
   useScrollReveal()
+
+  useEffect(() => {
+    const handleStoreSelected = (event: Event) => {
+      setReserveStore((event as CustomEvent<ReservationStore>).detail)
+    }
+    document.addEventListener('ubot:store-selected', handleStoreSelected)
+    return () => document.removeEventListener('ubot:store-selected', handleStoreSelected)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -157,7 +167,6 @@ export default function UserApp() {
       return
     }
     if (target.id === 'reportOpen') setToast('통신 불편 제보가 접수되었습니다. (Mock)')
-    if (target.id === 'reserveSubmit') setToast('방문 예약이 완료되었습니다. (Mock)')
     if (target.id === 'bundleSubmit') setToast('결합 변경이 완료되었습니다. (Mock)')
     if (target.id === 'newChat') resetConversation()
     if (target.classList.contains('send-ai')) {
@@ -209,7 +218,14 @@ export default function UserApp() {
         />
       </main>
       <MobileBottomNav page={page} />
-      <UserDialogs activeDialog={activeDialog} onClose={() => setActiveDialog(null)} />
+      <UserDialogs
+        activeDialog={activeDialog} reserveStore={reserveStore}
+        onClose={() => setActiveDialog(null)}
+        onReserved={(message) => {
+          setActiveDialog(null)
+          setToast(message)
+        }}
+      />
       <UserLoginModal open={loginOpen} onClose={() => setLoginOpen(false)} onSuccess={handleLoginSuccess} />
       <div className={`toast${toast ? ' show' : ''}`} role="status">{toast}</div>
     </div>

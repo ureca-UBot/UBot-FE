@@ -1,10 +1,14 @@
 import { useEffect, useRef } from 'react'
+import { ReservationForm } from '../reservation/components/ReservationForm'
+import type { ReservationStore } from '../reservation/types/reservation'
 
 export type UserDialog = 'reserve' | 'bundle' | 'demo' | null
 
 interface UserDialogsProps {
   activeDialog: UserDialog
+  reserveStore: ReservationStore | null
   onClose: () => void
+  onReserved: (message: string) => void
 }
 
 function useDialog(open: boolean, onClose: () => void) {
@@ -27,7 +31,7 @@ function useDialog(open: boolean, onClose: () => void) {
   return ref
 }
 
-export function UserDialogs({ activeDialog, onClose }: UserDialogsProps) {
+export function UserDialogs({ activeDialog, reserveStore, onClose, onReserved }: UserDialogsProps) {
   const reserveRef = useDialog(activeDialog === 'reserve', onClose)
   const bundleRef = useDialog(activeDialog === 'bundle', onClose)
   const demoRef = useDialog(activeDialog === 'demo', onClose)
@@ -35,16 +39,7 @@ export function UserDialogs({ activeDialog, onClose }: UserDialogsProps) {
   return (
     <>
       <dialog className="modal" ref={reserveRef}>
-        <form method="dialog">
-          <div className="modal-head">
-            <div><small>방문 예약</small><h3>U봇 강남직영점</h3></div>
-            <button value="cancel" aria-label="닫기">×</button>
-          </div>
-          <label><span>방문 날짜</span><input type="date" defaultValue="2026-09-24" /></label>
-          <label><span>방문 시간</span><select defaultValue="14:00"><option>14:00</option><option>15:00</option><option>16:00</option></select></label>
-          <label><span>상담 업무</span><select defaultValue="휴대폰 구매 상담"><option>휴대폰 구매 상담</option><option>요금제 변경</option><option>기기변경</option></select></label>
-          <button id="reserveSubmit" className="black-btn modal-full" value="default">예약 완료</button>
-        </form>
+        {activeDialog === 'reserve' && <ReservationForm onClose={onClose} onReserved={onReserved} store={reserveStore} />}
       </dialog>
 
       <dialog className="modal" ref={bundleRef}>
