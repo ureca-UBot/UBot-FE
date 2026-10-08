@@ -10,6 +10,25 @@ export interface ChatResponse {
   idempotencyKey: string | null
   attemptCount: number
   retryable: boolean
+  store?: ChatStore | null
+}
+
+export interface ChatStoreItem {
+  storeId: number
+  storeName: string
+  address: string
+  phoneNumber: string | null
+  businessHours: string | null
+  distanceKm: number
+}
+
+export interface ChatStore {
+  locationRequired: boolean
+  map: {
+    placeName: string | null
+    radiusKm: number
+    stores: ChatStoreItem[]
+  } | null
 }
 
 export interface FaqAnswerSelection {

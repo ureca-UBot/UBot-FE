@@ -57,8 +57,16 @@ export default function UserApp() {
     const handleStoreSelected = (event: Event) => {
       setReserveStore((event as CustomEvent<ReservationStore>).detail)
     }
+    const handleReserveStore = (event: Event) => {
+      setReserveStore((event as CustomEvent<ReservationStore>).detail)
+      setActiveDialog('reserve')
+    }
     document.addEventListener('ubot:store-selected', handleStoreSelected)
-    return () => document.removeEventListener('ubot:store-selected', handleStoreSelected)
+    document.addEventListener('ubot:reserve-store', handleReserveStore)
+    return () => {
+      document.removeEventListener('ubot:store-selected', handleStoreSelected)
+      document.removeEventListener('ubot:reserve-store', handleReserveStore)
+    }
   }, [])
 
   useEffect(() => {
