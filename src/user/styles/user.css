@@ -3133,6 +3133,16 @@
   padding: 15px
 }
 
+.ubot-user-app .chat-store-cards {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px
+}
+
+.ubot-user-app .chat-store-cards .chat-card p + p {
+  margin-top: 4px
+}
+
 .ubot-user-app .chat-card h4 {
   margin: 0 0 6px;
   font-size: 15px

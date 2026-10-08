@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef } from 'react'
 import { CHAT_INTENT_LABELS, type ChatIntent, type ChatLocation, type ChatResearch, type ChatTurn } from '../types/chat'
+import { ChatStoreCards } from './ChatStoreCards'
 import { ResearchIntentButtons } from './ResearchIntentButtons'
 
 interface ChatMessagesProps {
@@ -59,7 +60,10 @@ function ResearchResult({ research }: { research: ChatResearch }) {
           </div>
         </div>
       ) : (
-        <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(research.response?.answer)}</div>
+        <>
+          <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(research.response?.answer)}</div>
+          <ChatStoreCards store={research.response?.store} />
+        </>
       )}
     </div>
   )
@@ -105,6 +109,7 @@ export function ChatMessages({ active, turns, disabled, canResearch, onRetry, on
               ) : (
                 <>
                   <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(turn.response?.answer)}</div>
+                  <ChatStoreCards store={turn.response?.store} />
                   {canResearch && turn.response?.status === 'SUCCESS' && turn.response.idempotencyKey && (
                     <ResearchIntentButtons
                       researches={turn.researches}
