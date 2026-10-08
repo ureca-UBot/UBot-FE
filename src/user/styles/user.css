@@ -2343,6 +2343,96 @@
   margin-top: 16px
 }
 
+.ubot-user-app .my-item-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none
+}
+
+.ubot-user-app .my-item-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px
+}
+
+.ubot-user-app .my-item-list li > div:first-child,
+.ubot-user-app .my-item-list li > button {
+  display: grid;
+  gap: 4px;
+  min-width: 0
+}
+
+.ubot-user-app .my-item-list li > button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left
+}
+
+.ubot-user-app .my-item-list b {
+  font-size: 15px
+}
+
+.ubot-user-app .my-item-list span {
+  font-size: 14px
+}
+
+.ubot-user-app .my-item-list small {
+  color: var(--muted);
+  font-size: 12px
+}
+
+.ubot-user-app .my-item-list li.read {
+  background: var(--soft)
+}
+
+.ubot-user-app .my-item-list li.read b {
+  color: var(--muted);
+  font-weight: 600
+}
+
+.ubot-user-app .my-item-side {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px
+}
+
+.ubot-user-app .reservation-status {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap
+}
+
+.ubot-user-app .reservation-status--reserved { color: #1d4ed8; background: #eff6ff }
+.ubot-user-app .reservation-status--completed { color: #047857; background: #ecfdf5 }
+.ubot-user-app .reservation-status--canceled { color: #6b7280; background: #f3f4f6 }
+.ubot-user-app .reservation-status--no_show { color: #c42e53; background: #fff1f3 }
+
+.ubot-user-app .my-unread-count {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #fff;
+  background: #c42e53;
+  font-size: 12px;
+  font-style: normal;
+  vertical-align: middle
+}
+
+.ubot-user-app .modal .reservation-error {
+  color: #c42e53
+}
+
 .ubot-user-app .benefit-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
