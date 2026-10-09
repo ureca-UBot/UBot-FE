@@ -5,6 +5,12 @@ import { FaqLayout } from './admin/pages/faq/FaqLayout'
 import { FaqListPage } from './admin/pages/faq/FaqListPage'
 import { DeletedFaqListPage } from './admin/pages/faq/DeletedFaqListPage'
 import { FaqCategoryListPage } from './admin/pages/faq/FaqCategoryListPage'
+import { ProductLayout } from './admin/pages/product/ProductLayout'
+import { ProductListPage } from './admin/pages/product/ProductListPage'
+import { planKind } from './admin/product/kinds/planKind'
+import { bundleProductKind } from './admin/product/kinds/bundleProductKind'
+import { addonServiceKind } from './admin/product/kinds/addonServiceKind'
+import { roamingProductKind } from './admin/product/kinds/roamingProductKind'
 import { StoreListPage } from './admin/pages/store/StoreListPage'
 import { ForbiddenWordListPage } from './admin/pages/forbidden-word/ForbiddenWordListPage'
 import { UnansweredGroupListPage } from './admin/pages/unanswered/UnansweredGroupListPage'
@@ -17,6 +23,8 @@ import { UserSignupPage } from './user/auth/pages/UserSignupPage'
 import { MyProfileProvider } from './user/my/context/MyProfileProvider'
 import { ChatProvider } from './user/ai/context/ChatProvider'
 import { GuestChatSettingsPage } from './admin/pages/guest-chat/GuestChatSettingsPage'
+import { EmbeddingBackfillPage } from './admin/pages/embedding/EmbeddingBackfillPage'
+import { EmbeddingBackfillProvider } from './admin/embedding/context/EmbeddingBackfillProvider'
 
 import UserApp from './user/UserApp'
 import './App.css'
@@ -33,7 +41,8 @@ function App() {
 
           {/* 관리자 - 인증 필요 */}
           <Route element={<RequireAdmin />}>
-            <Route path="/admin" element={<AdminLayout />}>
+            {/* 백필 실행 상태는 다른 관리자 화면에 다녀와도 남아야 해서 관리자 화면 전체를 감쌉니다. */}
+            <Route path="/admin" element={<EmbeddingBackfillProvider><AdminLayout /></EmbeddingBackfillProvider>}>
               <Route index element={<Navigate replace to="dashboard" />} />
               <Route path="dashboard" element={<DashboardPage />} />
 
@@ -43,11 +52,20 @@ function App() {
                 <Route path="categories" element={<FaqCategoryListPage />} />
                 <Route path=":faqId" element={<FaqDetailPage />} />
               </Route>
+              {/* 4종이 같은 화면을 쓰므로 key를 달리해, 탭을 옮길 때 검색 조건과 목록을 새로 시작합니다. */}
+              <Route path="products" element={<ProductLayout />}>
+                <Route index element={<Navigate replace to="plans" />} />
+                <Route path="plans" element={<ProductListPage key="plans" kind={planKind} />} />
+                <Route path="bundle-products" element={<ProductListPage key="bundle-products" kind={bundleProductKind} />} />
+                <Route path="addon-services" element={<ProductListPage key="addon-services" kind={addonServiceKind} />} />
+                <Route path="roaming-products" element={<ProductListPage key="roaming-products" kind={roamingProductKind} />} />
+              </Route>
               <Route path="stores" element={<StoreListPage />} />
               <Route path="forbidden-words" element={<ForbiddenWordListPage />} />
               <Route path="unanswered-groups" element={<UnansweredGroupListPage />} />
               <Route path="reservations" element={<ReservationListPage />} />
               <Route path="guest-chat-settings" element={<GuestChatSettingsPage />} />
+              <Route path="embedding-backfill" element={<EmbeddingBackfillPage />} />
 
               <Route path="*" element={<Navigate replace to="dashboard" />} />
             </Route>
