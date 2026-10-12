@@ -6,6 +6,7 @@ export type UserPage =
   | 'benefits'
   | 'support'
   | 'stores'
+  | 'notices'
   | 'ai'
 
 export const userPageTitles: Record<UserPage, string> = {
@@ -16,6 +17,7 @@ export const userPageTitles: Record<UserPage, string> = {
   benefits: '혜택',
   support: '고객지원',
   stores: '매장 찾기',
+  notices: '공지·장애',
   ai: 'AI 검색',
 }
 
@@ -27,6 +29,7 @@ const routePaths: Record<UserPage, string> = {
   benefits: 'benefits',
   support: 'support',
   stores: 'support/store-address',
+  notices: 'notices',
   ai: 'ai',
 }
 
@@ -41,6 +44,7 @@ const pathAliases: Record<string, UserPage> = {
   support: 'support',
   stores: 'stores',
   'support/store-address': 'stores',
+  notices: 'notices',
   ai: 'ai',
 }
 
@@ -48,9 +52,9 @@ const appBase = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/')
 
 export function pageFromLocation(): UserPage {
   const hashPath = window.location.hash
-      .replace(/^#\/?/, '')
-      .split('?')[0]
-      .replace(/\/+$/g, '')
+    .replace(/^#\/?/, '')
+    .split('?')[0]
+    .replace(/\/+$/g, '')
 
   return pathAliases[hashPath] ?? 'home'
 }
@@ -59,8 +63,8 @@ export function pageUrl(page: UserPage) {
   const path = routePaths[page]
 
   return path
-      ? `${appBase}#/${path}`
-      : `${appBase}#/`
+    ? `${appBase}#/${path}`
+    : `${appBase}#/`
 }
 
 export function isUserPage(value: string | undefined): value is UserPage {

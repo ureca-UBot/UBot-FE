@@ -16,6 +16,7 @@ import { AiPage } from './pages/AiPage'
 import { BenefitsPage } from './pages/BenefitsPage'
 import { HomePage } from './pages/HomePage'
 import { MyPage } from './pages/MyPage'
+import { NoticePage } from './pages/NoticePage'
 import { ProductPage } from './pages/ProductPage'
 import { StorePage } from './pages/StorePage'
 import { StoreLocatorPage } from './pages/StoreLocatorPage'
@@ -135,15 +136,15 @@ export default function UserApp() {
       navigate(route)
       return
     }
-	if (target.classList.contains('open-login')) {
-	  routerNavigate('/auth/login')
-	  return
-	}
+    if (target.classList.contains('open-login')) {
+      routerNavigate('/auth/login')
+      return
+    }
 
-	if (target.hasAttribute('data-login-required')) {
-	  routerNavigate('/auth/login')
-	  return
-	}
+    if (target.hasAttribute('data-login-required')) {
+      routerNavigate('/auth/login')
+      return
+    }
     // 실제 채팅의 입력·재시도는 채팅 컴포넌트에서 처리합니다.
     if (target.closest('[data-live-chat]')) return
     if (target.id === 'demoOpen' || target.id === 'mobileDemoOpen') {
@@ -217,6 +218,7 @@ export default function UserApp() {
         <BenefitsPage active={page === 'benefits'} />
         <SupportPage active={page === 'support'} />
         <StoreLocatorPage active={page === 'stores'} />
+        <NoticePage active={page === 'notices'} />
         <AiPage
           key={`${isAiDemo ? 'demo' : 'live'}:${user?.id ?? 'guest'}`}
           active={page === 'ai'} loggedIn={isAiDemo ? loggedIn : Boolean(user)}
