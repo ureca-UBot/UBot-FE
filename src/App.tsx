@@ -15,6 +15,7 @@ import { StoreListPage } from './admin/pages/store/StoreListPage'
 import { ForbiddenWordListPage } from './admin/pages/forbidden-word/ForbiddenWordListPage'
 import { UnansweredGroupListPage } from './admin/pages/unanswered/UnansweredGroupListPage'
 import { ReservationListPage } from './admin/pages/reservation/ReservationListPage'
+import { NoticeListPage } from './admin/pages/notice/NoticeListPage'
 import { AdminLayout } from './admin/layout/AdminLayout'
 import { RequireAdmin } from './admin/routes/RequireAdmin'
 import { AuthProvider } from './auth/context/AuthProvider'
@@ -34,46 +35,47 @@ function App() {
     <HashRouter>
       <AuthProvider>
         <ChatProvider>
-        <Routes>
-          {/* 인증 */}
-          <Route path="/auth/login" element={<LoginPage />} />
-          <Route path="/auth/signup" element={<UserSignupPage />} />
+          <Routes>
+            {/* 인증 */}
+            <Route path="/auth/login" element={<LoginPage />} />
+            <Route path="/auth/signup" element={<UserSignupPage />} />
 
-          {/* 관리자 - 인증 필요 */}
-          <Route element={<RequireAdmin />}>
-            {/* 백필 실행 상태는 다른 관리자 화면에 다녀와도 남아야 해서 관리자 화면 전체를 감쌉니다. */}
-            <Route path="/admin" element={<EmbeddingBackfillProvider><AdminLayout /></EmbeddingBackfillProvider>}>
-              <Route index element={<Navigate replace to="dashboard" />} />
-              <Route path="dashboard" element={<DashboardPage />} />
+            {/* 관리자 - 인증 필요 */}
+            <Route element={<RequireAdmin />}>
+              {/* 백필 실행 상태는 다른 관리자 화면에 다녀와도 남아야 해서 관리자 화면 전체를 감쌉니다. */}
+              <Route path="/admin" element={<EmbeddingBackfillProvider><AdminLayout /></EmbeddingBackfillProvider>}>
+                <Route index element={<Navigate replace to="dashboard" />} />
+                <Route path="dashboard" element={<DashboardPage />} />
 
-              <Route path="faqs" element={<FaqLayout />}>
-                <Route index element={<FaqListPage />} />
-                <Route path="deleted" element={<DeletedFaqListPage />} />
-                <Route path="categories" element={<FaqCategoryListPage />} />
-                <Route path=":faqId" element={<FaqDetailPage />} />
+                <Route path="faqs" element={<FaqLayout />}>
+                  <Route index element={<FaqListPage />} />
+                  <Route path="deleted" element={<DeletedFaqListPage />} />
+                  <Route path="categories" element={<FaqCategoryListPage />} />
+                  <Route path=":faqId" element={<FaqDetailPage />} />
+                </Route>
+                {/* 4종이 같은 화면을 쓰므로 key를 달리해, 탭을 옮길 때 검색 조건과 목록을 새로 시작합니다. */}
+                <Route path="products" element={<ProductLayout />}>
+                  <Route index element={<Navigate replace to="plans" />} />
+                  <Route path="plans" element={<ProductListPage key="plans" kind={planKind} />} />
+                  <Route path="bundle-products" element={<ProductListPage key="bundle-products" kind={bundleProductKind} />} />
+                  <Route path="addon-services" element={<ProductListPage key="addon-services" kind={addonServiceKind} />} />
+                  <Route path="roaming-products" element={<ProductListPage key="roaming-products" kind={roamingProductKind} />} />
+                </Route>
+                <Route path="stores" element={<StoreListPage />} />
+                <Route path="forbidden-words" element={<ForbiddenWordListPage />} />
+                <Route path="unanswered-groups" element={<UnansweredGroupListPage />} />
+                <Route path="reservations" element={<ReservationListPage />} />
+                <Route path="notices" element={<NoticeListPage />} />
+                <Route path="guest-chat-settings" element={<GuestChatSettingsPage />} />
+                <Route path="embedding-backfill" element={<EmbeddingBackfillPage />} />
+
+                <Route path="*" element={<Navigate replace to="dashboard" />} />
               </Route>
-              {/* 4종이 같은 화면을 쓰므로 key를 달리해, 탭을 옮길 때 검색 조건과 목록을 새로 시작합니다. */}
-              <Route path="products" element={<ProductLayout />}>
-                <Route index element={<Navigate replace to="plans" />} />
-                <Route path="plans" element={<ProductListPage key="plans" kind={planKind} />} />
-                <Route path="bundle-products" element={<ProductListPage key="bundle-products" kind={bundleProductKind} />} />
-                <Route path="addon-services" element={<ProductListPage key="addon-services" kind={addonServiceKind} />} />
-                <Route path="roaming-products" element={<ProductListPage key="roaming-products" kind={roamingProductKind} />} />
-              </Route>
-              <Route path="stores" element={<StoreListPage />} />
-              <Route path="forbidden-words" element={<ForbiddenWordListPage />} />
-              <Route path="unanswered-groups" element={<UnansweredGroupListPage />} />
-              <Route path="reservations" element={<ReservationListPage />} />
-              <Route path="guest-chat-settings" element={<GuestChatSettingsPage />} />
-              <Route path="embedding-backfill" element={<EmbeddingBackfillPage />} />
-
-              <Route path="*" element={<Navigate replace to="dashboard" />} />
             </Route>
-          </Route>
 
-          {/* 일반 사용자 - 공개 */}
-          <Route path="/*" element={<MyProfileProvider><UserApp /></MyProfileProvider>} />
-        </Routes>
+            {/* 일반 사용자 - 공개 */}
+            <Route path="/*" element={<MyProfileProvider><UserApp /></MyProfileProvider>} />
+          </Routes>
         </ChatProvider>
       </AuthProvider>
     </HashRouter>
