@@ -2429,6 +2429,69 @@
   vertical-align: middle
 }
 
+.ubot-user-app .my-line-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px
+}
+
+.ubot-user-app .my-line-tabs button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #d8d9dd;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 14px
+}
+
+.ubot-user-app .my-line-tabs button.active {
+  border-color: var(--ink);
+  color: #fff;
+  background: var(--ink)
+}
+
+.ubot-user-app .my-sub-block + .my-sub-block {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line)
+}
+
+.ubot-user-app .my-sub-block h4 {
+  margin: 0 0 14px;
+  font-size: 16px
+}
+
+.ubot-user-app .my-sub-block h4 small {
+  margin-left: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500
+}
+
+.ubot-user-app .my-sub-block .my-profile-message {
+  margin: 0
+}
+
+.ubot-user-app .my-sub-list {
+  margin-top: 14px
+}
+
+/* 내 방문 예약의 상태 배지(.reservation-status)와 같은 크기·색으로 맞춥니다. */
+.ubot-user-app .my-item-list .my-status {
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: #6b7280;
+  background: #f3f4f6;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap
+}
+
+.ubot-user-app .my-item-list .my-status--on { color: #047857; background: #ecfdf5 }
+.ubot-user-app .my-item-list .my-status--pending { color: #1d4ed8; background: #eff6ff }
+.ubot-user-app .my-item-list .my-status--warn { color: #c42e53; background: #fff1f3 }
+
 .ubot-user-app .modal .reservation-error {
   color: #c42e53
 }
