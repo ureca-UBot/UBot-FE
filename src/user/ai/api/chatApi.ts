@@ -1,5 +1,6 @@
 import { apiClient } from '../../../shared/api/client'
-import type { ChatRequest, ChatResearchRequest, ChatResponse } from '../types/chat'
+import type { PageResponse } from '../../../shared/types/api'
+import type { ChatRequest, ChatResearchRequest, ChatResponse, ConversationMessage, ConversationSummary } from '../types/chat'
 import { chatMockApi } from './chatApi.mock'
 
 export interface ChatApi {
@@ -7,6 +8,8 @@ export interface ChatApi {
   retryAnswer: (idempotencyKey: string) => Promise<ChatResponse>
   // 성공한 원래 답변의 idempotencyKey로 같은 질문을 선택한 의도로 다시 검색합니다.
   researchAnswer: (idempotencyKey: string, request: ChatResearchRequest) => Promise<ChatResponse>
+  getMyConversationList: () => Promise<PageResponse<ConversationSummary>>
+  getConversationMessageList: (conversationId: string) => Promise<ConversationMessage[]>
 }
 
 const realChatApi: ChatApi = {
@@ -19,6 +22,9 @@ const realChatApi: ChatApi = {
     apiClient.post<ChatResponse>('/api/chat/questions/research', request, true, {
       'Idempotency-Key': idempotencyKey,
     }),
+  getMyConversationList: () => apiClient.get<PageResponse<ConversationSummary>>('/api/conversations/me?size=20'),
+  getConversationMessageList: (conversationId) =>
+    apiClient.get<ConversationMessage[]>(`/api/conversations/${encodeURIComponent(conversationId)}/messages`),
 }
 
 // 개발 서버(DEV)에서 VITE_CHAT_MOCK=true일 때만 mock을 씁니다.

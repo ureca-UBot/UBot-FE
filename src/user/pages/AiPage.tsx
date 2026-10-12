@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChatInput } from '../ai/components/ChatInput'
 import { ChatMessages } from '../ai/components/ChatMessages'
+import { ConversationHistory } from '../ai/components/ConversationHistory'
 import { RankingFaqPanel } from '../ai/components/RankingFaqPanel'
 import type { useChat } from '../ai/hooks/useChat'
 
@@ -30,6 +31,13 @@ export function AiPage({ active, loggedIn, chatActive, messages, context, chat, 
     chat.resetConversation()
     setInputVersion((current) => current + 1)
   } : undefined
+  const historyRefreshKey = chat ? chat.turns.filter((turn) => turn.response?.status === 'SUCCESS').length : 0
+  const openConversation = (conversationId: string) => {
+    if (!chat || conversationId === chat.conversationId) return
+    void chat.openConversation(conversationId).then((opened) => {
+      if (opened) setInputVersion((current) => current + 1)
+    })
+  }
 
   return (
     <>
@@ -43,8 +51,9 @@ export function AiPage({ active, loggedIn, chatActive, messages, context, chat, 
           <div className="ai-layout">
             <aside className="ai-left desktop-only">
               <button className="new-chat" id="newChat" onClick={startNewChat}>＋ 새 대화</button>
+              {chat && <ConversationHistory loggedIn={loggedIn && !isInitializing} activeId={chat.conversationId} refreshKey={historyRefreshKey} disabled={inputDisabled} onSelect={openConversation} />}
               {!chat && <div className="history-block"><small>최근 대화</small><button className="active"><span>최신 폰 어떤게 있어?</span><em>방금</em></button><button><span>인터넷 이전 설치</span><em>어제</em></button></div>}
-              <div className="ai-left-bottom"><button className="open-login">로그인</button><button data-route="home">서비스 홈</button></div>
+              <div className="ai-left-bottom">{!loggedIn && <button className="open-login">로그인</button>}<button data-route="home">서비스 홈</button></div>
             </aside>
 
             <section className="ai-center">
@@ -85,9 +94,9 @@ export function AiPage({ active, loggedIn, chatActive, messages, context, chat, 
             </section>
 
             <aside className="ai-right desktop-only">
-              <div className="side-context-card"><small>현재 상태</small><b id="rightLoginState">{loggedIn ? '로그인 완료' : '비회원'}</b><p id="rightLoginDesc">{chat ? loggedIn ? '로그인한 계정으로 질문하고 답변을 받을 수 있어요.' : '비회원도 질문할 수 있지만 횟수가 제한돼요.' : loggedIn ? '개인 요금제와 혜택 조회가 가능해요.' : '개인 정보 조회 질문은 로그인 후 이용할 수 있어요.'}</p><button className="open-login">로그인하기</button></div>
+              <div className="side-context-card"><small>현재 상태</small><b id="rightLoginState">{loggedIn ? '로그인 완료' : '비회원'}</b><p id="rightLoginDesc">{chat ? loggedIn ? '로그인한 계정으로 질문하고 답변을 받을 수 있어요.' : '비회원도 질문할 수 있지만 횟수가 제한돼요.' : loggedIn ? '개인 요금제와 혜택 조회가 가능해요.' : '개인 정보 조회 질문은 로그인 후 이용할 수 있어요.'}</p>{!loggedIn && <button className="open-login">로그인하기</button>}</div>
               <div className="side-context-card"><small>가까운 대리점</small><b>U봇 강남직영점</b><p>현재 위치 기준 420m</p><button data-route="stores">지도에서 보기</button></div>
-              <div className="side-context-card muted"><small>대화 세션</small><b id="threadState">{chat ? '현재 화면의 대화' : loggedIn ? 'MEMBER-SESSION' : 'GUEST-8F21'}</b><p>{chat ? '새로고침하면 화면의 대화가 초기화됩니다.' : '로그인 전후 같은 Thread를 유지합니다.'}</p></div>
+              <div className="side-context-card muted"><small>대화 세션</small><b id="threadState">{chat ? '현재 화면의 대화' : loggedIn ? 'MEMBER-SESSION' : 'GUEST-8F21'}</b><p>{chat ? loggedIn ? '대화는 왼쪽 최근 대화에 저장돼요.' : '새로고침하면 화면의 대화가 초기화됩니다.' : '로그인 전후 같은 Thread를 유지합니다.'}</p></div>
             </aside>
           </div>
         </div>
