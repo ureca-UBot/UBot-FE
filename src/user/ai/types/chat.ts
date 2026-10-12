@@ -13,22 +13,31 @@ export interface ChatResponse {
   store?: ChatStore | null
 }
 
+// BE NearbyStoreResponseDto
 export interface ChatStoreItem {
   storeId: number
   storeName: string
+  sido: string
+  sigungu: string
   address: string
   phoneNumber: string | null
   businessHours: string | null
+  latitude: number
+  longitude: number
   distanceKm: number
+}
+
+// BE StoreMapResult: 기준 위치와 반경, 그 안에서 조회한 매장입니다. placeName이 null이면 현재 위치 기준입니다.
+export interface ChatStoreMap {
+  center: ChatLocation
+  placeName: string | null
+  radiusKm: number
+  stores: ChatStoreItem[]
 }
 
 export interface ChatStore {
   locationRequired: boolean
-  map: {
-    placeName: string | null
-    radiusKm: number
-    stores: ChatStoreItem[]
-  } | null
+  map: ChatStoreMap | null
 }
 
 export interface FaqAnswerSelection {
