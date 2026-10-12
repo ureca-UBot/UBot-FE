@@ -139,7 +139,7 @@ export interface SubscriptionContract {
   installment: Installment | null
 }
 
-// 회선 하나를 화면에 그릴 때 함께 조회하는 정보입니다.
+// 회선 하나의 화면에 쓰는 정보입니다. 항목마다 따로 조회합니다.
 export interface SubscriptionDetail {
   plan: PlanDetail
   contract: SubscriptionContract | null
@@ -150,4 +150,16 @@ export interface SubscriptionDetail {
   usage: UsageRecord | null
   // 최근 청구 내역입니다. 최근 달이 앞에 옵니다.
   bills: BillingRecord[]
+}
+
+export type SubscriptionDetailKey = keyof SubscriptionDetail
+
+// 조회가 끝난 항목의 결과입니다. 실패는 그 항목에만 남기고 다른 항목에는 영향을 주지 않습니다.
+export type PartResult<T> =
+  | { status: 'loaded'; value: T }
+  | { status: 'failed'; message: string }
+
+// 항목별 조회 결과입니다. 아직 결과가 없는 항목은 불러오는 중입니다.
+export type SubscriptionDetailParts = {
+  [Key in SubscriptionDetailKey]?: PartResult<SubscriptionDetail[Key]>
 }

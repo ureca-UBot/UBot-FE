@@ -1,15 +1,18 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { ApiRequestError } from '../../../shared/api/client'
 import { formatWon } from '../../product/utils/format'
-import { getMySubscriptionDetail, subscriptionApi } from '../api/subscriptionApi'
-import type { Subscription, SubscriptionDetail } from '../types/subscription'
+import { subscriptionApi, subscriptionDetailLoaders } from '../api/subscriptionApi'
+import type {
+  PartResult,
+  Subscription,
+  SubscriptionDetail,
+  SubscriptionDetailKey,
+  SubscriptionDetailParts,
+} from '../types/subscription'
 import { SUBSCRIPTION_STATUS_LABELS, dataUsagePercent, formatShortMonth } from '../utils/format'
 import { SubscriptionDetailSections } from './SubscriptionDetailSections'
 
-interface LoadedDetail {
-  subscriptionId: number
-  detail: SubscriptionDetail
-}
+const DETAIL_KEYS = Object.keys(subscriptionDetailLoaders) as SubscriptionDetailKey[]
 
 function errorMessage(error: unknown, fallback: string) {
   // apiClient가 access token 재발급을 시도한 뒤에도 401이면 로그인이 끝난 상태입니다.
@@ -30,68 +33,78 @@ function lineLabel(subscription: Subscription) {
     : `${subscription.phoneNumber} · ${SUBSCRIPTION_STATUS_LABELS[subscription.status]}`
 }
 
-// 사용률을 알 수 없으면(무제한·기록 없음) 빈 원으로 둡니다.
+// 사용률을 알 수 없으면(무제한·기록 없음·조회 실패) 빈 원으로 둡니다.
 function usageCircleStyle(percent: number | null): CSSProperties {
   const filled = percent ?? 0
   return { background: `conic-gradient(var(--pink) ${filled}%, #36363a ${filled}%)` }
 }
 
+function loadedValue<T>(part: PartResult<T> | undefined) {
+  return part?.status === 'loaded' ? part.value : null
+}
+
 export function MySubscriptionInfo({ active }: { active: boolean }) {
   const [subscriptions, setSubscriptions] = useState<Subscription[] | null>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [loaded, setLoaded] = useState<LoadedDetail | null>(null)
+  // 회선별·항목별 조회 결과입니다. 결과가 없는 항목은 불러오는 중으로 봅니다.
+  const [details, setDetails] = useState<Record<number, SubscriptionDetailParts>>({})
   const [listError, setListError] = useState<string | null>(null)
-  const [detailError, setDetailError] = useState<string | null>(null)
 
-  // 모든 사용자 화면이 함께 렌더링되므로 MY 화면이 열렸을 때 최신 정보로 다시 조회합니다.
-  useEffect(() => {
-    if (!active) return
-    let cancelled = false
+  const loadSubscriptions = useCallback(() => {
     subscriptionApi.getMySubscriptionList()
       .then((next) => {
-        if (cancelled) return
         setSubscriptions(next)
         // 보고 있던 회선이 그대로 있으면 선택을 유지합니다.
         setSelectedId((current) => (next.some((subscription) => subscription.subscriptionId === current) ? current : defaultSubscriptionId(next)))
         setListError(null)
       })
       .catch((caught: unknown) => {
-        if (!cancelled) setListError(errorMessage(caught, '가입 정보를 불러오지 못했습니다.'))
+        setListError(errorMessage(caught, '가입 정보를 불러오지 못했습니다.'))
       })
-    return () => {
-      cancelled = true
-    }
-  }, [active])
+  }, [])
+
+  // 항목 하나만 조회합니다. 실패해도 그 항목에만 남기고 다른 항목은 그대로 둡니다.
+  const loadPart = useCallback((subscriptionId: number, key: SubscriptionDetailKey) => {
+    const loader: (id: number) => Promise<SubscriptionDetail[SubscriptionDetailKey]> = subscriptionDetailLoaders[key]
+    loader(subscriptionId)
+      .then(
+        (value) => ({ status: 'loaded' as const, value }),
+        (caught: unknown) => ({ status: 'failed' as const, message: errorMessage(caught, '정보를 불러오지 못했습니다.') }),
+      )
+      .then((result) => {
+        // 항목 이름과 값의 짝은 subscriptionDetailLoaders가 보장합니다.
+        setDetails((current) => ({
+          ...current,
+          [subscriptionId]: { ...current[subscriptionId], [key]: result } as SubscriptionDetailParts,
+        }))
+      })
+  }, [])
+
+  // 모든 사용자 화면이 함께 렌더링되므로 MY 화면이 열렸을 때 최신 정보로 다시 조회합니다.
+  useEffect(() => {
+    if (active) loadSubscriptions()
+  }, [active, loadSubscriptions])
 
   useEffect(() => {
     if (!active || selectedId === null) return
-    let cancelled = false
-    getMySubscriptionDetail(selectedId)
-      .then((detail) => {
-        if (cancelled) return
-        setLoaded({ subscriptionId: selectedId, detail })
-        setDetailError(null)
-      })
-      .catch((caught: unknown) => {
-        if (!cancelled) setDetailError(errorMessage(caught, '회선 정보를 불러오지 못했습니다.'))
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [active, selectedId])
+    DETAIL_KEYS.forEach((key) => loadPart(selectedId, key))
+  }, [active, selectedId, loadPart])
 
-  function selectLine(subscriptionId: number) {
-    setSelectedId(subscriptionId)
-    setDetailError(null)
+  // 회선 목록과 보고 있는 회선의 모든 항목을 다시 조회합니다. 실패한 항목이 있을 때도 이 버튼으로 다시 시도합니다.
+  function refresh() {
+    loadSubscriptions()
+    if (selectedId === null) return
+    // 이전 결과를 지워 불러오는 중으로 되돌립니다.
+    setDetails((current) => ({ ...current, [selectedId]: {} }))
+    DETAIL_KEYS.forEach((key) => loadPart(selectedId, key))
   }
 
   const selected = subscriptions?.find((subscription) => subscription.subscriptionId === selectedId) ?? null
-  // 회선을 바꾼 직후에는 이전 회선의 정보를 보여주지 않습니다.
-  const detail = loaded && loaded.subscriptionId === selectedId ? loaded.detail : null
-  const latestBill = detail?.bills[0] ?? null
-  const usagePercent = dataUsagePercent(detail?.usage ?? null)
-  const dataUnlimited = detail?.usage?.allowance?.dataUnlimited === true
-  const error = detailError ?? listError
+  const parts: SubscriptionDetailParts = (selectedId !== null && details[selectedId]) || {}
+  const latestBill = loadedValue(parts.bills)?.[0] ?? null
+  const usage = loadedValue(parts.usage)
+  const usagePercent = dataUsagePercent(usage)
+  const dataUnlimited = usage?.allowance?.dataUnlimited === true
 
   return (
     <>
@@ -121,6 +134,7 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
         <section className="my-profile" aria-labelledby="mySubscriptionTitle">
           <div className="my-profile-head">
             <h3 id="mySubscriptionTitle">가입 정보</h3>
+            <button className="my-profile-ghost" onClick={refresh} type="button">새로고침</button>
           </div>
 
           {subscriptions.length > 1 && (
@@ -130,7 +144,7 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
                   aria-selected={subscription.subscriptionId === selectedId}
                   className={subscription.subscriptionId === selectedId ? 'active' : undefined}
                   key={subscription.subscriptionId}
-                  onClick={() => selectLine(subscription.subscriptionId)}
+                  onClick={() => setSelectedId(subscription.subscriptionId)}
                   role="tab"
                   type="button"
                 >
@@ -140,9 +154,8 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
             </div>
           )}
 
-          {!detail && !detailError && <p className="my-profile-message">회선 정보를 불러오는 중입니다.</p>}
-          {selected && detail && <SubscriptionDetailSections detail={detail} subscription={selected} />}
-          {error && <p className="my-profile-message error" role="alert">{error}</p>}
+          {selected && <SubscriptionDetailSections parts={parts} subscription={selected} />}
+          {listError && <p className="my-profile-message error" role="alert">{listError}</p>}
         </section>
       )}
     </>

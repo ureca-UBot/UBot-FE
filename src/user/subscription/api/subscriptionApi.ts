@@ -8,6 +8,7 @@ import type {
   SubscriptionBundle,
   SubscriptionContract,
   SubscriptionDetail,
+  SubscriptionDetailKey,
   SubscriptionRoaming,
   UsageRecord,
 } from '../types/subscription'
@@ -36,25 +37,16 @@ export const subscriptionApi = {
     apiClient.get<PageResponse<BillingRecord>>(`${BASE_PATH}/${subscriptionId}/billing-records?size=${size}`),
 }
 
-// 회선 하나의 화면에 필요한 정보를 한꺼번에 조회합니다. 하나라도 실패하면 전체를 실패로 봅니다.
-export async function getMySubscriptionDetail(subscriptionId: number): Promise<SubscriptionDetail> {
-  const [plan, contract, bundles, addons, roamings, usages, bills] = await Promise.all([
-    subscriptionApi.getMyPlan(subscriptionId),
-    subscriptionApi.getMyContract(subscriptionId),
-    subscriptionApi.getMyBundleList(subscriptionId),
-    subscriptionApi.getMyAddonList(subscriptionId),
-    subscriptionApi.getMyRoamingList(subscriptionId),
-    subscriptionApi.getMyUsageRecordList(subscriptionId, 1),
-    subscriptionApi.getMyBillingRecordList(subscriptionId, RECENT_BILL_COUNT),
-  ])
-
-  return {
-    plan,
-    contract: contract ?? null,
-    bundles,
-    addons,
-    roamings,
-    usage: usages.content[0] ?? null,
-    bills: bills.content,
-  }
+// 회선 화면의 항목별 조회입니다. 화면은 항목마다 따로 불러와, 하나가 실패해도 나머지는 그대로 보여 줍니다.
+export const subscriptionDetailLoaders: {
+  [Key in SubscriptionDetailKey]: (subscriptionId: number) => Promise<SubscriptionDetail[Key]>
+} = {
+  plan: (subscriptionId) => subscriptionApi.getMyPlan(subscriptionId),
+  contract: async (subscriptionId) => (await subscriptionApi.getMyContract(subscriptionId)) ?? null,
+  bundles: (subscriptionId) => subscriptionApi.getMyBundleList(subscriptionId),
+  addons: (subscriptionId) => subscriptionApi.getMyAddonList(subscriptionId),
+  roamings: (subscriptionId) => subscriptionApi.getMyRoamingList(subscriptionId),
+  usage: async (subscriptionId) => (await subscriptionApi.getMyUsageRecordList(subscriptionId, 1)).content[0] ?? null,
+  bills: async (subscriptionId) =>
+    (await subscriptionApi.getMyBillingRecordList(subscriptionId, RECENT_BILL_COUNT)).content,
 }
