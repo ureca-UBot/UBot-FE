@@ -1,20 +1,44 @@
-import { Link } from 'react-router-dom'
+import { useRef, useState } from 'react'
+
+type RankingType = 'top' | 'low'
+
+const improvementRows = Array.from({ length: 6 }, (_, index) => index + 1)
+
+function DraggableRankStrip({ metric }: { metric: 'usage' | 'similarity' }) {
+  const stripRef = useRef<HTMLDivElement>(null); const startX = useRef(0); const startScroll = useRef(0); const [dragging, setDragging] = useState(false)
+  const begin = (clientY: number) => { const strip = stripRef.current; if (!strip) return; startX.current = clientY; startScroll.current = strip.scrollTop; setDragging(true) }
+  const move = (clientY: number) => { const strip = stripRef.current; if (!strip || !dragging) return; strip.scrollTop = startScroll.current - (clientY - startX.current) }
+  const metricLabel = metric === 'usage' ? 'FAQ 사용량' : '평균 Similarity'
+  return <div className="faq-dashboard-strip-shell"><div className="faq-dashboard-strip-label"><b>FAQ 데이터</b><span>상하로 드래그하여 20개 항목 보기</span></div><div className={`faq-dashboard-rank-strip${dragging ? ' is-dragging' : ''}`} onMouseDown={event => begin(event.clientY)} onMouseMove={event => move(event.clientY)} onMouseUp={() => setDragging(false)} onMouseLeave={() => setDragging(false)} onTouchStart={event => begin(event.touches[0].clientY)} onTouchMove={event => move(event.touches[0].clientY)} onTouchEnd={() => setDragging(false)} ref={stripRef}>{Array.from({ length: 20 }, (_, index) => <article className="faq-dashboard-rank-card" key={index}><span>TOP {index + 1}</span><div><small>FAQ ID</small><b /></div><div><small>의도</small><b /></div><div className="faq-dashboard-rank-card__question"><small>FAQ 질문</small><b /></div><div><small>{metricLabel}</small><b /></div></article>)}</div></div>
+}
+
+function UsageChartFrame() {
+  return <div className="faq-dashboard-usage-chart"><div className="faq-dashboard-chart__heading"><div><strong>TOP 1 ~ TOP 20 사용량</strong><span>FAQ별 검색 결과 포함 횟수</span></div><div className="faq-dashboard-chart__legend"><i /><span>사용량</span></div></div><div className="faq-dashboard-chart__canvas"><span className="faq-dashboard-chart__axis faq-dashboard-chart__axis--100">100%</span><span className="faq-dashboard-chart__axis faq-dashboard-chart__axis--50">50%</span><span className="faq-dashboard-chart__axis faq-dashboard-chart__axis--0">0</span><div className="faq-dashboard-chart__grid" /><div className="faq-dashboard-chart__bars">{Array.from({ length: 20 }, (_, index) => <div className="faq-dashboard-chart__bar" key={index}><b /><small>{index + 1}</small></div>)}</div></div></div>
+}
+
+function SimilarityChartFrame() {
+  return <div className="faq-dashboard-similarity-chart"><div className="faq-dashboard-chart__heading"><div><strong>FAQ 평균 Similarity</strong><span>FAQ별 평균 유사도 비교</span></div><div className="faq-dashboard-chart__legend faq-dashboard-chart__legend--green"><i /><span>평균 Similarity</span></div></div><div className="faq-dashboard-similarity-chart__canvas"><span>1.0</span><span>0.5</span><span>0.0</span><div className="faq-dashboard-similarity-chart__grid" /></div></div>
+}
 
 export function DashboardPage() {
-  return (
-    <section>
-      <div className="page-heading">
-        <div>
-          <h1>관리자 대시보드</h1>
-          <p>FAQ와 매장 운영 현황을 관리합니다.</p>
-        </div>
-      </div>
-      <div className="dashboard-grid">
-        <article className="dashboard-card"><p className="dashboard-card__label">FAQ 관리</p><p className="dashboard-card__value">바로가기</p></article>
-        <article className="dashboard-card"><p className="dashboard-card__label">삭제된 FAQ</p><p className="dashboard-card__value">바로가기</p></article>
-        <article className="dashboard-card"><p className="dashboard-card__label">매장 관리</p><p className="dashboard-card__value">준비 중</p></article>
-        <Link className="dashboard-card dashboard-card--link" to="/admin/forbidden-words"><p className="dashboard-card__label">금지어 관리</p><p className="dashboard-card__value">바로가기</p></Link>
-      </div>
-    </section>
-  )
+  const [usageType, setUsageType] = useState<RankingType>('top')
+  const [similarityType, setSimilarityType] = useState<RankingType>('top')
+  const [periodMode, setPeriodMode] = useState<'7d' | '30d' | 'custom'>('30d')
+  const [detailRange, setDetailRange] = useState<'6h' | 'today' | 'month' | 'year'>('month')
+  const [selectedImprovementRow, setSelectedImprovementRow] = useState<number | null>(null)
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const setRecentPeriod = (days: 7 | 30) => { const end = new Date(); const start = new Date(end); start.setDate(end.getDate() - days); const toInputDate = (date: Date) => date.toISOString().slice(0, 10); setStartDate(toInputDate(start)); setEndDate(toInputDate(end)); setPeriodMode(`${days}d` as '7d' | '30d') }
+  return <section className="faq-dashboard">
+    <header className="faq-dashboard-heading"><div><p className="faq-dashboard-heading__eyebrow">FAQ MONITORING</p><h1>FAQ 관리 대시보드</h1><p>사용자 질문과 FAQ 검색 데이터를 기반으로 FAQ의 사용성과 검색 품질을 모니터링합니다.</p></div><div className="faq-dashboard-controls"><div className="faq-dashboard-segments"><button className={periodMode === '7d' ? 'is-active' : ''} onClick={() => setRecentPeriod(7)} type="button">최근 7일</button><button className={periodMode === '30d' ? 'is-active' : ''} onClick={() => setRecentPeriod(30)} type="button">최근 30일</button><button className={periodMode === 'custom' ? 'is-active' : ''} onClick={() => setPeriodMode('custom')} type="button">직접 입력</button></div><div className="faq-dashboard-date-inputs"><input aria-label="시작 날짜" onChange={event => { setStartDate(event.target.value); setPeriodMode('custom') }} type="date" value={startDate} /><span>~</span><input aria-label="종료 날짜" onChange={event => { setEndDate(event.target.value); setPeriodMode('custom') }} type="date" value={endDate} /><button type="button">적용</button></div></div></header>
+
+    <section className="faq-dashboard-section faq-dashboard-section--unanswered"><div className="faq-dashboard-section__title"><span className="faq-dashboard-section__number">01</span><h2>미처리 질문 모니터링</h2></div><div className="faq-dashboard-unanswered"><article><span>미처리 질문 수</span><strong className="faq-dashboard-blank-value" /><p>기간 내 답변되지 않은 질문</p></article><article><span>전체 질문 대비 미처리 질문 비율</span><strong className="faq-dashboard-blank-value" /><p>전체 질문 대비 미처리 질문 비율</p></article><article className="faq-dashboard-unanswered__guide"><b>기간별 미처리율 추이</b><div className="faq-dashboard-unanswered__chart"><span>15%</span><span>10%</span><span>5%</span><span>0%</span><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="미처리율 추이 그래프 영역"><path d="M0 5H100M0 35H100M0 65H100M0 95H100" /></svg></div></article></div></section>
+
+    <div className="faq-dashboard-monitoring-row"><section className="faq-dashboard-section faq-dashboard-section--usage"><div className="faq-dashboard-section__title"><span className="faq-dashboard-section__number">02</span><h2>사용량 FAQ TOP/LOW 20</h2></div><div className="faq-dashboard-tabs"><button className={usageType === 'top' ? 'is-active' : ''} onClick={() => setUsageType('top')} type="button">TOP 20</button><button className={usageType === 'low' ? 'is-active' : ''} onClick={() => setUsageType('low')} type="button">LOW 20</button></div><div className="faq-dashboard-monitoring-content"><UsageChartFrame /><DraggableRankStrip metric="usage" /></div></section>
+
+      <section className="faq-dashboard-section faq-dashboard-section--similarity"><div className="faq-dashboard-section__title"><span className="faq-dashboard-section__number">03</span><h2>FAQ 평균 Similarity TOP/LOW 20</h2><div className="faq-dashboard-average"><span>전체 평균 Similarity</span><strong /></div></div><div className="faq-dashboard-tabs"><button className={similarityType === 'top' ? 'is-active' : ''} onClick={() => setSimilarityType('top')} type="button">TOP 20</button><button className={similarityType === 'low' ? 'is-active' : ''} onClick={() => setSimilarityType('low')} type="button">LOW 20</button></div><div className="faq-dashboard-monitoring-content"><SimilarityChartFrame /><DraggableRankStrip metric="similarity" /></div></section></div>
+
+    <div className="faq-dashboard-pair faq-dashboard-pair--bottom"><section className="faq-dashboard-section faq-dashboard-section--detail"><div className="faq-dashboard-section__title"><span className="faq-dashboard-section__number">04</span><h2>FAQ 상세정보</h2></div><div className="faq-dashboard-detail"><div className="faq-dashboard-detail__basic"><span>FAQ ID</span><b /><span>질문</span><b /><span>카테고리</span><b /><span>의도</span><b /><span>현재 버전</span><b /><span>최종 수정일</span><b /><div className="faq-dashboard-detail__metrics"><div><span>평균 Similarity</span><strong /></div><div><span>평균 Gap</span><strong /></div></div></div><div className="faq-dashboard-detail__trend"><div className="faq-dashboard-detail__trend-heading"><h3>사용량 추이</h3><div className="faq-dashboard-detail__range">{([{ key: '6h', label: '최근 6시간' }, { key: 'today', label: '오늘' }, { key: 'month', label: '이번 달' }, { key: 'year', label: '이번 년' }] as const).map(item => <button className={detailRange === item.key ? 'is-active' : ''} key={item.key} onClick={() => setDetailRange(item.key)} type="button">{item.label}</button>)}</div></div><div className="faq-dashboard-trend"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="FAQ 사용량 추이 그래프 영역"><path d="M0,92 H100 M0,52 H100 M0,12 H100" className="faq-dashboard-trend__grid" /></svg></div></div><div className="faq-dashboard-cooccurring"><h3>함께 등장한 FAQ Top 5</h3><table className="faq-dashboard-table"><thead><tr><th>순위</th><th>FAQ ID</th><th>FAQ 질문</th><th>동시 등장 횟수</th></tr></thead><tbody>{Array.from({ length: 5 }, (_, index) => <tr key={index}><td>{index + 1}</td><td /><td /><td /></tr>)}</tbody></table></div></div></section>
+      <section className="faq-dashboard-section faq-dashboard-section--improvement"><div className="faq-dashboard-section__title"><span className="faq-dashboard-section__number">05</span><h2>개선이 필요한 FAQ</h2></div><p className="faq-dashboard-improvement-hint">FAQ 행을 클릭하면 하단에서 추가 지표를 확인할 수 있습니다.</p><div className="faq-dashboard-table-wrap faq-dashboard-improvement-table-wrap"><table className="faq-dashboard-table faq-dashboard-improvement-table"><thead><tr><th>FAQ ID</th><th>FAQ 질문</th><th>의도</th><th>FAQ 버전</th><th>버전 시작일</th><th>개선 유형</th></tr></thead><tbody>{improvementRows.map(row => <tr className={selectedImprovementRow === row ? 'is-selected' : ''} key={row} onClick={() => setSelectedImprovementRow(current => current === row ? null : row)}><td /><td /><td /><td /><td /><td /></tr>)}</tbody></table></div>{selectedImprovementRow !== null && <div className="faq-dashboard-improvement-extra"><div className="faq-dashboard-improvement-extra__title"><b>추가 정보</b><span>선택한 FAQ의 검색·사용 지표</span></div><div className="faq-dashboard-improvement-metrics"><div><span>Top-K 포함 횟수</span><strong /></div><div><span>평균 Similarity</span><strong /></div><div><span>Top-1 표본 수</span><strong /></div><div><span>최근 사용량</span><strong /></div><div><span>평균 Gap</span><strong /></div><div><span>Low Gap 비율</span><strong /></div></div></div>}<div className="faq-dashboard-improvement-note"><b>판정 기준</b><p>검색 품질 낮음 · FAQ 중복 의심 · 활용도 낮음</p></div></section></div>
+  </section>
 }
