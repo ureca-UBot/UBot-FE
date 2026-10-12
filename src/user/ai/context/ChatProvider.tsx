@@ -15,6 +15,7 @@ import { ChatContext, type ChatContextValue } from './ChatContext'
 
 interface ChatState {
   userId: string | null
+  conversationId: string | null
   turns: ChatTurn[]
   error: string | null
 }
@@ -90,7 +91,7 @@ function keepsConversation(previousUserId: string | null, userId: string | null)
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { user, isInitializing } = useAuth()
   const userId = user?.id ?? null
-  const [state, setState] = useState<ChatState>({ userId, turns: [], error: null })
+  const [state, setState] = useState<ChatState>({ userId, conversationId: null, turns: [], error: null })
   const nextTurnId = useRef(0)
   const previousUserId = useRef(userId)
   // 대화를 비울 때마다 바뀌며, 비우기 전에 보낸 요청의 늦은 응답을 걸러냅니다.
@@ -101,7 +102,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   if (state.userId !== userId) {
     setState(keepsConversation(state.userId, userId)
       ? { ...state, userId, error: null }
-      : { userId, turns: [], error: null })
+      : { userId, conversationId: null, turns: [], error: null })
   }
 
   useEffect(() => {
@@ -155,6 +156,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (activeRequest.current === requestId) activeRequest.current = null
     setState((current) => ({
       ...current,
+      conversationId: response?.conversationId ?? current.conversationId,
       turns: current.turns.map((item) => item.id === turn.id
         ? { ...item, isPending: false, response, error: responseError, errorCode: responseErrorCode }
         : item),
@@ -164,8 +166,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const sendQuestion = useCallback((rawQuestion: string) => {
     const question = rawQuestion.trim()
-    return runRequest({ id: ++nextTurnId.current, question }, () => chatApi.createQuestion({ question }))
-  }, [runRequest])
+    const conversationId = state.conversationId ?? undefined
+    return runRequest({ id: ++nextTurnId.current, question }, () => chatApi.createQuestion({ question, conversationId }))
+  }, [runRequest, state.conversationId])
 
   // 랭킹 API는 FAQ ID와 검증된 질문·답변을 함께 내려주므로 AI 생성 요청 없이 바로 대화에 추가합니다.
   const sendFaqAnswer = useCallback((faq: FaqAnswerSelection): Promise<boolean> => {
@@ -263,11 +266,38 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const resetConversation = useCallback(() => {
     conversation.current = {}
     activeRequest.current = null
-    setState((current) => ({ userId: current.userId, turns: [], error: null }))
+    setState((current) => ({ userId: current.userId, conversationId: null, turns: [], error: null }))
+  }, [])
+
+  const openConversation = useCallback(async (conversationId: string) => {
+    if (activeRequest.current) return false
+    const requestConversation = {}
+    conversation.current = requestConversation
+    try {
+      const messages = await chatApi.getConversationMessageList(conversationId)
+      if (conversation.current !== requestConversation) return false
+      const turns: ChatTurn[] = messages.map((message) => ({
+        id: ++nextTurnId.current,
+        question: message.question,
+        isPending: false,
+        response: { answer: message.answer, status: 'SUCCESS', idempotencyKey: null, attemptCount: 0, retryable: false },
+        error: null,
+        errorCode: null,
+        researches: [],
+      }))
+      setState((current) => ({ ...current, conversationId, turns, error: null }))
+      return true
+    } catch (cause) {
+      if (conversation.current !== requestConversation) return false
+      const error = cause instanceof ApiRequestError ? cause.message : '대화를 불러오지 못했습니다.'
+      setState((current) => ({ ...current, error }))
+      return false
+    }
   }, [])
 
   const value = useMemo<ChatContextValue>(() => ({
     turns: state.turns,
+    conversationId: state.conversationId,
     isPending: state.turns.some((turn) => turn.isPending || turn.researches.some((item) => item.isPending)),
     error: state.error,
     sendQuestion,
@@ -275,7 +305,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     retryAnswer,
     researchAnswer,
     resetConversation,
-  }), [researchAnswer, resetConversation, retryAnswer, sendFaqAnswer, sendQuestion, state.error, state.turns])
+    openConversation,
+  }), [openConversation, researchAnswer, resetConversation, retryAnswer, sendFaqAnswer, sendQuestion, state.conversationId, state.error, state.turns])
 
   return <ChatContext value={value}>{children}</ChatContext>
 }

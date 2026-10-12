@@ -2592,7 +2592,16 @@
 }
 
 .ubot-user-app .history-block span {
-  font-size: 13px
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.ubot-user-app .history-block .history-empty {
+  margin: 8px 2px 0;
+  color: var(--subtle);
+  font-size: 12px
 }
 
 .ubot-user-app .history-block em {
