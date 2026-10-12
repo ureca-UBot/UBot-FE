@@ -57,4 +57,8 @@ export const chatMockApi: ChatApi = {
             retryable: false,
         }
     },
+
+    getMyConversationList: async () => ({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, first: true, last: true }),
+
+    getConversationMessageList: async () => [],
 }

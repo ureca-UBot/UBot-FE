@@ -1,6 +1,7 @@
 // BE ChatRequestDto
 export interface ChatRequest {
   question: string
+  conversationId?: string
 }
 
 // BE ChatResponseDto: 공통 ApiResponse의 data에 담기는 채팅 결과입니다.
@@ -11,6 +12,20 @@ export interface ChatResponse {
   attemptCount: number
   retryable: boolean
   store?: ChatStore | null
+  conversationId?: string | null
+}
+
+export interface ConversationSummary {
+  conversationId: string
+  title: string
+  lastQuestionAt: string
+}
+
+export interface ConversationMessage {
+  id: number
+  question: string
+  answer: string
+  createdAt: string
 }
 
 // BE NearbyStoreResponseDto
