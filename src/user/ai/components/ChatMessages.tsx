@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef } from 'react'
 import { CHAT_INTENT_LABELS, type ChatIntent, type ChatLocation, type ChatResearch, type ChatTurn } from '../types/chat'
+import { storeMapKey } from '../utils/storeMaps'
 import { ChatStoreCards } from './ChatStoreCards'
 import { ResearchIntentButtons } from './ResearchIntentButtons'
 
@@ -11,6 +12,8 @@ interface ChatMessagesProps {
   canResearch: boolean
   onRetry: (turnId: number) => Promise<boolean>
   onResearch: (turnId: number, intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
+  // 답변의 매장 지도를 열고 고른 매장을 보여 줍니다. 키는 storeMapKey로 만듭니다.
+  onOpenMap?: (key: string, storeId: number) => void
 }
 
 const GUEST_QUESTION_LIMIT_CODE = 'CHAT-017'
@@ -33,8 +36,9 @@ function getAnswerText(answer = ''): string {
     }
   } catch {
     // JSON 형태의 응답은 원문 대신 안내를 표시하고, 일반 문장은 그대로 표시합니다.
+    // "[1] 신분증을 준비해 주세요" 같은 번호 매기기 답변을 JSON 배열로 오인하지 않도록 숫자/부호는 배열 판별에서 뺍니다.
     const looksLikeJson = trimmedAnswer.startsWith('{')
-      || /^\[\s*(?:[{"[\]\d-]|true\b|false\b|null\b|$)/.test(trimmedAnswer)
+      || /^\[\s*(?:[{"[\]]|true\b|false\b|null\b|$)/.test(trimmedAnswer)
       || /^```(?:json\b|\s*[{[])/i.test(trimmedAnswer)
     if (looksLikeJson) {
       return INVALID_ANSWER_MESSAGE
@@ -44,7 +48,7 @@ function getAnswerText(answer = ''): string {
 }
 
 // 원래 답변 아래에 의도별로 다시 검색한 결과를 보여줍니다.
-function ResearchResult({ research }: { research: ChatResearch }) {
+function ResearchResult({ research, onOpenMap }: { research: ChatResearch; onOpenMap?: (storeId: number) => void }) {
   const label = CHAT_INTENT_LABELS[research.intent]
 
   return (
@@ -62,14 +66,14 @@ function ResearchResult({ research }: { research: ChatResearch }) {
       ) : (
         <>
           <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(research.response?.answer)}</div>
-          <ChatStoreCards store={research.response?.store} />
+          <ChatStoreCards store={research.response?.store} onOpenMap={onOpenMap} />
         </>
       )}
     </div>
   )
 }
 
-export function ChatMessages({ active, turns, disabled, canResearch, onRetry, onResearch }: ChatMessagesProps) {
+export function ChatMessages({ active, turns, disabled, canResearch, onRetry, onResearch, onOpenMap }: ChatMessagesProps) {
   const thread = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -109,7 +113,7 @@ export function ChatMessages({ active, turns, disabled, canResearch, onRetry, on
               ) : (
                 <>
                   <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(turn.response?.answer)}</div>
-                  <ChatStoreCards store={turn.response?.store} />
+                  <ChatStoreCards store={turn.response?.store} onOpenMap={onOpenMap && ((storeId) => onOpenMap(storeMapKey(turn.id), storeId))} />
                   {canResearch && turn.response?.status === 'SUCCESS' && turn.response.idempotencyKey && (
                     <ResearchIntentButtons
                       researches={turn.researches}
@@ -118,7 +122,11 @@ export function ChatMessages({ active, turns, disabled, canResearch, onRetry, on
                     />
                   )}
                   {turn.researches.map((research) => (
-                    <ResearchResult key={research.intent} research={research} />
+                    <ResearchResult
+                      key={research.intent}
+                      research={research}
+                      onOpenMap={onOpenMap && ((storeId) => onOpenMap(storeMapKey(turn.id, research.intent), storeId))}
+                    />
                   ))}
                 </>
               )}
