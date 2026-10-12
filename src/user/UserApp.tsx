@@ -4,6 +4,7 @@ import { useChat } from './ai/hooks/useChat'
 import { useAiDemo } from './ai/useAiDemo'
 import { UserDialogs, type UserDialog } from './components/UserDialogs'
 import { UserLoginModal } from './components/UserLoginModal'
+import { NoticeBanners } from './notice/components/NoticeBanners'
 import type { ReservationStore } from './reservation/types/reservation'
 import { useMyProfile } from './my/hooks/useMyProfile'
 import { useHeroCarousel } from './hooks/useHeroCarousel'
@@ -208,6 +209,7 @@ export default function UserApp() {
 
   return (
     <div className="ubot-user-app" onClick={handleClick} onKeyDown={handleKeyDown}>
+      <NoticeBanners onNoticePage={page === 'notices'} />
       <DesktopHeader loggedIn={loggedIn} memberName={memberName} scrolled={scrolled} page={page} />
       <MobileHeader title={userPageTitles[page]} />
       <main>
