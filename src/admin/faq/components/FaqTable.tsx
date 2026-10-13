@@ -8,7 +8,7 @@ export interface FaqTableRow {
   answer: string;
   intent: FaqIntent;
   version: number;
-  adminId: number;
+  adminId: number | null;
   updatedAt: string | null;
 }
 

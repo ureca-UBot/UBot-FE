@@ -7,7 +7,8 @@ export interface FaqResponse {
   answer: string
   intent: FaqIntent
   version: number
-  adminId: number
+  // 등록한 관리자 계정이 삭제되면 BE가 null로 내려줍니다.
+  adminId: number | null
   createdAt: string
   updatedAt: string
 }
@@ -33,4 +34,4 @@ export interface FaqCategoryResponse { faqCategoryId: number; name: string; crea
 export interface FaqCategoryCreateRequest { name: string }
 export interface FaqCategoryUpdateRequest { afterName: string }
 export interface FaqLogResponse { id: number; questionLogId: number; faqId: number; rank: number; similarity: number; createdAt: string }
-export interface OldFaqResponse { faqId: number; version: number; categoryId: number; question: string; answer: string; intent: FaqIntent; createdById: number; updatedById: number; updatedAt: string }
+export interface OldFaqResponse { faqId: number; version: number; categoryId: number; question: string; answer: string; intent: FaqIntent; createdById: number | null; updatedById: number | null; updatedAt: string }
