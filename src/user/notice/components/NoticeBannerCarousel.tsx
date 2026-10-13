@@ -7,10 +7,12 @@ interface NoticeBannerCarouselProps {
     notices: Notice[]
     // 공지 목록 화면으로 가는 링크를 보여줄지 정합니다. 이미 목록 화면이면 숨깁니다.
     showAllLink: boolean
+    // 접속 지역 표시입니다. 없으면(null) 그리지 않습니다.
+    regionLabel: string | null
     onClose: () => void
 }
 
-export function NoticeBannerCarousel({ type, notices, showAllLink, onClose }: NoticeBannerCarouselProps) {
+export function NoticeBannerCarousel({ type, notices, showAllLink, regionLabel, onClose }: NoticeBannerCarouselProps) {
     const [index, setIndex] = useState(0)
     const [expanded, setExpanded] = useState(false)
     const label = NOTICE_TYPE_LABELS[type]
@@ -48,6 +50,12 @@ export function NoticeBannerCarousel({ type, notices, showAllLink, onClose }: No
                         <button aria-label={`다음 ${label}`} className="notice-banner__arrow" onClick={() => move(1)} type="button">›</button>
                         <span className="notice-banner__count">{Math.min(index, notices.length - 1) + 1}/{notices.length}</span>
                     </>
+                )}
+
+                {regionLabel && (
+                    <span className="notice-banner__region" title="접속 IP로 확인한 지역이에요. 이 지역의 공지가 함께 보여요.">
+                        접속 지역 {regionLabel}
+                    </span>
                 )}
 
                 {showAllLink && <button className="notice-banner__all" data-route="notices" type="button">전체 보기</button>}

@@ -2,6 +2,8 @@ import type { Notice, NoticeRegion, NoticeType } from '../../../shared/types/not
 
 // BE NoticeBannerResponseDto: 없으면 빈 목록입니다. 최신순이고 종류별 최대 10개입니다.
 export interface NoticeBanners {
+    // 서버가 접속 IP로 판별한 지역입니다. 판별하지 못하면 null이고, 이때는 전체 공지만 내려옵니다.
+    region: NoticeRegion | null
     notices: Notice[]
     outages: Notice[]
 }
