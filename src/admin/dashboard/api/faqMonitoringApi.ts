@@ -14,6 +14,10 @@ export const faqMonitoringApi = {
     })
     return apiClient.get<FaqMonitoringResponse>(`/api/admin/faq-monitoring?${query.toString()}`)
   },
-  getFaqDetail: (faqId: number, period: 'SIX_HOURS' | 'DAY' | 'MONTH' | 'YEAR') => apiClient.get<FaqDetailResponse>(`/api/admin/faq-monitoring/faqs/${faqId}?period=${period}`),
+  getFaqDetail: (faqId: number, period: 'SIX_HOURS' | 'DAY' | 'MONTH' | 'YEAR', asOf?: string) => {
+    const query = new URLSearchParams({ period })
+    if (asOf) query.set('asOf', asOf)
+    return apiClient.get<FaqDetailResponse>(`/api/admin/faq-monitoring/faqs/${faqId}?${query.toString()}`)
+  },
   getFaqImprovements: () => apiClient.get<FaqImprovementResponse>('/api/admin/faq-monitoring/improvements'),
 }
