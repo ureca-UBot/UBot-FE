@@ -6,7 +6,7 @@ const apiBaseUrl =
   (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')// 현재 바뀐 api 규칙대로 통일하기위한 변경입니다
 const EXPIRED_ACCESS_TOKEN_CODE = 'JWT-007';
 // JWT-004: 유효하지 않은 access token, JWT-005: 삭제된 유저의 토큰
-const REJECTED_ACCESS_TOKEN_CODES = new Set(['JWT-004', 'JWT-005']);
+const REJECTED_ACCESS_TOKEN_CODES = new Set(['JWT-004', 'JWT-005', 'JWT-009']);
 // authApi.refresh와 같은 경로입니다. authApi가 이 파일을 import하므로 순환 참조를 피하려고 직접 호출합니다.
 const REFRESH_PATH = '/api/auth/refresh';
 
