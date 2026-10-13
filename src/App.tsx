@@ -25,6 +25,7 @@ import { ChatProvider } from './user/ai/context/ChatProvider'
 import { GuestChatSettingsPage } from './admin/pages/guest-chat/GuestChatSettingsPage'
 import { EmbeddingBackfillPage } from './admin/pages/embedding/EmbeddingBackfillPage'
 import { EmbeddingBackfillProvider } from './admin/embedding/context/EmbeddingBackfillProvider'
+import { OperationDashboardPage } from './admin/operation/pages/OperationDashboardPage'
 
 import UserApp from './user/UserApp'
 import './App.css'
@@ -45,6 +46,7 @@ function App() {
             <Route path="/admin" element={<EmbeddingBackfillProvider><AdminLayout /></EmbeddingBackfillProvider>}>
               <Route index element={<Navigate replace to="dashboard" />} />
               <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="operation" element={<OperationDashboardPage />} />
 
               <Route path="faqs" element={<FaqLayout />}>
                 <Route index element={<FaqListPage />} />
