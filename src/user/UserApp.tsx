@@ -4,6 +4,7 @@ import { useChat } from './ai/hooks/useChat'
 import { useAiDemo } from './ai/useAiDemo'
 import { UserDialogs, type UserDialog } from './components/UserDialogs'
 import { UserLoginModal } from './components/UserLoginModal'
+import { NoticeBanners } from './notice/components/NoticeBanners'
 import type { ReservationStore } from './reservation/types/reservation'
 import { useMyProfile } from './my/hooks/useMyProfile'
 import { useHeroCarousel } from './hooks/useHeroCarousel'
@@ -16,6 +17,7 @@ import { AiPage } from './pages/AiPage'
 import { BenefitsPage } from './pages/BenefitsPage'
 import { HomePage } from './pages/HomePage'
 import { MyPage } from './pages/MyPage'
+import { NoticePage } from './pages/NoticePage'
 import { ProductPage } from './pages/ProductPage'
 import { StorePage } from './pages/StorePage'
 import { StoreLocatorPage } from './pages/StoreLocatorPage'
@@ -135,15 +137,15 @@ export default function UserApp() {
       navigate(route)
       return
     }
-	if (target.classList.contains('open-login')) {
-	  routerNavigate('/auth/login')
-	  return
-	}
+    if (target.classList.contains('open-login')) {
+      routerNavigate('/auth/login')
+      return
+    }
 
-	if (target.hasAttribute('data-login-required')) {
-	  routerNavigate('/auth/login')
-	  return
-	}
+    if (target.hasAttribute('data-login-required')) {
+      routerNavigate('/auth/login')
+      return
+    }
     // 실제 채팅의 입력·재시도는 채팅 컴포넌트에서 처리합니다.
     if (target.closest('[data-live-chat]')) return
     if (target.id === 'demoOpen' || target.id === 'mobileDemoOpen') {
@@ -207,6 +209,7 @@ export default function UserApp() {
 
   return (
     <div className="ubot-user-app" onClick={handleClick} onKeyDown={handleKeyDown}>
+      <NoticeBanners onNoticePage={page === 'notices'} />
       <DesktopHeader loggedIn={loggedIn} memberName={memberName} scrolled={scrolled} page={page} />
       <MobileHeader title={userPageTitles[page]} />
       <main>
@@ -217,6 +220,7 @@ export default function UserApp() {
         <BenefitsPage active={page === 'benefits'} />
         <SupportPage active={page === 'support'} />
         <StoreLocatorPage active={page === 'stores'} />
+        <NoticePage active={page === 'notices'} />
         <AiPage
           key={`${isAiDemo ? 'demo' : 'live'}:${user?.id ?? 'guest'}`}
           active={page === 'ai'} loggedIn={isAiDemo ? loggedIn : Boolean(user)}

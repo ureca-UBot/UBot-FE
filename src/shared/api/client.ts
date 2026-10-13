@@ -110,7 +110,8 @@ async function send<T>(path: string, init: RequestInit, withAuth: boolean): Prom
 }
 
 export const apiClient = {
-  get: <T>(path: string, init?: RequestInit) => request<T>(path, init),
+  // withAuth=false면 토큰을 보내지 않습니다. 로그인 여부와 상관없는 공개 조회에 씁니다.
+  get: <T>(path: string, init?: RequestInit, withAuth = true) => request<T>(path, init, withAuth),
   post: <T>(path: string, data?: unknown, withAuth = true, headers?: Record<string, string>) => request<T>(path, {
     method: 'POST',
     ...(data === undefined ? {} : { body: JSON.stringify(data) }),

@@ -2361,14 +2361,14 @@
   border-radius: 16px
 }
 
-.ubot-user-app .my-item-list li > div:first-child,
-.ubot-user-app .my-item-list li > button {
+.ubot-user-app .my-item-list li>div:first-child,
+.ubot-user-app .my-item-list li>button {
   display: grid;
   gap: 4px;
   min-width: 0
 }
 
-.ubot-user-app .my-item-list li > button {
+.ubot-user-app .my-item-list li>button {
   width: 100%;
   padding: 0;
   border: 0;
@@ -2413,10 +2413,25 @@
   white-space: nowrap
 }
 
-.ubot-user-app .reservation-status--reserved { color: #1d4ed8; background: #eff6ff }
-.ubot-user-app .reservation-status--completed { color: #047857; background: #ecfdf5 }
-.ubot-user-app .reservation-status--canceled { color: #6b7280; background: #f3f4f6 }
-.ubot-user-app .reservation-status--no_show { color: #c42e53; background: #fff1f3 }
+.ubot-user-app .reservation-status--reserved {
+  color: #1d4ed8;
+  background: #eff6ff
+}
+
+.ubot-user-app .reservation-status--completed {
+  color: #047857;
+  background: #ecfdf5
+}
+
+.ubot-user-app .reservation-status--canceled {
+  color: #6b7280;
+  background: #f3f4f6
+}
+
+.ubot-user-app .reservation-status--no_show {
+  color: #c42e53;
+  background: #fff1f3
+}
 
 .ubot-user-app .my-unread-count {
   margin-left: 8px;
@@ -2451,7 +2466,7 @@
   background: var(--ink)
 }
 
-.ubot-user-app .my-sub-block + .my-sub-block {
+.ubot-user-app .my-sub-block+.my-sub-block {
   margin-top: 22px;
   padding-top: 22px;
   border-top: 1px solid var(--line)
@@ -2488,9 +2503,20 @@
   white-space: nowrap
 }
 
-.ubot-user-app .my-item-list .my-status--on { color: #047857; background: #ecfdf5 }
-.ubot-user-app .my-item-list .my-status--pending { color: #1d4ed8; background: #eff6ff }
-.ubot-user-app .my-item-list .my-status--warn { color: #c42e53; background: #fff1f3 }
+.ubot-user-app .my-item-list .my-status--on {
+  color: #047857;
+  background: #ecfdf5
+}
+
+.ubot-user-app .my-item-list .my-status--pending {
+  color: #1d4ed8;
+  background: #eff6ff
+}
+
+.ubot-user-app .my-item-list .my-status--warn {
+  color: #c42e53;
+  background: #fff1f3
+}
 
 .ubot-user-app .modal .reservation-error {
   color: #c42e53
@@ -3211,7 +3237,7 @@
   margin-top: 4px
 }
 
-.ubot-user-app .chat-store-cards .chat-card p + p {
+.ubot-user-app .chat-store-cards .chat-card p+p {
   margin-top: 4px
 }
 
@@ -7969,6 +7995,7 @@
     transform: none
   }
 }
+
 /* 채팅 매장 지도 드로어 — 매장 찾기 화면을 오른쪽에서 밀려 나오는 패널에 그대로 띄운다 */
 .ubot-user-app .chat-map-drawer {
   position: fixed;
@@ -8167,7 +8194,7 @@
   }
 
   .ubot-user-app .chat-map-drawer .store-service-filter,
-  .ubot-user-app .chat-map-drawer .store-region-search > button {
+  .ubot-user-app .chat-map-drawer .store-region-search>button {
     grid-column: 1/-1
   }
 
@@ -8224,6 +8251,7 @@
 
 /* 동작 줄이기 설정에서는 밀려 나오지 않고 서서히 나타난다 */
 @media(prefers-reduced-motion:reduce) {
+
   .ubot-user-app .chat-map-drawer,
   .ubot-user-app .chat-map-drawer.open {
     transform: none;
@@ -8232,5 +8260,478 @@
 
   .ubot-user-app .chat-map-drawer.open {
     transition: opacity .2s ease, visibility 0s
+  }
+}
+
+/* 공지·장애 배너 */
+.ubot-user-app .notice-banners {
+  position: relative;
+  z-index: 90
+}
+
+.ubot-user-app .notice-banner {
+  border-bottom: 1px solid transparent;
+  font-size: 14px
+}
+
+.ubot-user-app .notice-banner--outage {
+  border-bottom-color: #fecdd3;
+  color: #9f1239;
+  background: #fff1f2
+}
+
+.ubot-user-app .notice-banner--notice {
+  border-bottom-color: #e4defa;
+  color: #3f2f9e;
+  background: #f4f1ff
+}
+
+.ubot-user-app .notice-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(calc(100% - 32px), 1280px);
+  min-height: 44px;
+  margin: auto;
+  padding: 6px 0
+}
+
+.ubot-user-app .notice-banner__badge {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #fff;
+  background: currentColor;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner--outage .notice-banner__badge {
+  background: #e11d48
+}
+
+.ubot-user-app .notice-banner--notice .notice-banner__badge {
+  background: var(--purple)
+}
+
+.ubot-user-app .notice-banner__body {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0
+}
+
+.ubot-user-app .notice-banner__title {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner__content {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: .88
+}
+
+.ubot-user-app .notice-banner__content--open {
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .notice-banner__arrow,
+.ubot-user-app .notice-banner__all,
+.ubot-user-app .notice-banner__toggle,
+.ubot-user-app .notice-banner__close {
+  flex: none;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer
+}
+
+.ubot-user-app .notice-banner__arrow {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .7);
+  font-size: 18px;
+  line-height: 1
+}
+
+.ubot-user-app .notice-banner__count {
+  flex: none;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: .8
+}
+
+.ubot-user-app .notice-banner__all,
+.ubot-user-app .notice-banner__toggle {
+  padding: 4px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline
+}
+
+.ubot-user-app .notice-banner__region {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .7);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner__close {
+  width: 26px;
+  height: 26px;
+  font-size: 20px;
+  line-height: 1;
+  opacity: .7
+}
+
+.ubot-user-app .notice-banner__arrow:hover,
+.ubot-user-app .notice-banner__close:hover {
+  opacity: 1
+}
+
+@media (max-width: 767px) {
+
+  /* 모바일 헤더(58px)는 화면 맨 위에 고정이라, 배너는 그 아래에서 시작해 본문을 아래로 밀어냅니다. */
+  .ubot-user-app .notice-banners {
+    z-index: 1;
+    margin-top: 58px
+  }
+
+  /* 배너가 헤더 아래 여백을 대신하므로, 배너가 있는 동안에는 화면 본문의 헤더용 위쪽 여백을 뺍니다. */
+  .ubot-user-app:has(.notice-banners) .route,
+  .ubot-user-app:has(.notice-banners) .page-standard {
+    padding-top: 0
+  }
+
+  .ubot-user-app .notice-banner__inner {
+    flex-wrap: wrap;
+    gap: 6px 8px
+  }
+
+  .ubot-user-app .notice-banner__body {
+    flex-basis: 100%;
+    order: 5;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px
+  }
+
+  .ubot-user-app .notice-banner__title {
+    max-width: 100%
+  }
+}
+
+
+/* 공지·장애 목록·상세 */
+.ubot-user-app .support-notice-link {
+  margin-top: 22px;
+  padding: 10px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer
+}
+
+.ubot-user-app .support-notice-link:hover {
+  border-color: var(--purple);
+  color: var(--purple)
+}
+
+.ubot-user-app .notice-page {
+  max-width: 860px
+}
+
+.ubot-user-app .notice-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap
+}
+
+.ubot-user-app .notice-tabs {
+  display: flex;
+  gap: 8px
+}
+
+.ubot-user-app .notice-tab {
+  padding: 9px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer
+}
+
+.ubot-user-app .notice-tab--active {
+  border-color: var(--ink);
+  color: #fff;
+  background: var(--ink)
+}
+
+.ubot-user-app .notice-region {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700
+}
+
+.ubot-user-app .notice-region select {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 14px
+}
+
+.ubot-user-app .notice-current-region {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 13px
+}
+
+.ubot-user-app .notice-current-region strong {
+  color: var(--ink)
+}
+
+.ubot-user-app .notice-current-region button {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer
+}
+
+.ubot-user-app .notice-current-region button:hover {
+  border-color: var(--purple);
+  color: var(--purple)
+}
+
+.ubot-user-app .notice-hint {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px
+}
+
+.ubot-user-app .notice-count {
+  margin: 22px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700
+}
+
+.ubot-user-app .notice-message {
+  margin: 28px 0;
+  padding: 36px 16px;
+  border-radius: 14px;
+  color: var(--muted);
+  background: #f7f7f8;
+  font-size: 14px;
+  text-align: center
+}
+
+.ubot-user-app .notice-message--error {
+  color: #b91c1c;
+  background: #fef2f2
+}
+
+.ubot-user-app .notice-items {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ink);
+  list-style: none
+}
+
+.ubot-user-app .notice-items li {
+  border-bottom: 1px solid var(--line)
+}
+
+.ubot-user-app .notice-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 18px 6px;
+  border: 0;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer
+}
+
+.ubot-user-app .notice-item:hover {
+  background: #fafafb
+}
+
+.ubot-user-app .notice-item__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-item__meta {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px
+}
+
+.ubot-user-app .notice-item__region,
+.ubot-user-app .notice-item__expired {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1f1f3;
+  font-size: 12px;
+  font-weight: 700
+}
+
+.ubot-user-app .notice-type {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800
+}
+
+.ubot-user-app .notice-type--notice {
+  color: var(--purple);
+  background: #f0ecff
+}
+
+.ubot-user-app .notice-type--outage {
+  color: #e11d48;
+  background: #ffe4ea
+}
+
+.ubot-user-app .notice-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 28px
+}
+
+.ubot-user-app .notice-pagination button {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer
+}
+
+.ubot-user-app .notice-pagination button:disabled {
+  color: #b5b7bd;
+  cursor: default
+}
+
+.ubot-user-app .notice-pagination .notice-pagination__active {
+  border-color: var(--ink);
+  color: #fff;
+  background: var(--ink)
+}
+
+.ubot-user-app .notice-back {
+  padding: 6px 0;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer
+}
+
+.ubot-user-app .notice-detail__head {
+  margin-top: 14px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--ink)
+}
+
+.ubot-user-app .notice-detail__head h2 {
+  margin: 12px 0 10px;
+  font-size: 26px;
+  line-height: 1.35;
+  letter-spacing: -.03em;
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .notice-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px
+}
+
+.ubot-user-app .notice-detail__body {
+  padding: 28px 4px 12px;
+  font-size: 16px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere
+}
+
+@media (max-width: 767px) {
+  .ubot-user-app .notice-item {
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    padding: 16px 2px
+  }
+
+  .ubot-user-app .notice-item__title {
+    flex-basis: calc(100% - 60px);
+    white-space: normal
+  }
+
+  .ubot-user-app .notice-item__meta {
+    flex-basis: 100%
+  }
+
+  .ubot-user-app .notice-detail__head h2 {
+    font-size: 21px
+  }
+
+  .ubot-user-app .notice-detail__body {
+    font-size: 15px
   }
 }
