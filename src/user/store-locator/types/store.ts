@@ -21,6 +21,15 @@ export interface MapStore extends Store {
   distanceKm?: number;
 }
 
+// BE StoreMapResult: 채팅 답변이 기준 위치 반경에서 조회한 매장 목록입니다.
+// placeName이 null이면 사용자의 현재 위치를 기준으로 조회한 결과입니다.
+export interface StoreSearchResult {
+  center: { latitude: number; longitude: number };
+  placeName: string | null;
+  radiusKm: number;
+  stores: Store[];
+}
+
 export interface MapCluster {
   latitude: number;
   longitude: number;

@@ -18,7 +18,8 @@ import type {
   KakaoMapsApi,
   KakaoMarker,
 } from './types/kakao';
-import type { MapCluster, PageResponse, Store } from './types/store';
+import { locatorQuery, type LocatorScope } from './scope';
+import type { MapCluster, PageResponse, Store, StoreSearchResult } from './types/store';
 
 const DEFAULT_LOCATION = {
   latitude: 37.497942,
@@ -88,32 +89,60 @@ function buildStoreBubble(store: Store, actions: { onDirections: () => void; onR
   return root;
 }
 
-export function setupStoreLocator(): () => void {
-  const mapElement = document.querySelector<HTMLElement>('#storeKakaoMap');
-  const listElement = document.querySelector<HTMLElement>('#storeListItems');
-  const searchInput = document.querySelector<HTMLInputElement>('#storeSearchInput');
-  const searchButton = document.querySelector<HTMLButtonElement>('#storeSearchButton');
-  const locationButton = document.querySelector<HTMLButtonElement>('#storeCurrentLocation');
-  const sidoSelect = document.querySelector<HTMLSelectElement>('#storeSido');
-  const sigunguSelect = document.querySelector<HTMLSelectElement>('#storeSigungu');
-  const serviceTypeInputs = [...document.querySelectorAll<HTMLInputElement>('input[name="storeServiceType"]')];
-  const serviceToggle = document.querySelector<HTMLButtonElement>('#storeServiceToggle');
-  const servicePanel = document.querySelector<HTMLElement>('#storeServicePanel');
-  const serviceSummary = document.querySelector<HTMLElement>('#storeServiceSummary');
-  const regionSearchButton = document.querySelector<HTMLButtonElement>('#storeRegionSearchButton');
-  const statusElement = document.querySelector<HTMLElement>('#storeSearchStatus');
-  const countElement = document.querySelector<HTMLElement>('#storeResultCount');
-  const paginationElement = document.querySelector<HTMLElement>('#storePagination');
-  const pageInfoElement = document.querySelector<HTMLElement>('#storePageInfo');
-  const prevPageButton = document.querySelector<HTMLButtonElement>('#storePrevPage');
-  const nextPageButton = document.querySelector<HTMLButtonElement>('#storeNextPage');
-  const viewportSearchButton = document.querySelector<HTMLButtonElement>('#storeViewportSearch');
-  const mapLinkElement = document.querySelector<HTMLAnchorElement>('#kakaoMapLink');
+export interface StoreLocatorController {
+  // 채팅 답변의 매장 조회 결과를 목록과 지도에 그린다.
+  showResult(result: StoreSearchResult): void;
+  // 목록의 매장을 골라 말풍선을 띄운다. 그리는 중인 결과가 있으면 다 그린 뒤에 고른다.
+  focusStore(storeId: number): void;
+  // 현재 위치(확인할 수 없으면 기본 위치) 주변 매장을 조회한다.
+  showNearby(): void;
+  // 지도를 담은 영역이 숨겨졌다가 다시 보일 때 크기를 다시 잰다.
+  relayout(): void;
+  dispose(): void;
+}
+
+const NOOP_CONTROLLER: StoreLocatorController = {
+  showResult: () => {},
+  focusStore: () => {},
+  showNearby: () => {},
+  relayout: () => {},
+  dispose: () => {},
+};
+
+// page: 매장 찾기 페이지. 페이지에 들어오면 기본 위치 주변을 조회한다.
+// drawer: 채팅 지도 드로어. 채팅 답변의 결과를 받을 때만 조회 결과를 그린다.
+export type StoreLocatorMode = 'page' | 'drawer';
+
+export function setupStoreLocator(
+  scope: LocatorScope,
+  { mode = 'page' }: { mode?: StoreLocatorMode } = {},
+): StoreLocatorController {
+  const byId = locatorQuery(scope);
+  const mapElement = byId('storeKakaoMap');
+  const listElement = byId('storeListItems');
+  const searchInput = byId<HTMLInputElement>('storeSearchInput');
+  const searchButton = byId<HTMLButtonElement>('storeSearchButton');
+  const locationButton = byId<HTMLButtonElement>('storeCurrentLocation');
+  const sidoSelect = byId<HTMLSelectElement>('storeSido');
+  const sigunguSelect = byId<HTMLSelectElement>('storeSigungu');
+  const serviceTypeInputs = [...scope.root.querySelectorAll<HTMLInputElement>('input[name="storeServiceType"]')];
+  const serviceToggle = byId<HTMLButtonElement>('storeServiceToggle');
+  const servicePanel = byId('storeServicePanel');
+  const serviceSummary = byId('storeServiceSummary');
+  const regionSearchButton = byId<HTMLButtonElement>('storeRegionSearchButton');
+  const statusElement = byId('storeSearchStatus');
+  const countElement = byId('storeResultCount');
+  const paginationElement = byId('storePagination');
+  const pageInfoElement = byId('storePageInfo');
+  const prevPageButton = byId<HTMLButtonElement>('storePrevPage');
+  const nextPageButton = byId<HTMLButtonElement>('storeNextPage');
+  const viewportSearchButton = byId<HTMLButtonElement>('storeViewportSearch');
+  const mapLinkElement = byId<HTMLAnchorElement>('kakaoMapLink');
   const resultBarElement = mapLinkElement?.closest<HTMLElement>('.store-result-bar') ?? null;
-  const listReserveButton = document.querySelector<HTMLButtonElement>('.stores-list .reserve-main');
+  const listReserveButton = scope.root.querySelector<HTMLButtonElement>('.stores-list .reserve-main');
 
   if (!mapElement || !listElement || !searchInput || !searchButton || !statusElement
-    || !countElement) return () => {};
+    || !countElement) return NOOP_CONTROLLER;
 
   let maps: KakaoMapsApi | null = null;
   let map: KakaoMap | null = null;
@@ -219,6 +248,7 @@ export function setupStoreLocator(): () => void {
   });
 
   const directionsController = createDirectionsController({
+    scope,
     getMap: () => map,
     getMaps: () => maps,
     getOrigin: getDirectionsOrigin,
@@ -789,6 +819,8 @@ export function setupStoreLocator(): () => void {
           if (disposed) return;
           suppressViewportUntil = Date.now() + 600;
           createdMap.relayout();
+          // 드로어는 채팅 결과를 직접 그리므로 기본 위치를 조회하지 않는다.
+          if (mode === 'drawer') return;
           createdMap.setCenter(new loadedMaps.LatLng(DEFAULT_LOCATION.latitude, DEFAULT_LOCATION.longitude));
           createdMap.setLevel(3);
           void loadStoresInView();
@@ -917,6 +949,91 @@ export function setupStoreLocator(): () => void {
     );
   };
 
+  let resultRequestId = 0;
+  // 마지막 showResult가 지도에 다 그려지면 끝나는 작업. 실패해도 reject하지 않는다.
+  let resultRendered: Promise<void> = Promise.resolve();
+
+  const showResult = (result: StoreSearchResult) => {
+    directionsController.close();
+    viewportAbortController?.abort();
+    viewportAbortController = null;
+    lastViewportRequestKey = '';
+    viewportRequestId += 1;
+    regionSearchActive = false;
+    selectedStoreId = null;
+    hideViewportSearch();
+    renderPagination(null);
+
+    const requestId = ++resultRequestId;
+    const label = result.placeName ?? '현재 위치';
+    const radius = `${result.radiusKm}km`;
+    searchInput.value = label;
+    renderList(result.stores);
+
+    resultRendered = ensureMap().then((currentMap) => {
+      if (disposed || !maps || requestId !== resultRequestId) return;
+      const currentMaps = maps;
+      currentMap.relayout();
+      renderMarkers(result.stores);
+      renderedMapMode = 'stores';
+
+      // 기준 위치도 화면에 들어오도록 매장들과 함께 범위를 잡는다.
+      const center = new currentMaps.LatLng(result.center.latitude, result.center.longitude);
+      suppressViewportUntil = Date.now() + 600;
+      if (result.stores.length) {
+        const bounds = new currentMaps.LatLngBounds();
+        bounds.extend(center);
+        result.stores.forEach((store) => bounds.extend(new currentMaps.LatLng(store.latitude, store.longitude)));
+        currentMap.setBounds(bounds);
+      } else {
+        currentMap.setCenter(center);
+        currentMap.setLevel(5);
+      }
+      updateMapLink();
+      setStatus(result.stores.length
+        ? `${label} 기준 반경 ${radius} 안의 매장 ${result.stores.length}곳을 찾았습니다.`
+        : `${label} 기준 반경 ${radius} 안에 매장이 없습니다. 지도를 옮긴 뒤 ‘이 지역 검색’을 눌러 보세요.`);
+    }).catch(() => {});
+  };
+
+  const focusStore = (storeId: number) => {
+    const requestId = resultRequestId;
+    void resultRendered.then(() => {
+      if (disposed || requestId !== resultRequestId) return;
+      const store = stores.find((item) => item.storeId === storeId);
+      if (store) selectStore(store);
+    });
+  };
+
+  const showNearby = () => {
+    directionsController.close();
+    const requestId = ++resultRequestId;
+    searchInput.value = '';
+    const show = (latitude: number, longitude: number, label: string) => {
+      if (disposed || requestId !== resultRequestId) return;
+      searchInput.value = label;
+      void focusMap(latitude, longitude, label);
+    };
+    const showDefault = () => show(DEFAULT_LOCATION.latitude, DEFAULT_LOCATION.longitude, DEFAULT_LOCATION.label);
+
+    if (!navigator.geolocation) {
+      showDefault();
+      return;
+    }
+    setStatus('현재 위치를 확인하고 있습니다.');
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => show(coords.latitude, coords.longitude, '현재 위치'),
+      showDefault,
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+    );
+  };
+
+  const relayout = () => {
+    if (!map) return;
+    suppressViewportUntil = Date.now() + 600;
+    map.relayout();
+  };
+
   const handleSearchKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Enter') void searchLocation();
   };
@@ -930,7 +1047,9 @@ export function setupStoreLocator(): () => void {
   };
   const handleSidoChange = () => { if (sidoSelect) void loadSigungus(sidoSelect.value); };
   const handleDocumentClick = (event: MouseEvent) => {
-    if (!(event.target instanceof Element) || !event.target.closest('.store-service-filter')) {
+    // 페이지와 드로어에 필터가 하나씩 있으므로, 이 화면의 필터 바깥을 눌렀을 때만 닫는다.
+    const serviceFilter = serviceToggle?.closest('.store-service-filter');
+    if (!(event.target instanceof Node) || !serviceFilter?.contains(event.target)) {
       closeServicePanel();
     }
   };
@@ -962,17 +1081,19 @@ export function setupStoreLocator(): () => void {
   serviceTypeInputs.forEach((input) => input.addEventListener('change', updateServiceSummary));
   document.addEventListener('click', handleDocumentClick);
   document.addEventListener('keydown', handleDocumentKeydown);
-  document.addEventListener('ubot:route-change', handleRouteChange);
+  if (mode === 'page') document.addEventListener('ubot:route-change', handleRouteChange);
 
   loadSidos();
 
-  if (document.body.dataset.route === 'stores') {
+  if (mode === 'drawer') {
+    setStatus('채팅 답변의 매장 조회 결과를 기다리고 있습니다.');
+  } else if (document.body.dataset.route === 'stores') {
     ensureMap().catch(() => {});
   } else {
     setStatus(`${DEFAULT_LOCATION.label}을 기본 위치로 사용합니다. 매장 찾기에 들어가면 현재 지도 영역의 매장을 조회합니다.`);
   }
 
-  return () => {
+  const dispose = () => {
     disposed = true;
     directionsController.dispose();
     viewportAbortController?.abort();
@@ -1001,4 +1122,6 @@ export function setupStoreLocator(): () => void {
     document.removeEventListener('keydown', handleDocumentKeydown);
     document.removeEventListener('ubot:route-change', handleRouteChange);
   };
+
+  return { showResult, focusStore, showNearby, relayout, dispose };
 }

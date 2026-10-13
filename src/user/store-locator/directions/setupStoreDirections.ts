@@ -13,6 +13,7 @@ import { createRouteIcon, turnIconType, type RouteIcon } from './icons';
 import { createOriginPicker } from './originPicker';
 import { offsetPathToRight } from './routeGeometry';
 import { kakaoRouteUrl } from '../kakao/links';
+import { locatorQuery, type LocatorScope } from '../scope';
 import {
   MAX_VEHICLE_CHIPS,
   alightStopName,
@@ -276,6 +277,7 @@ function createIconButton(text: string, ariaLabel: string, onClick: () => void, 
 }
 
 interface DirectionsControllerDeps {
+  scope: LocatorScope;
   getMap: () => KakaoMap | null;
   getMaps: () => KakaoMapsApi | null;
   getOrigin: () => Promise<{ latitude: number; longitude: number }>;
@@ -298,26 +300,27 @@ const NOOP_CONTROLLER: DirectionsController = {
 };
 
 export function createDirectionsController(deps: DirectionsControllerDeps): DirectionsController {
-  const panel = document.querySelector<HTMLElement>('#storeDirectionPanel');
-  const backButton = document.querySelector<HTMLButtonElement>('#directionBackButton');
-  const closeButton = document.querySelector<HTMLButtonElement>('#directionCloseButton');
-  const destNameEl = document.querySelector<HTMLElement>('#directionDestName');
-  const destAddressEl = document.querySelector<HTMLElement>('#directionDestAddress');
-  const modeTabs = document.querySelector<HTMLElement>('#directionModeTabs');
-  const statusEl = document.querySelector<HTMLElement>('#directionStatus');
-  const routeHeadEl = document.querySelector<HTMLElement>('#directionRouteHead');
-  const routeHeadInfoEl = document.querySelector<HTMLElement>('#directionRouteHeadInfo');
-  const listBackButton = document.querySelector<HTMLButtonElement>('#directionListBack');
-  const summaryEl = document.querySelector<HTMLElement>('#directionSummary');
-  const candidatesEl = document.querySelector<HTMLElement>('#directionCandidates');
-  const stepsPanelEl = document.querySelector<HTMLElement>('#directionStepsPanel');
-  const stepsToggleEl = document.querySelector<HTMLButtonElement>('#directionStepsToggle');
-  const stepsCountEl = document.querySelector<HTMLElement>('#directionStepsCount');
-  const stepsEl = document.querySelector<HTMLElement>('#directionSteps');
-  const originInput = document.querySelector<HTMLInputElement>('#directionOriginInput');
-  const originLocateButton = document.querySelector<HTMLButtonElement>('#directionOriginLocate');
-  const originResultsEl = document.querySelector<HTMLElement>('#directionOriginResults');
-  const searchButton = document.querySelector<HTMLButtonElement>('#directionSearchButton');
+  const byId = locatorQuery(deps.scope);
+  const panel = byId('storeDirectionPanel');
+  const backButton = byId<HTMLButtonElement>('directionBackButton');
+  const closeButton = byId<HTMLButtonElement>('directionCloseButton');
+  const destNameEl = byId('directionDestName');
+  const destAddressEl = byId('directionDestAddress');
+  const modeTabs = byId('directionModeTabs');
+  const statusEl = byId('directionStatus');
+  const routeHeadEl = byId('directionRouteHead');
+  const routeHeadInfoEl = byId('directionRouteHeadInfo');
+  const listBackButton = byId<HTMLButtonElement>('directionListBack');
+  const summaryEl = byId('directionSummary');
+  const candidatesEl = byId('directionCandidates');
+  const stepsPanelEl = byId('directionStepsPanel');
+  const stepsToggleEl = byId<HTMLButtonElement>('directionStepsToggle');
+  const stepsCountEl = byId('directionStepsCount');
+  const stepsEl = byId('directionSteps');
+  const originInput = byId<HTMLInputElement>('directionOriginInput');
+  const originLocateButton = byId<HTMLButtonElement>('directionOriginLocate');
+  const originResultsEl = byId('directionOriginResults');
+  const searchButton = byId<HTMLButtonElement>('directionSearchButton');
 
   if (!panel || !backButton || !closeButton || !destNameEl || !destAddressEl || !modeTabs || !statusEl
     || !routeHeadEl || !routeHeadInfoEl || !listBackButton || !summaryEl || !candidatesEl
