@@ -11,6 +11,7 @@ export interface GetFaqListParams {
 
 const pageQuery = (page = 0, size = 10) => `page=${page}&size=${size}`
 export const adminFaqApi = {
+  generateSimilarQuestions: (question: string) => apiClient.postText<string[]>('/api/admin/faqs/question-variants/generate', question),
   getDeletedFaqList: (page = 0, size = 10) => apiClient.get<PageResponse<FaqResponse>>(`/api/admin/deleted-faqs?${pageQuery(page, size)}`),
   getFaq: (faqId: string) => apiClient.get<FaqResponse>(`/api/admin/faqs/${faqId}`),
   createFaq: (body: FaqCreateRequest) => apiClient.post<FaqResponse>('/api/admin/faqs', body),

@@ -7,6 +7,8 @@ export interface FaqTableRow {
   question: string;
   answer: string;
   intent: FaqIntent;
+  cacheable: boolean;
+  similarQuestions: string[];
   version: number;
   adminId: number;
   updatedAt: string | null;

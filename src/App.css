@@ -83,6 +83,23 @@
 .faq-table td > button { padding: 7px 10px; border: 1px solid #c7d2fe; border-radius: 7px; color: #4338ca; background: #eef2ff; font-size: 12px; font-weight: 700; }.faq-table td > button + button { margin-left: 6px; border-color: #fecaca; color: #b91c1c; background: #fef2f2; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px; background: rgb(15 23 42 / 45%); }
 .faq-modal { display: grid; gap: 16px; width: min(100%, 560px); padding: 28px; border-radius: 16px; background: #fff; }.faq-modal label{display:grid;gap:8px}.faq-modal input,.faq-modal select,.faq-modal textarea{padding:11px;border:1px solid #d1d5db;border-radius:8px}.faq-modal textarea{min-height:150px}.faq-modal__actions{display:flex;justify-content:flex-end;gap:8px}
+.faq-form-modal, .faq-detail-modal { max-height: calc(100vh - 48px); overflow-y: auto; }
+.faq-form-modal { width: min(100%, 680px); }
+.faq-similar { display: grid; gap: 12px; padding: 16px; border: 1px solid #dfe4f0; border-radius: 12px; background: #f8faff; }
+.faq-similar__header { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.faq-similar__header h3 { margin: 0; color: #1f2937; font-size: 15px; }
+.faq-similar__header h3 span { margin-left: 4px; color: #4f46e5; font-size: 13px; }
+.faq-similar__header p, .faq-similar__empty { margin: 5px 0 0; color: #6b7280; font-size: 13px; }
+.faq-similar__list { display: grid; gap: 7px; max-height: 260px; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+.faq-similar__list li { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 9px 11px; border: 1px solid #e3e8f3; border-radius: 8px; background: #fff; color: #374151; font-size: 14px; }
+.faq-similar__list li > span:nth-child(2) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.faq-similar__number { display: grid; flex: 0 0 22px; height: 22px; place-items: center; border-radius: 50%; color: #4338ca; background: #eef2ff; font-size: 11px; font-weight: 700; }
+.faq-similar__list li button { border: 0; color: #b91c1c; background: transparent; cursor: pointer; font-size: 12px; }
+.faq-similar__manual { display: flex; gap: 8px; }
+.faq-similar__manual input { flex: 1; min-width: 0; background: #fff; }
+.faq-modal label.faq-cacheable { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.faq-cacheable input { width: 16px; height: 16px; }
+@media (max-width: 600px) { .faq-similar__header { flex-direction: column; }.faq-similar__header button { width: 100%; }.faq-similar__manual { flex-direction: column; } }
 .faq-category-in-use-modal { width: min(100%, 960px); }
 .faq-version-cell { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 .faq-version-history-modal { width: min(100%, 760px); }

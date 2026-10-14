@@ -6,6 +6,8 @@ export interface FaqResponse {
   question: string
   answer: string
   intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
   version: number
   adminId: number
   createdAt: string
@@ -17,6 +19,8 @@ export interface FaqCreateRequest {
   question: string
   answer: string
   intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
 }
 
 export interface FaqUpdateRequest {
@@ -25,6 +29,8 @@ export interface FaqUpdateRequest {
   question: string
   answer: string
   intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
 }
 
 export interface FaqRestoreRequest { faqIds: number[] }
