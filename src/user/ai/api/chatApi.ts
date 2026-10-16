@@ -1,27 +1,38 @@
 import { apiClient } from '../../../shared/api/client'
 import type { PageResponse } from '../../../shared/types/api'
-import type { ChatRequest, ChatResearchRequest, ChatResponse, ConversationMessage, ConversationSummary } from '../types/chat'
+import type {
+  ChatJobSubmission,
+  ChatRequest,
+  ChatResearchRequest,
+  ChatResponse,
+  ConversationMessage,
+  ConversationSummary,
+} from '../types/chat'
 import { chatMockApi } from './chatApi.mock'
+import { type ChatWaitOptions, waitForAnswer } from './chatJobPolling'
 
+// 질문·재시도·재검색은 서버가 접수(202)만 하고, 답변은 작업 상태를 조회해 받습니다.
+// 세 함수는 접수 후 답변이 끝날 때까지 기다린 결과를 돌려줍니다.
 export interface ChatApi {
-  createQuestion: (request: ChatRequest) => Promise<ChatResponse>
-  retryAnswer: (idempotencyKey: string) => Promise<ChatResponse>
+  createQuestion: (request: ChatRequest, options?: ChatWaitOptions) => Promise<ChatResponse>
+  retryAnswer: (idempotencyKey: string, options?: ChatWaitOptions) => Promise<ChatResponse>
   // 성공한 원래 답변의 idempotencyKey로 같은 질문을 선택한 의도로 다시 검색합니다.
-  researchAnswer: (idempotencyKey: string, request: ChatResearchRequest) => Promise<ChatResponse>
+  researchAnswer: (idempotencyKey: string, request: ChatResearchRequest, options?: ChatWaitOptions) => Promise<ChatResponse>
   getMyConversationList: () => Promise<PageResponse<ConversationSummary>>
   getConversationMessageList: (conversationId: string) => Promise<ConversationMessage[]>
 }
 
 const realChatApi: ChatApi = {
-  createQuestion: (request) => apiClient.post<ChatResponse>('/api/chat/questions', request),
-  retryAnswer: (idempotencyKey) =>
-    apiClient.post<ChatResponse>('/api/chat/questions/retries', undefined, true, {
+  createQuestion: async (request, options) =>
+    waitForAnswer(await apiClient.post<ChatJobSubmission>('/api/chat/questions', request), options),
+  retryAnswer: async (idempotencyKey, options) =>
+    waitForAnswer(await apiClient.post<ChatJobSubmission>('/api/chat/questions/retries', undefined, true, {
       'Idempotency-Key': idempotencyKey,
-    }),
-  researchAnswer: (idempotencyKey, request) =>
-    apiClient.post<ChatResponse>('/api/chat/questions/research', request, true, {
+    }), options),
+  researchAnswer: async (idempotencyKey, request, options) =>
+    waitForAnswer(await apiClient.post<ChatJobSubmission>('/api/chat/questions/research', request, true, {
       'Idempotency-Key': idempotencyKey,
-    }),
+    }), options),
   getMyConversationList: () => apiClient.get<PageResponse<ConversationSummary>>('/api/conversations/me?size=20'),
   getConversationMessageList: (conversationId) =>
     apiClient.get<ConversationMessage[]>(`/api/conversations/${encodeURIComponent(conversationId)}/messages`),
