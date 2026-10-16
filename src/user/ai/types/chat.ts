@@ -4,7 +4,7 @@ export interface ChatRequest {
   conversationId?: string
 }
 
-// BE ChatResponseDto: 공통 ApiResponse의 data에 담기는 채팅 결과입니다.
+// 화면에서 쓰는 답변 결과입니다. 작업 상태 조회의 최종 결과(SUCCEEDED·FAILED)를 이 형식으로 바꿔 씁니다.
 export interface ChatResponse {
   answer: string
   status: 'SUCCESS' | 'FAIL'
@@ -13,6 +13,49 @@ export interface ChatResponse {
   retryable: boolean
   store?: ChatStore | null
   conversationId?: string | null
+}
+
+// BE ChatJobStatus
+export type ChatJobStatus = 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED'
+
+// BE AnswerProgress.Phase: 답변 처리 단계입니다. 금방 지나가거나 생략될 수 있습니다.
+export type ChatJobPhase = 'WAITING' | 'SEARCHING' | 'COLLECTING_CONTEXT' | 'WAITING_FOR_MODEL' | 'GENERATING'
+
+// BE ChatJobSubmissionResponseDto: 질문·재시도·재검색 접수(202) 응답입니다. 시간은 UTC ISO-8601 문자열입니다.
+export interface ChatJobSubmission {
+  jobId: number
+  status: ChatJobStatus
+  conversationId?: string | null
+  idempotencyKey: string | null
+  attemptCount: number
+  phase?: ChatJobPhase | null
+  deadlineAt?: string | null
+  serverTime?: string | null
+}
+
+// BE ChatJobStatusResponseDto: GET /chat/jobs/{jobId} 응답입니다.
+export interface ChatJobState {
+  jobId: number
+  status: ChatJobStatus
+  answer: string | null
+  store?: ChatStore | null
+  errorCode: string | null
+  errorMessage: string | null
+  retryable: boolean
+  idempotencyKey: string | null
+  attemptCount: number
+  phase?: ChatJobPhase | null
+  phaseUpdatedAt?: string | null
+  deadlineAt?: string | null
+  serverTime?: string | null
+}
+
+// 답변을 기다리는 동안 화면에 보여 줄 진행 상태입니다.
+// remainingMs는 응답 시점의 남은 제한 시간(deadlineAt - serverTime)이며 완료 예상 시간이 아닙니다.
+export interface ChatProgress {
+  status: 'QUEUED' | 'RUNNING'
+  phase: ChatJobPhase | null
+  remainingMs: number | null
 }
 
 export interface ConversationSummary {
@@ -75,6 +118,7 @@ export interface ChatResearchRequest {
 export interface ChatResearch {
   intent: ChatIntent
   isPending: boolean
+  progress?: ChatProgress | null
   response: ChatResponse | null
   error: string | null
   errorCode: string | null
@@ -86,6 +130,8 @@ export interface ChatTurn {
   question: string
   faqId?: number
   isPending: boolean
+  // 답변 대기 중에만 값이 있습니다.
+  progress?: ChatProgress | null
   response: ChatResponse | null
   error: string | null
   errorCode: string | null

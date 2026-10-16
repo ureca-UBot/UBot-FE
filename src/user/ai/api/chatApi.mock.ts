@@ -1,12 +1,24 @@
 import { ApiRequestError } from '../../../shared/api/client'
 import type { ChatStoreMap } from '../types/chat'
 import type { ChatApi } from './chatApi'
+import type { ChatWaitOptions } from './chatJobPolling'
 
 // 백엔드 없이 화면만 확인하기 위한 개발용 mock입니다.
 // .env.local에 VITE_CHAT_MOCK=true를 넣고 개발 서버를 실행했을 때만 사용합니다.
 // 재검색 API가 병합되어 실제 연동을 확인한 뒤에는 이 파일과 chatApi.ts의 스위치를 제거합니다.
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+// 실제 API처럼 대기 → 검색 → 생성 단계를 차례로 알립니다.
+async function simulateProgress(totalMs: number, options?: ChatWaitOptions) {
+    const step = totalMs / 3
+    options?.onProgress?.({ status: 'QUEUED', phase: 'WAITING', remainingMs: 10 * 60_000 })
+    await wait(step)
+    options?.onProgress?.({ status: 'RUNNING', phase: 'SEARCHING', remainingMs: 3 * 60_000 })
+    await wait(step)
+    options?.onProgress?.({ status: 'RUNNING', phase: 'GENERATING', remainingMs: 3 * 60_000 })
+    await wait(step)
+}
 
 // 채팅 지도 드로어 확인용: '매장'이 들어간 질문에는 강남역 기준 매장 조회 결과를 함께 돌려줍니다. (V5 매장 데이터)
 const MOCK_STORE_MAP: ChatStoreMap = {
@@ -21,8 +33,8 @@ const MOCK_STORE_MAP: ChatStoreMap = {
 }
 
 export const chatMockApi: ChatApi = {
-    createQuestion: async (request) => {
-        await wait(600)
+    createQuestion: async (request, options) => {
+        await simulateProgress(1500, options)
         const asksStore = request.question.includes('매장')
         return {
             answer: asksStore
@@ -40,8 +52,8 @@ export const chatMockApi: ChatApi = {
         throw new ApiRequestError('mock에서는 답변 재시도를 지원하지 않습니다.', 400)
     },
 
-    researchAnswer: async (_idempotencyKey, request) => {
-        await wait(800)
+    researchAnswer: async (_idempotencyKey, request, options) => {
+        await simulateProgress(1500, options)
         // 오류 카드 확인용: 내 정보 확인은 이미 사용한 의도라는 응답을 돌려줍니다.
         if (request.intent === 'USER_DATA') {
             throw new ApiRequestError('이미 해당 의도로 재검색한 질문입니다.', 409, 'CHAT-019')
