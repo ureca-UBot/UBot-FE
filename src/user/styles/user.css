@@ -2433,6 +2433,57 @@
   background: #fff1f3
 }
 
+.ubot-user-app .my-item-list .notification-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0
+}
+
+.ubot-user-app .notification-category {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap
+}
+
+.ubot-user-app .notification-category--reservation {
+  color: #1d4ed8;
+  background: #eff6ff
+}
+
+.ubot-user-app .notification-category--billing {
+  color: #b45309;
+  background: #fffbeb
+}
+
+.ubot-user-app .notification-category--roaming {
+  color: #6d28d9;
+  background: #f5f3ff
+}
+
+.ubot-user-app .notification-category--contract {
+  color: #047857;
+  background: #ecfdf5
+}
+
+.ubot-user-app .notification-category--data {
+  color: #0e7490;
+  background: #ecfeff
+}
+
+.ubot-user-app .notification-category--etc {
+  color: #6b7280;
+  background: #f3f4f6
+}
+
+.ubot-user-app .my-item-list li.read .notification-category {
+  opacity: .6
+}
+
 .ubot-user-app .my-unread-count {
   margin-left: 8px;
   padding: 2px 8px;
@@ -8734,4 +8785,45 @@
   .ubot-user-app .notice-detail__body {
     font-size: 15px
   }
+}
+
+/* 읽지 않은 알림 개수 배지 (MY 메뉴, 로그인 사용자 버튼, 모바일 인사말) */
+.ubot-user-app .notif-badge {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #c42e53;
+  box-sizing: border-box;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  pointer-events: none
+}
+
+.ubot-user-app .notif-badge--nav {
+  position: absolute;
+  top: 4px;
+  right: -6px
+}
+
+.ubot-user-app .header-action-icon {
+  position: relative
+}
+
+.ubot-user-app .notif-badge--icon {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  box-shadow: 0 0 0 2px #fff
+}
+
+.ubot-user-app .notif-badge--inline {
+  margin-left: 6px;
+  vertical-align: 1px
 }
