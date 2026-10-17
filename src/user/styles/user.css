@@ -2433,6 +2433,57 @@
   background: #fff1f3
 }
 
+.ubot-user-app .my-item-list .notification-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0
+}
+
+.ubot-user-app .notification-category {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap
+}
+
+.ubot-user-app .notification-category--reservation {
+  color: #1d4ed8;
+  background: #eff6ff
+}
+
+.ubot-user-app .notification-category--billing {
+  color: #b45309;
+  background: #fffbeb
+}
+
+.ubot-user-app .notification-category--roaming {
+  color: #6d28d9;
+  background: #f5f3ff
+}
+
+.ubot-user-app .notification-category--contract {
+  color: #047857;
+  background: #ecfdf5
+}
+
+.ubot-user-app .notification-category--data {
+  color: #0e7490;
+  background: #ecfeff
+}
+
+.ubot-user-app .notification-category--etc {
+  color: #6b7280;
+  background: #f3f4f6
+}
+
+.ubot-user-app .my-item-list li.read .notification-category {
+  opacity: .6
+}
+
 .ubot-user-app .my-unread-count {
   margin-left: 8px;
   padding: 2px 8px;
