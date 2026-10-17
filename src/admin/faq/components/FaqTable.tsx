@@ -10,7 +10,7 @@ export interface FaqTableRow {
   cacheable: boolean;
   similarQuestions: string[];
   version: number;
-  adminId: number;
+  adminId: number | null;
   updatedAt: string | null;
 }
 
