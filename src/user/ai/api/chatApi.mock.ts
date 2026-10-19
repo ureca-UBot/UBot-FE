@@ -1,5 +1,5 @@
 import { ApiRequestError } from '../../../shared/api/client'
-import type { ChatStoreMap } from '../types/chat'
+import type { ChatBillingCard, ChatPlanCard, ChatStoreMap, ChatUsageCard, ChatUsageRecord, ChatUserData } from '../types/chat'
 import type { ChatApi } from './chatApi'
 import type { ChatWaitOptions } from './chatJobPolling'
 
@@ -32,19 +32,110 @@ const MOCK_STORE_MAP: ChatStoreMap = {
     ],
 }
 
+// 가입 정보 카드 확인용: 질문 키워드에 따라 요금제·사용량·청구서 카드를 돌려줍니다. (BE 연동 안내 문서의 예시 수치)
+// "요금제" → 요금제 / "청구" → 2개월 비교표 / "3개월" → 청구서 3개월 막대 / "사용량" → 사용량 4개월 막대 / "회선" → 회선 2개
+const MOCK_PHONE = '010-****-1234'
+const MOCK_PHONE_2 = '010-****-5678'
+const GB = 1024
+
+const mockPlan = (phoneNumber: string, name: string, monthlyFee: number, dataAmountMb: number | null): ChatPlanCard => ({
+    phoneNumber,
+    plan: {
+        summary: {
+            planId: phoneNumber === MOCK_PHONE ? 11 : 12, planCode: 'MOCK', name, networkType: '5G', targetGroup: '일반',
+            monthlyFee, dataAmountMb, dataUnlimited: dataAmountMb === null, exhaustedSpeedKbps: dataAmountMb === null ? null : 1000,
+            voiceMinutes: null, voiceUnlimited: true, smsCount: null, smsUnlimited: true,
+        },
+        description: null,
+        tetheringAmountMb: null,
+        minAge: null,
+        maxAge: null,
+    },
+})
+
+const mockUsage = (billingMonth: string, dataUsedMb: number, dataAmountMb: number | null, overrides: Partial<ChatUsageRecord> = {}): ChatUsageRecord => ({
+    billingMonth, dataUsedMb, voiceUsedMinutes: 180, smsUsedCount: 8,
+    allowance: { dataAmountMb, dataUnlimited: dataAmountMb === null, voiceMinutes: 300, voiceUnlimited: false, smsCount: 100, smsUnlimited: false },
+    remainingDataMb: dataAmountMb === null ? null : Math.max(0, dataAmountMb - dataUsedMb),
+    remainingVoiceMinutes: 120, remainingSmsCount: 92,
+    aggregatedThroughDate: null, finalized: true, finalizedAt: `${billingMonth}-28T00:00:00Z`, fullMonthActive: true,
+    ...overrides,
+})
+
+const mockBilling = (phoneNumber: string, billingMonth: string, roamingFee: number, extraFee: number, paid: boolean): ChatBillingCard => {
+    const baseFee = 55_000, addonFee = 3_300, discountAmount = 13_750
+    const month = Number(billingMonth.split('-')[1])
+    return {
+        phoneNumber,
+        usageMonth: month === 1 ? 12 : month - 1,
+        billing: {
+            billingMonth, baseFee, addonFee, roamingFee, extraFee, discountAmount,
+            totalAmount: baseFee + addonFee + roamingFee + extraFee - discountAmount,
+            dueDate: `${billingMonth}-25`,
+            paymentStatus: paid ? 'PAID' : 'UNPAID',
+            paidAmount: paid ? baseFee + addonFee + roamingFee + extraFee - discountAmount : null,
+            paymentMethod: paid ? 'AUTO_TRANSFER' : null,
+            paidAt: paid ? `${billingMonth}-25T09:00:00Z` : null,
+        },
+    }
+}
+
+function mockUserData(question: string): ChatUserData | null {
+    if (question.includes('회선')) {
+        return {
+            plans: [mockPlan(MOCK_PHONE, '5G 스탠다드', 75_000, 15 * GB), mockPlan(MOCK_PHONE_2, '5G 프리미어', 95_000, null)],
+            usages: [
+                { phoneNumber: MOCK_PHONE, usage: mockUsage('2026-10', 4 * GB, 15 * GB, { finalized: false, finalizedAt: null, aggregatedThroughDate: '2026-10-18' }) },
+                { phoneNumber: MOCK_PHONE_2, usage: mockUsage('2026-10', 21.4 * GB, null, { finalized: false, finalizedAt: null, aggregatedThroughDate: '2026-10-18' }) },
+            ],
+            billings: [mockBilling(MOCK_PHONE_2, '2026-10', 0, 0, false), mockBilling(MOCK_PHONE, '2026-10', 12_400, 0, false)],
+        }
+    }
+    const userData: ChatUserData = { plans: [], usages: [], billings: [] }
+    if (question.includes('요금제')) userData.plans.push(mockPlan(MOCK_PHONE, '5G 스탠다드', 75_000, 15 * GB))
+    if (question.includes('사용량')) {
+        const usages: ChatUsageCard[] = [
+            // 순서를 보장하지 않으므로 섞어서 돌려줍니다.
+            { phoneNumber: MOCK_PHONE, usage: mockUsage('2026-09', 6.1 * GB, 15 * GB, {
+                voiceUsedMinutes: 95, smsUsedCount: 3, remainingVoiceMinutes: null, remainingSmsCount: null,
+                allowance: { dataAmountMb: 15 * GB, dataUnlimited: false, voiceMinutes: null, voiceUnlimited: true, smsCount: null, smsUnlimited: true },
+            }) },
+            { phoneNumber: MOCK_PHONE, usage: mockUsage('2026-07', 16.3 * GB, 15 * GB) },
+            { phoneNumber: MOCK_PHONE, usage: mockUsage('2026-10', 4 * GB, 15 * GB, { finalized: false, finalizedAt: null, aggregatedThroughDate: '2026-10-18' }) },
+            { phoneNumber: MOCK_PHONE, usage: mockUsage('2026-08', 8.2 * GB, 10 * GB) },
+        ]
+        userData.usages.push(...usages)
+    }
+    if (question.includes('3개월')) {
+        userData.billings.push(
+            mockBilling(MOCK_PHONE, '2026-10', 12_400, 0, false),
+            mockBilling(MOCK_PHONE, '2026-08', 0, 2_200, true),
+            mockBilling(MOCK_PHONE, '2026-09', 0, 0, true),
+        )
+    } else if (question.includes('청구')) {
+        userData.billings.push(mockBilling(MOCK_PHONE, '2026-10', 12_400, 0, false), mockBilling(MOCK_PHONE, '2026-09', 0, 0, true))
+    }
+    const empty = userData.plans.length === 0 && userData.usages.length === 0 && userData.billings.length === 0
+    return empty ? null : userData
+}
+
 export const chatMockApi: ChatApi = {
     createQuestion: async (request, options) => {
         await simulateProgress(1500, options)
         const asksStore = request.question.includes('매장')
+        const userData = mockUserData(request.question)
         return {
             answer: asksStore
                 ? `[mock] 강남역 반경 3km 안에 매장 3곳이 있습니다. 가장 가까운 곳은 일상의틈_역삼동_강남역12번출구점(0.1km)입니다.`
-                : `[mock] "${request.question}"에 대한 답변입니다.`,
+                : userData
+                    ? `[mock] 2026년 10월 청구서(9월 사용분) 기준으로 안내드립니다. "${request.question}"에 대한 가입 정보입니다.`
+                    : `[mock] "${request.question}"에 대한 답변입니다.`,
             status: 'SUCCESS',
             idempotencyKey: 'a'.repeat(64),
             attemptCount: 1,
             retryable: false,
             store: asksStore ? { locationRequired: false, map: MOCK_STORE_MAP } : null,
+            userData,
         }
     },
 

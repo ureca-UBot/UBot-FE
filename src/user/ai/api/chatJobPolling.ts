@@ -89,6 +89,7 @@ export async function waitForAnswer(submission: ChatJobSubmission, options: Chat
         attemptCount: state.attemptCount,
         retryable: false,
         store: state.store ?? null,
+        userData: state.userData ?? null,
         conversationId,
       }
     }

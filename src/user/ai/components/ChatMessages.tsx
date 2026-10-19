@@ -10,6 +10,7 @@ import {
 } from '../types/chat'
 import { storeMapKey } from '../utils/storeMaps'
 import { ChatStoreCards } from './ChatStoreCards'
+import { ChatUserDataCards } from './ChatUserDataCards'
 import { ResearchIntentButtons } from './ResearchIntentButtons'
 
 interface ChatMessagesProps {
@@ -110,6 +111,7 @@ function ResearchResult({ research, onOpenMap }: { research: ChatResearch; onOpe
         <>
           <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(research.response?.answer)}</div>
           <ChatStoreCards store={research.response?.store} onOpenMap={onOpenMap} />
+          <ChatUserDataCards userData={research.response?.userData} />
         </>
       )}
     </div>
@@ -157,6 +159,7 @@ export function ChatMessages({ active, turns, disabled, canResearch, onRetry, on
                 <>
                   <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{getAnswerText(turn.response?.answer)}</div>
                   <ChatStoreCards store={turn.response?.store} onOpenMap={onOpenMap && ((storeId) => onOpenMap(storeMapKey(turn.id), storeId))} />
+                  <ChatUserDataCards userData={turn.response?.userData} />
                   {canResearch && turn.response?.status === 'SUCCESS' && turn.response.idempotencyKey && (
                     <ResearchIntentButtons
                       researches={turn.researches}
