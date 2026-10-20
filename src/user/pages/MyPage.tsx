@@ -4,6 +4,7 @@ import { MyProfileCard } from '../my/components/MyProfileCard';
 import { MyNotificationList } from '../notification/components/MyNotificationList';
 import { MyReservationList } from '../reservation/components/MyReservationList';
 import { MySubscriptionInfo } from '../subscription/components/MySubscriptionInfo';
+import { MyInquiryList } from '../inquiry/MyInquiryList';
 
 interface PageProps {
   active: boolean;
@@ -29,6 +30,7 @@ export function MyPage({ active, loggedIn: demoLoggedIn }: PageProps) {
           {user && <MyProfileCard active={active} key={user.id} />}
           {user && <MyReservationList active={active} key={`reservation-${user.id}`} />}
           {user && <MyNotificationList active={active} key={`notification-${user.id}`} />}
+          {user && <MyInquiryList active={active} key={`inquiries-${user.id}`} />}
           <div className="my-menu-grid"><button><b>가입 정보</b><span>›</span></button><button><b>요금제 조회·변경</b><span>›</span></button><button><b>납부 방법 변경</b><span>›</span></button><button><b>결합상품 관리</b><span>›</span></button></div>
           {user && <LogoutButton className="outline-wide my-logout" redirectTo={null} />}
         </div>

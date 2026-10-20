@@ -16,6 +16,7 @@ import { ForbiddenWordListPage } from './admin/pages/forbidden-word/ForbiddenWor
 import { UnansweredGroupListPage } from './admin/pages/unanswered/UnansweredGroupListPage'
 import { ReservationListPage } from './admin/pages/reservation/ReservationListPage'
 import { NoticeListPage } from './admin/pages/notice/NoticeListPage'
+import { InquiryListPage } from './admin/pages/inquiry/InquiryListPage'
 import { AdminLayout } from './admin/layout/AdminLayout'
 import { RequireAdmin } from './admin/routes/RequireAdmin'
 import { AuthProvider } from './auth/context/AuthProvider'
@@ -69,6 +70,7 @@ function App() {
                 <Route path="unanswered-groups" element={<UnansweredGroupListPage />} />
                 <Route path="reservations" element={<ReservationListPage />} />
                 <Route path="notices" element={<NoticeListPage />} />
+                <Route path="inquiries" element={<InquiryListPage />} />
                 <Route path="guest-chat-settings" element={<GuestChatSettingsPage />} />
                 <Route path="embedding-backfill" element={<EmbeddingBackfillPage />} />
 
