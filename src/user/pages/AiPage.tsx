@@ -93,7 +93,7 @@ export function AiPage({ active, loggedIn, chatActive, messages, context, chat, 
               <button className="new-chat" id="newChat" onClick={startNewChat}>＋ 새 대화</button>
               {chat && <ConversationHistory loggedIn={loggedIn && !isInitializing} activeId={chat.conversationId} refreshKey={historyRefreshKey} disabled={inputDisabled} onSelect={openConversation} />}
               {!chat && <div className="history-block"><small>최근 대화</small><button className="active"><span>최신 폰 어떤게 있어?</span><em>방금</em></button><button><span>인터넷 이전 설치</span><em>어제</em></button></div>}
-              <div className="ai-left-bottom">{!loggedIn && <button className="open-login">로그인</button>}<button data-route="home">서비스 홈</button></div>
+              <div className="ai-left-bottom">{!loggedIn && <button className="open-login">로그인</button>}<button data-route="my">고객센터 문의</button><button data-route="home">서비스 홈</button></div>
             </aside>
 
             <section className="ai-center">
