@@ -334,15 +334,17 @@ export function DashboardPage() {
   const [selectedImprovementTypes, setSelectedImprovementTypes] = useState<
     FaqImprovementType[]
   >([]);
-  const [isImprovementLoading, setIsImprovementLoading] = useState(false);
+  const [isImprovementLoading, setIsImprovementLoading] = useState(true);
   const [improvementError, setImprovementError] = useState<string | null>(null);
   const improvementRequestId = useRef(0);
   const [duplicateCandidates, setDuplicateCandidates] = useState<{
-    faqId: number;
+    key: string;
     items: FaqDuplicateCandidate[];
   } | null>(null);
-  const [isDuplicateLoading, setIsDuplicateLoading] = useState(false);
-  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const [duplicateRequestError, setDuplicateRequestError] = useState<{
+    key: string;
+    message: string;
+  } | null>(null);
   const duplicateRequestId = useRef(0);
   const duplicateScrollRef = useRef<HTMLDivElement>(null);
   const duplicateDragRef = useRef<{
@@ -473,43 +475,41 @@ export function DashboardPage() {
     else next.setFullYear(next.getFullYear() + 1);
     return next <= new Date();
   };
-  const loadImprovements = useCallback(async (
+  const loadImprovements = useCallback((
     page: number,
     types: FaqImprovementType[],
   ) => {
     const requestId = ++improvementRequestId.current;
-    setIsImprovementLoading(true);
-    setImprovementError(null);
-    try {
-      const response = await faqMonitoringApi.getFaqImprovements(
-        page,
-        improvementPageSize,
-        types,
-      );
-      if (requestId === improvementRequestId.current) {
-        setImprovementResponse(response);
-      }
-    } catch (error) {
-      console.error("개선 대상 FAQ를 불러오지 못했습니다.", error);
-      if (requestId === improvementRequestId.current)
-        setImprovementError(
-          error instanceof ApiRequestError
-            ? `${error.message} (HTTP ${error.status})`
-            : error instanceof Error
-              ? error.message
-              : "네트워크 오류",
-        );
-    } finally {
-      if (requestId === improvementRequestId.current)
-        setIsImprovementLoading(false);
-    }
+    void faqMonitoringApi
+      .getFaqImprovements(page, improvementPageSize, types)
+      .then((response) => {
+        if (requestId === improvementRequestId.current)
+          setImprovementResponse(response);
+      })
+      .catch((error) => {
+        console.error("개선 대상 FAQ를 불러오지 못했습니다.", error);
+        if (requestId === improvementRequestId.current)
+          setImprovementError(
+            error instanceof ApiRequestError
+              ? `${error.message} (HTTP ${error.status})`
+              : error instanceof Error
+                ? error.message
+                : "네트워크 오류",
+          );
+      })
+      .finally(() => {
+        if (requestId === improvementRequestId.current)
+          setIsImprovementLoading(false);
+      });
   }, []);
   useEffect(() => {
-    void loadImprovements(improvementPage, selectedImprovementTypes);
+    loadImprovements(improvementPage, selectedImprovementTypes);
   }, [loadImprovements, improvementPage, selectedImprovementTypes]);
   const improvementItems = improvementResponse?.items ?? [];
   const toggleImprovementType = (type: FaqImprovementType) => {
     setImprovementResponse(null);
+    setImprovementError(null);
+    setIsImprovementLoading(true);
     setSelectedImprovementTypes((current) =>
       current.includes(type)
         ? current.filter((selected) => selected !== type)
@@ -517,6 +517,11 @@ export function DashboardPage() {
     );
     setImprovementPage(0);
     setSelectedImprovementFaqId(null);
+  };
+  const refreshImprovements = () => {
+    setIsImprovementLoading(true);
+    setImprovementError(null);
+    loadImprovements(improvementPage, selectedImprovementTypes);
   };
   const usageRankingItems =
     monitoringData?.faqUsageRanking[usageIntent][usageType] ?? [];
@@ -530,41 +535,44 @@ export function DashboardPage() {
     selectedImprovementItem?.improvementTypes.includes("DUPLICATE_SUSPECTED")
       ? selectedImprovementItem.faqId
       : null;
+  const duplicateRequestKey =
+    selectedDuplicateFaqId === null
+      ? null
+      : `${selectedDuplicateFaqId}:${improvementResponse?.evaluatedAt ?? ""}`;
   const selectedDuplicateCandidates =
-    duplicateCandidates?.faqId === selectedDuplicateFaqId
+    duplicateCandidates?.key === duplicateRequestKey
       ? duplicateCandidates.items
       : null;
+  const duplicateError =
+    duplicateRequestError?.key === duplicateRequestKey
+      ? duplicateRequestError.message
+      : null;
+  const isDuplicateLoading =
+    duplicateRequestKey !== null &&
+    selectedDuplicateCandidates === null &&
+    duplicateError === null;
   useEffect(() => {
     const requestId = ++duplicateRequestId.current;
-    setDuplicateCandidates(null);
-    setDuplicateError(null);
-    if (selectedDuplicateFaqId === null) {
-      setIsDuplicateLoading(false);
-      return;
-    }
-    setIsDuplicateLoading(true);
+    if (selectedDuplicateFaqId === null || duplicateRequestKey === null) return;
     void faqMonitoringApi
       .getDuplicateCandidates(selectedDuplicateFaqId)
       .then((items) => {
         if (requestId === duplicateRequestId.current)
-          setDuplicateCandidates({ faqId: selectedDuplicateFaqId, items });
+          setDuplicateCandidates({ key: duplicateRequestKey, items });
       })
       .catch((error) => {
         console.error("중복 의심 FAQ를 불러오지 못했습니다.", error);
         if (requestId === duplicateRequestId.current)
-          setDuplicateError(
-            error instanceof ApiRequestError
+          setDuplicateRequestError({
+            key: duplicateRequestKey,
+            message: error instanceof ApiRequestError
               ? `${error.message} (HTTP ${error.status})`
               : error instanceof Error
                 ? error.message
                 : "네트워크 오류",
-          );
-      })
-      .finally(() => {
-        if (requestId === duplicateRequestId.current)
-          setIsDuplicateLoading(false);
+          });
       });
-  }, [selectedDuplicateFaqId, improvementResponse?.evaluatedAt]);
+  }, [selectedDuplicateFaqId, duplicateRequestKey]);
   const stopDuplicateDrag = () => {
     duplicateDragRef.current = null;
     setIsDuplicateDragging(false);
@@ -944,9 +952,7 @@ export function DashboardPage() {
               aria-label="개선이 필요한 FAQ 새로고침"
               className="faq-dashboard-improvement-refresh"
               disabled={isImprovementLoading}
-              onClick={() =>
-                void loadImprovements(improvementPage, selectedImprovementTypes)
-              }
+              onClick={refreshImprovements}
               type="button"
             >
               ↻
@@ -975,6 +981,8 @@ export function DashboardPage() {
               onClick={() => {
                 if (selectedImprovementTypes.length === 0) return;
                 setImprovementResponse(null);
+                setImprovementError(null);
+                setIsImprovementLoading(true);
                 setSelectedImprovementTypes([]);
                 setImprovementPage(0);
                 setSelectedImprovementFaqId(null);
@@ -1020,11 +1028,13 @@ export function DashboardPage() {
                         : ""
                     }
                     key={item.faqId}
-                    onClick={() =>
+                    onClick={() => {
+                      setDuplicateCandidates(null);
+                      setDuplicateRequestError(null);
                       setSelectedImprovementFaqId((current) =>
                         current === item.faqId ? null : item.faqId,
-                      )
-                    }
+                      );
+                    }}
                   >
                     <td>{item.faqId}</td>
                     <td>
@@ -1076,6 +1086,8 @@ export function DashboardPage() {
                 onChange={(page) => {
                   if (page === improvementPage) return;
                   setImprovementResponse(null);
+                  setImprovementError(null);
+                  setIsImprovementLoading(true);
                   setSelectedImprovementFaqId(null);
                   setImprovementPage(page);
                 }}
