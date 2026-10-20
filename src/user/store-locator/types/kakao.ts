@@ -1,160 +1,156 @@
 export interface KakaoLatLng {
-  getLat(): number;
-  getLng(): number;
+  getLat(): number
+  getLng(): number
 }
 
 export interface KakaoPoint {
-  x: number;
-  y: number;
+  x: number
+  y: number
 }
 
 export interface KakaoBounds {
-  extend(position: KakaoLatLng): void;
-  getSouthWest(): KakaoLatLng;
-  getNorthEast(): KakaoLatLng;
+  extend(position: KakaoLatLng): void
+  getSouthWest(): KakaoLatLng
+  getNorthEast(): KakaoLatLng
 }
 
-export type KakaoMarkerImage = object;
+export type KakaoMarkerImage = object
 
 export interface KakaoMarker {
-  setMap(map: KakaoMap | null): void;
-  getPosition(): KakaoLatLng;
+  setMap(map: KakaoMap | null): void
+  getPosition(): KakaoLatLng
 }
 
 export interface KakaoInfoWindow {
-  close(): void;
-  setContent(content: HTMLElement | string): void;
-  open(map: KakaoMap, marker: KakaoMarker): void;
+  close(): void
+  setContent(content: HTMLElement | string): void
+  open(map: KakaoMap, marker: KakaoMarker): void
 }
 
 export interface KakaoPolyline {
-  setMap(map: KakaoMap | null): void;
-  setPath(path: KakaoLatLng[]): void;
+  setMap(map: KakaoMap | null): void
+  setPath(path: KakaoLatLng[]): void
 }
 
 export interface KakaoCustomOverlay {
-  setMap(map: KakaoMap | null): void;
-  setPosition(position: KakaoLatLng): void;
-  setContent(content: HTMLElement | string): void;
-  setZIndex(zIndex: number): void;
+  setMap(map: KakaoMap | null): void
+  setPosition(position: KakaoLatLng): void
+  setContent(content: HTMLElement | string): void
+  setZIndex(zIndex: number): void
 }
 
 export interface KakaoMapProjection {
-  containerPointFromCoords(position: KakaoLatLng): KakaoPoint;
-  coordsFromContainerPoint(point: KakaoPoint): KakaoLatLng;
+  containerPointFromCoords(position: KakaoLatLng): KakaoPoint
+  coordsFromContainerPoint(point: KakaoPoint): KakaoLatLng
 }
 
 export interface KakaoMap {
-  addControl(control: object, position: unknown): void;
-  getBounds(): KakaoBounds;
-  getProjection(): KakaoMapProjection;
-  getCenter(): KakaoLatLng;
-  getLevel(): number;
-  panTo(position: KakaoLatLng): void;
-  panBy(dx: number, dy: number): void;
-  relayout(): void;
-  setBounds(bounds: KakaoBounds): void;
-  setCenter(position: KakaoLatLng): void;
-  setLevel(level: number): void;
-  setMaxLevel(level: number): void;
-  setMinLevel(level: number): void;
+  addControl(control: object, position: unknown): void
+  getBounds(): KakaoBounds
+  getProjection(): KakaoMapProjection
+  getCenter(): KakaoLatLng
+  getLevel(): number
+  panTo(position: KakaoLatLng): void
+  panBy(dx: number, dy: number): void
+  relayout(): void
+  setBounds(bounds: KakaoBounds): void
+  setCenter(position: KakaoLatLng): void
+  setLevel(level: number): void
+  setMaxLevel(level: number): void
+  setMinLevel(level: number): void
 }
 
-export type KakaoEventTarget = KakaoMap | KakaoMarker;
-export type KakaoEventHandler = () => void;
+export type KakaoEventTarget = KakaoMap | KakaoMarker
+export type KakaoEventHandler = () => void
 
 export interface KakaoMapsApi {
-  load(callback: () => void): void;
-  LatLng: new (latitude: number, longitude: number) => KakaoLatLng;
-  LatLngBounds: new () => KakaoBounds;
-  Map: new (element: HTMLElement, options: { center: KakaoLatLng; level: number }) => KakaoMap;
+  load(callback: () => void): void
+  LatLng: new (latitude: number, longitude: number) => KakaoLatLng
+  LatLngBounds: new () => KakaoBounds
+  Map: new (element: HTMLElement, options: { center: KakaoLatLng; level: number }) => KakaoMap
   Marker: new (options: {
-    map?: KakaoMap;
-    position: KakaoLatLng;
-    title?: string;
-    image?: KakaoMarkerImage;
-    zIndex?: number;
-  }) => KakaoMarker;
-  MarkerImage: new (
-    source: string,
-    size: object,
-    options?: { offset?: object },
-  ) => KakaoMarkerImage;
-  Size: new (width: number, height: number) => object;
-  Point: new (x: number, y: number) => KakaoPoint;
-  InfoWindow: new (options?: { zIndex?: number }) => KakaoInfoWindow;
+    map?: KakaoMap
+    position: KakaoLatLng
+    title?: string
+    image?: KakaoMarkerImage
+    zIndex?: number
+  }) => KakaoMarker
+  MarkerImage: new (source: string, size: object, options?: { offset?: object }) => KakaoMarkerImage
+  Size: new (width: number, height: number) => object
+  Point: new (x: number, y: number) => KakaoPoint
+  InfoWindow: new (options?: { zIndex?: number }) => KakaoInfoWindow
   Polyline: new (options: {
-    path: KakaoLatLng[];
-    strokeWeight?: number;
-    strokeColor?: string;
-    strokeOpacity?: number;
-    strokeStyle?: string;
-    zIndex?: number;
-  }) => KakaoPolyline;
+    path: KakaoLatLng[]
+    strokeWeight?: number
+    strokeColor?: string
+    strokeOpacity?: number
+    strokeStyle?: string
+    zIndex?: number
+  }) => KakaoPolyline
   CustomOverlay: new (options: {
-    position: KakaoLatLng;
-    content: HTMLElement | string;
-    xAnchor?: number;
-    yAnchor?: number;
-    zIndex?: number;
-    clickable?: boolean;
-  }) => KakaoCustomOverlay;
-  ZoomControl: new () => object;
-  ControlPosition: { RIGHT: unknown };
+    position: KakaoLatLng
+    content: HTMLElement | string
+    xAnchor?: number
+    yAnchor?: number
+    zIndex?: number
+    clickable?: boolean
+  }) => KakaoCustomOverlay
+  ZoomControl: new () => object
+  ControlPosition: { RIGHT: unknown }
   event: {
-    addListener(target: KakaoEventTarget, event: string, handler: KakaoEventHandler): void;
-    removeListener(target: KakaoEventTarget, event: string, handler: KakaoEventHandler): void;
-  };
+    addListener(target: KakaoEventTarget, event: string, handler: KakaoEventHandler): void
+    removeListener(target: KakaoEventTarget, event: string, handler: KakaoEventHandler): void
+  }
   services: {
     Geocoder: new () => {
       addressSearch(
         address: string,
         callback: (
           results: Array<{
-            x: string;
-            y: string;
-            address_name: string;
-            road_address: { address_name: string } | null;
+            x: string
+            y: string
+            address_name: string
+            road_address: { address_name: string } | null
           }>,
           status: string,
         ) => void,
-      ): void;
+      ): void
       coord2Address(
         longitude: number,
         latitude: number,
         callback: (
           results: Array<{
-            address: { address_name: string } | null;
-            road_address: { address_name: string } | null;
+            address: { address_name: string } | null
+            road_address: { address_name: string } | null
           }>,
           status: string,
         ) => void,
-      ): void;
-    };
+      ): void
+    }
     Places: new () => {
       keywordSearch(
         keyword: string,
         callback: (
           results: Array<{
-            place_name: string;
-            address_name: string;
-            road_address_name: string;
-            x: string;
-            y: string;
+            place_name: string
+            address_name: string
+            road_address_name: string
+            x: string
+            y: string
           }>,
           status: string,
         ) => void,
         options?: { size?: number },
-      ): void;
-    };
-    Status: { OK: string };
-  };
+      ): void
+    }
+    Status: { OK: string }
+  }
 }
 
 declare global {
   interface Window {
     kakao?: {
-      maps?: KakaoMapsApi;
-    };
+      maps?: KakaoMapsApi
+    }
   }
 }

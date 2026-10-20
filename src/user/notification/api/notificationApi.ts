@@ -35,5 +35,6 @@ export const notificationApi = {
   getUnreadCount: () => apiClient.get<UnreadCountResponse>('/api/notifications/me/unread-count'),
   readNotification: (notificationId: number) =>
     apiClient.patch<NotificationResponse>(`/api/notifications/${notificationId}/read`, {}),
-  readAllNotifications: () => apiClient.patch<ReadAllResponse>('/api/notifications/me/read-all', {}),
+  readAllNotifications: () =>
+    apiClient.patch<ReadAllResponse>('/api/notifications/me/read-all', {}),
 }

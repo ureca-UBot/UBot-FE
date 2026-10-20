@@ -35,11 +35,14 @@ function wait(ms: number, signal?: AbortSignal) {
   })
 }
 
-function toProgress(state: Pick<ChatJobState, 'status' | 'phase' | 'deadlineAt' | 'serverTime'>): ChatProgress | null {
+function toProgress(
+  state: Pick<ChatJobState, 'status' | 'phase' | 'deadlineAt' | 'serverTime'>,
+): ChatProgress | null {
   if (state.status !== 'QUEUED' && state.status !== 'RUNNING') return null
-  const remainingMs = state.deadlineAt && state.serverTime
-    ? Date.parse(state.deadlineAt) - Date.parse(state.serverTime)
-    : Number.NaN
+  const remainingMs =
+    state.deadlineAt && state.serverTime
+      ? Date.parse(state.deadlineAt) - Date.parse(state.serverTime)
+      : Number.NaN
   return {
     status: state.status,
     phase: state.phase ?? null,
@@ -61,7 +64,10 @@ function nextDelay(failures: number) {
 
 // 접수된 작업을 끝날 때까지 조회합니다.
 // 성공하면 ChatResponse를 돌려주고, 실패하면 기존 동기 API의 실패 응답과 같은 모양의 ApiRequestError를 던집니다.
-export async function waitForAnswer(submission: ChatJobSubmission, options: ChatWaitOptions = {}): Promise<ChatResponse> {
+export async function waitForAnswer(
+  submission: ChatJobSubmission,
+  options: ChatWaitOptions = {},
+): Promise<ChatResponse> {
   const { onProgress, signal } = options
   const conversationId = submission.conversationId ?? null
   const startedAt = Date.now()
@@ -73,7 +79,10 @@ export async function waitForAnswer(submission: ChatJobSubmission, options: Chat
     await wait(nextDelay(failures), signal)
     let state: ChatJobState
     try {
-      state = await apiClient.get<ChatJobState>(`/api/chat/jobs/${encodeURIComponent(submission.jobId)}`, { signal })
+      state = await apiClient.get<ChatJobState>(
+        `/api/chat/jobs/${encodeURIComponent(submission.jobId)}`,
+        { signal },
+      )
       failures = 0
     } catch (error) {
       if (signal?.aborted || !isTransient(error)) throw error
@@ -107,5 +116,9 @@ export async function waitForAnswer(submission: ChatJobSubmission, options: Chat
     const progress = toProgress(state)
     if (progress) onProgress?.(progress)
   }
-  throw new ApiRequestError('답변 결과를 확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.', 0, CHAT_JOB_RESULT_UNKNOWN)
+  throw new ApiRequestError(
+    '답변 결과를 확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
+    0,
+    CHAT_JOB_RESULT_UNKNOWN,
+  )
 }

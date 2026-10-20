@@ -20,7 +20,8 @@ export interface ProductKindDisplay<TDetail> {
 }
 
 // 상품 종류 하나의 정의입니다. 목록·표·모달은 4종이 같이 쓰고, 종류마다 다른 부분만 여기에 모읍니다.
-export interface ProductKind<TDetail, TValues, TCreate, TUpdate> extends ProductKindDisplay<TDetail> {
+export interface ProductKind<TDetail, TValues, TCreate, TUpdate>
+  extends ProductKindDisplay<TDetail> {
   api: AdminProductApi<TDetail, TCreate, TUpdate>
   blankValues: TValues
   valuesFrom: (detail: TDetail) => TValues

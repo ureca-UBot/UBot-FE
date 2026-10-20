@@ -1,5 +1,15 @@
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
-import { setupStoreLocator, type StoreLocatorController } from '../../store-locator/setupStoreLocator'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+} from 'react'
+import {
+  setupStoreLocator,
+  type StoreLocatorController,
+} from '../../store-locator/setupStoreLocator'
 import { StoreLocatorView } from '../../store-locator/StoreLocatorView'
 import type { ChatStoreMap } from '../types/chat'
 
@@ -40,7 +50,10 @@ export function ChatStoreMapDrawer({ open, view, onClose }: ChatStoreMapDrawerPr
 
   useEffect(() => {
     if (!bodyRef.current) return
-    const controller = setupStoreLocator({ root: bodyRef.current, idPrefix: ID_PREFIX }, { mode: 'drawer' })
+    const controller = setupStoreLocator(
+      { root: bodyRef.current, idPrefix: ID_PREFIX },
+      { mode: 'drawer' },
+    )
     locator.current = controller
     return () => {
       controller.dispose()
@@ -81,7 +94,10 @@ export function ChatStoreMapDrawer({ open, view, onClose }: ChatStoreMapDrawerPr
     if (event.button !== 0 || !drawerRef.current) return
     event.preventDefault()
     event.currentTarget.setPointerCapture(event.pointerId)
-    drag.current = { startX: event.clientX, startWidth: drawerRef.current.getBoundingClientRect().width }
+    drag.current = {
+      startX: event.clientX,
+      startWidth: drawerRef.current.getBoundingClientRect().width,
+    }
     setResizing(true)
   }
 
@@ -95,7 +111,8 @@ export function ChatStoreMapDrawer({ open, view, onClose }: ChatStoreMapDrawerPr
     if (!drag.current) return
     drag.current = null
     setResizing(false)
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+    if (event.currentTarget.hasPointerCapture(event.pointerId))
+      event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
   const resizeByKey = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -106,10 +123,12 @@ export function ChatStoreMapDrawer({ open, view, onClose }: ChatStoreMapDrawerPr
     resizeTo(currentWidth + (event.key === 'ArrowLeft' ? KEY_STEP : -KEY_STEP))
   }
 
-  const title = !view ? '매장 지도'
-    : view.kind === 'nearby' ? '내 주변 매장'
+  const title = !view
+    ? '매장 지도'
+    : view.kind === 'nearby'
+      ? '내 주변 매장'
       : `${view.map.placeName ?? '현재 위치'} 주변 매장`
-  const style = width === null ? undefined : { '--chat-map-width': `${width}px` } as CSSProperties
+  const style = width === null ? undefined : ({ '--chat-map-width': `${width}px` } as CSSProperties)
 
   return (
     <aside
@@ -133,9 +152,20 @@ export function ChatStoreMapDrawer({ open, view, onClose }: ChatStoreMapDrawerPr
         onKeyDown={resizeByKey}
       />
       <div className="chat-map-drawer-head">
-        <div><span>STORE MAP</span><b>{title}</b></div>
-        <button className="chat-map-close" type="button" onClick={onClose} aria-label="지도 닫기" title="지도 닫기">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        <div>
+          <span>STORE MAP</span>
+          <b>{title}</b>
+        </div>
+        <button
+          className="chat-map-close"
+          type="button"
+          onClick={onClose}
+          aria-label="지도 닫기"
+          title="지도 닫기"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
         </button>
       </div>
       <div className="chat-map-drawer-body" ref={bodyRef}>

@@ -10,7 +10,11 @@ interface LogoutButtonProps {
   children?: ReactNode
 }
 
-export function LogoutButton({ className = 'logout-button', redirectTo = '/auth/login', children }: LogoutButtonProps) {
+export function LogoutButton({
+  className = 'logout-button',
+  redirectTo = '/auth/login',
+  children,
+}: LogoutButtonProps) {
   const navigate = useNavigate()
   const { logout } = useAuth()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -26,7 +30,13 @@ export function LogoutButton({ className = 'logout-button', redirectTo = '/auth/
   }
 
   return (
-    <button aria-label="로그아웃" className={className} disabled={isLoggingOut} onClick={() => void handleLogout()} type="button">
+    <button
+      aria-label="로그아웃"
+      className={className}
+      disabled={isLoggingOut}
+      onClick={() => void handleLogout()}
+      type="button"
+    >
       {children ?? '로그아웃'}
     </button>
   )

@@ -1,0 +1,349 @@
+/* Telecom-style desktop header */
+@media(min-width:768px) {
+  .ubot-user-app .desktop-header {
+    background: rgba(255, 255, 255, .98);
+    backdrop-filter: blur(20px)
+  }
+
+  .ubot-user-app .utility {
+    height: 50px;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f2
+  }
+
+  .ubot-user-app .utility-inner,
+  .ubot-user-app .global-nav {
+    width: min(calc(100% - 48px), 1320px)
+  }
+
+  .ubot-user-app .utility-left,
+  .ubot-user-app .utility-right {
+    display: flex;
+    align-items: center;
+    gap: 2px
+  }
+
+  .ubot-user-app .utility-brand {
+    display: inline-flex;
+    align-items: center;
+    color: #17171a;
+    text-decoration: none
+  }
+
+  .ubot-user-app .utility-brand img {
+    width: 100px;
+    height: 45px;
+    object-fit: contain
+  }
+
+  .ubot-user-app .utility button {
+    position: relative;
+    padding: 0 10px;
+    color: #777981;
+    font-size: 11.5px;
+    font-weight: 650
+  }
+
+  .ubot-user-app .utility-right button+button:before {
+    position: absolute;
+    top: 50%;
+    left: -1px;
+    width: 1px;
+    height: 10px;
+    background: #e7e7ea;
+    content: "";
+    transform: translateY(-50%)
+  }
+
+  .ubot-user-app .utility button.on {
+    color: #17171a;
+    font-weight: 850
+  }
+
+  .ubot-user-app .global-nav {
+    grid-template-columns: minmax(0, 1fr) 350px;
+    height: 80px
+  }
+
+  .ubot-user-app .logo-mark-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    box-shadow: none;
+    background: #fff
+  }
+
+  .ubot-user-app .desktop-logo>span:last-child {
+    font-size: 24px;
+    font-weight: 950
+  }
+
+  .ubot-user-app .gnb {
+    justify-content: flex-start;
+    gap: clamp(12px, 1.65vw, 27px)
+  }
+
+  .ubot-user-app .gnb-item>button {
+    min-height: 80px;
+    padding: 0 8px;
+    font-size: 17px;
+    font-weight: 850;
+    letter-spacing: -.035em
+  }
+
+  .ubot-user-app .desktop-header.scrolled .gnb-item>button {
+    min-height: 68px
+  }
+
+  .ubot-user-app .gnb-item>button:after {
+    right: 8px;
+    bottom: 0;
+    left: 8px;
+    height: 3px;
+    border-radius: 3px 3px 0 0
+  }
+
+  .ubot-user-app .gnb-ai-item>button {
+    color: #8b2b63
+  }
+
+
+  .ubot-user-app .header-tools {
+    height: 100%;
+    justify-content: flex-end;
+    gap: 2px
+  }
+
+  .ubot-user-app .header-tools button.header-action {
+    display: flex;
+    min-width: 56px;
+    height: 64px;
+    min-height: 64px;
+    padding: 7px 6px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    border: 0;
+    border-radius: 0 !important;
+    color: #25252a;
+    background: transparent;
+    font-size: 11px;
+    font-weight: 700;
+    transition: color .16s ease, background .16s ease
+  }
+
+  .ubot-user-app .header-tools button.header-action:hover {
+    color: #d0146b;
+    background: #fff5f9
+  }
+
+  .ubot-user-app .header-action-icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1
+  }
+
+  .ubot-user-app .header-action-icon svg {
+    display: block;
+    width: 30px;
+    height: 30px
+  }
+
+  .ubot-user-app .header-action-label {
+    display: block;
+    white-space: nowrap;
+    color: inherit;
+    font-size: 10.5px;
+    line-height: 1
+  }
+
+  .ubot-user-app .header-member .header-action-label {
+    max-width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis
+  }
+
+
+  .ubot-user-app .mega-menu {
+    top: 118px;
+    border-top: 1px solid #e9e9ec;
+    background: rgba(255, 255, 255, .995);
+    box-shadow: 0 30px 55px rgba(18, 18, 22, .11);
+    backdrop-filter: blur(22px);
+    transform: translateY(-8px)
+  }
+
+  .ubot-user-app .desktop-header.scrolled .mega-menu {
+    top: 68px
+  }
+
+  .ubot-user-app .mega-menu-inner.mega-menu-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: min(calc(100% - 64px), 1240px);
+    min-height: 290px;
+    padding: 34px 0 38px;
+    gap: 0;
+    align-items: stretch
+  }
+
+  .ubot-user-app .mega-column {
+    display: flex;
+    min-width: 0;
+    padding: 2px 26px 0;
+    flex-direction: column;
+    border-left: 1px solid #eeeef1
+  }
+
+  .ubot-user-app .mega-column:first-child {
+    padding-left: 4px;
+    border-left: 0
+  }
+
+  .ubot-user-app .mega-column:last-child {
+    padding-right: 4px
+  }
+
+  .ubot-user-app .mega-column strong {
+    display: flex;
+    min-height: 32px;
+    align-items: center;
+    margin: 0 0 12px;
+    color: #19191d;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: -.035em
+  }
+
+  .ubot-user-app .mega-column strong em {
+    margin-left: 6px;
+    color: #e21b73;
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: .04em
+  }
+
+  .ubot-user-app .mega-column button {
+    width: 100%;
+    min-height: 37px;
+    padding: 0;
+    border: 0;
+    color: #565860;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: -.02em;
+    text-align: left;
+    transition: color .15s ease, transform .15s ease
+  }
+
+  .ubot-user-app .mega-column button:hover,
+  .ubot-user-app .mega-column button:focus-visible {
+    color: #d0146b;
+    transform: translateX(3px);
+    outline: 0
+  }
+
+  .ubot-user-app .mega-column-ai {
+    margin: -8px 0 -10px;
+    padding: 10px 22px 14px;
+    border: 0;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #fff7fa, #faf8ff)
+  }
+
+  .ubot-user-app .mega-column-ai strong {
+    color: #b31962
+  }
+
+  .ubot-user-app .mega-column-ai button {
+    color: #44444b
+  }
+
+  .ubot-user-app .mega-backdrop {
+    inset: 118px 0 0;
+    background: rgba(18, 18, 20, .22);
+    backdrop-filter: blur(3px)
+  }
+
+  .ubot-user-app .desktop-header.scrolled .mega-backdrop {
+    inset: 68px 0 0
+  }
+
+}
+
+
+@media(max-width:1100px) and (min-width:768px) {
+
+  .ubot-user-app .utility-inner,
+  .ubot-user-app .global-nav {
+    width: min(calc(100% - 28px), 1040px)
+  }
+
+  .ubot-user-app .global-nav {
+    grid-template-columns: minmax(0, 1fr) 228px
+  }
+
+  .ubot-user-app .desktop-logo>span:last-child {
+    font-size: 21px
+  }
+
+  .ubot-user-app .logo-mark-wrap {
+    width: 38px;
+    height: 38px
+  }
+
+  .ubot-user-app .gnb {
+    gap: 7px
+  }
+
+  .ubot-user-app .gnb-item>button {
+    padding: 0 6px;
+    font-size: 14px
+  }
+
+  .ubot-user-app .header-tools {
+    gap: 0
+  }
+
+  .ubot-user-app .header-tools button.header-action {
+    display: flex;
+    width: 44px;
+    min-width: 44px;
+    padding: 7px 2px
+  }
+
+  .ubot-user-app .header-action-label {
+    display: none
+  }
+
+  .ubot-user-app .mega-menu-inner.mega-menu-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: min(calc(100% - 32px), 1020px);
+    padding: 28px 0 32px
+  }
+
+  .ubot-user-app .mega-column {
+    padding: 0 16px
+  }
+
+  .ubot-user-app .mega-column strong {
+    font-size: 13px
+  }
+
+  .ubot-user-app .mega-column button {
+    font-size: 12px
+  }
+
+  .ubot-user-app .mega-column-ai {
+    margin: -6px 0 -8px;
+    padding: 8px 14px 12px
+  }
+
+}
+

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 import { AdminHeader } from './AdminHeader'
 import { AdminSidebar } from './AdminSidebar'
@@ -8,7 +9,11 @@ export function AdminLayout() {
       <AdminSidebar />
       <div className="admin-main">
         <AdminHeader />
-        <main className="admin-content"><Outlet /></main>
+        <main className="admin-content">
+          <Suspense fallback={null}>
+            <Outlet />
+          </Suspense>
+        </main>
       </div>
     </div>
   )

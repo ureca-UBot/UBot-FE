@@ -1,171 +1,97 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export interface AiMessage {
-  id: number;
-  role: 'user' | 'ai';
-  html: string;
+  id: number
+  role: 'user' | 'ai'
+  html: string
 }
 
 interface UseAiDemoOptions {
-  loggedIn: boolean;
+  loggedIn: boolean
 }
 
-function escapeHtml(
-  value: string,
-) {
+function escapeHtml(value: string) {
   return value.replace(
     /[&<>"']/g,
-    (
-      character,
-    ) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    })[character]
-      ?? character,
-  );
+    (character) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[character] ?? character,
+  )
 }
 
-const wait = (
-  milliseconds: number,
-) => new Promise<void>(
-  (
-    resolve,
-  ) => {
-    window.setTimeout(
-      resolve,
-      milliseconds,
-    );
-  },
-);
+const wait = (milliseconds: number) =>
+  new Promise<void>((resolve) => {
+    window.setTimeout(resolve, milliseconds)
+  })
 
-export function useAiDemo({
-  loggedIn,
-}: UseAiDemoOptions) {
-  const [messages, setMessages] =
-    useState<AiMessage[]>([]);
+export function useAiDemo({ loggedIn }: UseAiDemoOptions) {
+  const [messages, setMessages] = useState<AiMessage[]>([])
 
-  const [
-    chatActive,
-    setChatActive,
-  ] = useState(false);
+  const [chatActive, setChatActive] = useState(false)
 
-  const [
-    context,
-    setContext,
-  ] = useState<string[]>([]);
+  const [context, setContext] = useState<string[]>([])
 
-  const [
-    faqSatellite,
-    setFaqSatellite,
-  ] = useState(false);
+  const [faqSatellite, setFaqSatellite] = useState(false)
 
+  const [questionCount, setQuestionCount] = useState(1284)
 
-    const [
-        questionCount,
-        setQuestionCount,
-    ] = useState(1284);
+  const [cacheHit, setCacheHit] = useState(false)
 
-    const [
-        cacheHit,
-        setCacheHit,
-    ] = useState(false);
+  const messageId = useRef(0)
 
-  const messageId =
-    useRef(0);
+  const failNext = useRef(false)
 
-  const failNext =
-    useRef(false);
+  const cachePrimed = useRef(false)
 
-  const cachePrimed =
-    useRef(false);
+  const loggedInRef = useRef(loggedIn)
 
-  const loggedInRef =
-    useRef(loggedIn);
+  const faqSatelliteRef = useRef(false)
 
-  const faqSatelliteRef =
-    useRef(false);
-
-  const pendingAfterLogin =
-    useRef<string | null>(
-      null,
-    );
+  const pendingAfterLogin = useRef<string | null>(null)
 
   useEffect(() => {
-    loggedInRef.current =
-      loggedIn;
-  }, [loggedIn]);
+    loggedInRef.current = loggedIn
+  }, [loggedIn])
 
-  const addMessage =
-    useCallback(
-      (
-        role:
-          AiMessage['role'],
-        html: string,
-      ) => {
-        setMessages(
-          (
-            current,
-          ) => [
-            ...current,
-            {
-              id:
-                ++messageId.current,
-              role,
-              html,
-            },
-          ],
-        );
+  const addMessage = useCallback((role: AiMessage['role'], html: string) => {
+    setMessages((current) => [
+      ...current,
+      {
+        id: ++messageId.current,
+        role,
+        html,
       },
-      [],
-    );
+    ])
+  }, [])
 
-  const sendAi =
-    useCallback(
-      async (
-        rawQuestion?: string,
-        retry = false,
-      ) => {
-        const question =
-          rawQuestion?.trim();
+  const sendAi = useCallback(
+    async (rawQuestion?: string, retry = false) => {
+      const question = rawQuestion?.trim()
 
-        if (!question) {
-          return;
-        }
+      if (!question) {
+        return
+      }
 
-        setQuestionCount(
-            (current) => current + 1,
-        );
+      setQuestionCount((current) => current + 1)
 
-        setChatActive(true);
-        setContext([]);
+      setChatActive(true)
+      setContext([])
+
+      addMessage('user', escapeHtml(question))
+
+      if (failNext.current && !retry) {
+        failNext.current = false
+
+        await wait(420)
 
         addMessage(
-          'user',
-          escapeHtml(
-            question,
-          ),
-        );
-
-        if (
-          failNext.current
-          && !retry
-        ) {
-          failNext.current =
-            false;
-
-          await wait(420);
-
-          addMessage(
-            'ai',
-            `<div class="chat-card error-card">
+          'ai',
+          `<div class="chat-card error-card">
               <div class="chat-card-pad">
                 <h4>답변 생성 실패</h4>
                 <p>서버 응답이 지연되어 답변을 완료하지 못했어요.</p>
@@ -179,27 +105,19 @@ export function useAiDemo({
                 </div>
               </div>
             </div>`,
-          );
+        )
 
-          return;
-        }
+        return
+      }
 
-        await wait(360);
+      await wait(360)
 
-        if (
-          /최신\s*폰|최신\s*핸드폰|새로운\s*폰/.test(
-            question,
-          )
-        ) {
-          setContext([
-            '상품 DB',
-            '현재 위치',
-            '실시간 인기검색',
-          ]);
+      if (/최신\s*폰|최신\s*핸드폰|새로운\s*폰/.test(question)) {
+        setContext(['상품 DB', '현재 위치', '실시간 인기검색'])
 
-          addMessage(
-            'ai',
-            `<div class="answer-text">
+        addMessage(
+          'ai',
+          `<div class="answer-text">
               최근 많이 찾는 스마트폰을 기준으로 3가지를 정리했어요.
               상품을 누르면 상세 페이지로 이동할 수 있어요.
             </div>
@@ -240,27 +158,18 @@ export function useAiDemo({
                 방문 예약
               </button>
             </div>`,
-          );
+        )
 
-          return;
-        }
+        return
+      }
 
-        if (
-          /위성\s*인터넷/.test(
-            question,
-          )
-        ) {
-          if (
-            faqSatelliteRef.current
-          ) {
-            setContext([
-              'FAQ: 인터넷 > 가입/상품',
-              'Vector DB 즉시 반영',
-            ]);
+      if (/위성\s*인터넷/.test(question)) {
+        if (faqSatelliteRef.current) {
+          setContext(['FAQ: 인터넷 > 가입/상품', 'Vector DB 즉시 반영'])
 
-            addMessage(
-              'ai',
-              `<div class="answer-text">
+          addMessage(
+            'ai',
+            `<div class="answer-text">
                 현재 U봇에서는 위성 인터넷 상품을 제공하지 않습니다.
                 이용 가능한 인터넷 상품은 지역별 설치 가능 여부를 확인해 주세요.
               </div>
@@ -274,11 +183,11 @@ export function useAiDemo({
                   </p>
                 </div>
               </div>`,
-            );
-          } else {
-            addMessage(
-              'ai',
-              `<div class="chat-card warning-card">
+          )
+        } else {
+          addMessage(
+            'ai',
+            `<div class="chat-card warning-card">
                 <div class="chat-card-pad">
                   <h4>정확한 답변을 찾지 못했습니다.</h4>
 
@@ -303,26 +212,19 @@ export function useAiDemo({
                   </div>
                 </div>
               </div>`,
-            );
-          }
-
-          return;
+          )
         }
 
-        if (
-          /나의\s*혜택|내\s*혜택/.test(
-            question,
-          )
-        ) {
-          if (
-            !loggedInRef.current
-          ) {
-            pendingAfterLogin.current =
-              question;
+        return
+      }
 
-            addMessage(
-              'ai',
-              `<div class="chat-card notice-card">
+      if (/나의\s*혜택|내\s*혜택/.test(question)) {
+        if (!loggedInRef.current) {
+          pendingAfterLogin.current = question
+
+          addMessage(
+            'ai',
+            `<div class="chat-card notice-card">
                 <div class="chat-card-pad">
                   <h4>로그인이 필요한 질문입니다.</h4>
 
@@ -339,17 +241,13 @@ export function useAiDemo({
                   </button>
                 </div>
               </div>`,
-            );
-          } else {
-            setContext([
-              '고객 DB',
-              '5G 스탠다드',
-              '비회원 Thread 승계',
-            ]);
+          )
+        } else {
+          setContext(['고객 DB', '5G 스탠다드', '비회원 Thread 승계'])
 
-            addMessage(
-              'ai',
-              `<div class="answer-text">
+          addMessage(
+            'ai',
+            `<div class="answer-text">
                 김유저님은 현재 <b>5G 스탠다드</b>를 이용 중이에요.
                 이번 달에는 VIP 영화 할인과 데이터 선물 혜택을 사용할 수 있어요.
               </div>
@@ -360,23 +258,16 @@ export function useAiDemo({
               >
                 혜택 전체 보기
               </button>`,
-            );
-          }
-
-          return;
+          )
         }
 
-        if (
-          /결합상품\s*추천|결합\s*추천/.test(
-            question,
-          )
-          && !/으로\s*추천/.test(
-            question,
-          )
-        ) {
-          addMessage(
-            'ai',
-            `<div class="answer-text">
+        return
+      }
+
+      if (/결합상품\s*추천|결합\s*추천/.test(question) && !/으로\s*추천/.test(question)) {
+        addMessage(
+          'ai',
+          `<div class="answer-text">
               어떤 결합을 원하시는지 정보가 부족해요.
             </div>
 
@@ -400,25 +291,18 @@ export function useAiDemo({
                 가족결합
               </button>
             </div>`,
-          );
+        )
 
-          return;
-        }
+        return
+      }
 
-        if (
-          /인터넷\s*결합으로\s*추천|OTT\s*결합으로\s*추천|가족\s*결합으로\s*추천/.test(
-            question,
-          )
-        ) {
-          if (
-            !loggedInRef.current
-          ) {
-            pendingAfterLogin.current =
-              question;
+      if (/인터넷\s*결합으로\s*추천|OTT\s*결합으로\s*추천|가족\s*결합으로\s*추천/.test(question)) {
+        if (!loggedInRef.current) {
+          pendingAfterLogin.current = question
 
-            addMessage(
-              'ai',
-              `<div class="chat-card notice-card">
+          addMessage(
+            'ai',
+            `<div class="chat-card notice-card">
                 <div class="chat-card-pad">
                   <h4>
                     현재 요금제를 확인하려면 로그인이 필요해요.
@@ -432,19 +316,16 @@ export function useAiDemo({
                   </button>
                 </div>
               </div>`,
-            );
+          )
 
-            return;
-          }
+          return
+        }
 
-          setContext([
-            '현재 요금제 5G 스탠다드',
-            '결합상품 DB',
-          ]);
+        setContext(['현재 요금제 5G 스탠다드', '결합상품 DB'])
 
-          addMessage(
-            'ai',
-            `<div class="answer-text">
+        addMessage(
+          'ai',
+          `<div class="answer-text">
               현재 5G 스탠다드 기준으로 인터넷 결합 3가지를 비교했어요.
             </div>
 
@@ -476,27 +357,19 @@ export function useAiDemo({
                 결합 변경하기
               </button>
             </div>`,
-          );
+        )
 
-          return;
-        }
+        return
+      }
 
-        if (
-          /5G\s*요금제\s*뭐|5G\s*요금제/.test(
-            question,
-          )
-        ) {
-          cachePrimed.current =
-            true;
+      if (/5G\s*요금제\s*뭐|5G\s*요금제/.test(question)) {
+        cachePrimed.current = true
 
-          setContext([
-            'Qdrant RAG',
-            '응답 1.84s',
-          ]);
+        setContext(['Qdrant RAG', '응답 1.84s'])
 
-          addMessage(
-            'ai',
-            `<div class="answer-text">
+        addMessage(
+          'ai',
+          `<div class="answer-text">
               현재 시연용 5G 요금제는
               라이트, 스탠다드, 프리미엄 3가지예요.
             </div>
@@ -505,27 +378,19 @@ export function useAiDemo({
               <b>1.84s</b>
               <span>RAG 검색 + 생성</span>
             </div>`,
-          );
+        )
 
-          return;
-        }
+        return
+      }
 
-        if (
-          /5G플랜|플랜\s*종류/.test(
-            question,
-          )
-          && cachePrimed.current
-        ) {
-        setCacheHit(true);
+      if (/5G플랜|플랜\s*종류/.test(question) && cachePrimed.current) {
+        setCacheHit(true)
 
-          setContext([
-            'Semantic Cache HIT',
-            '응답 0.12s',
-          ]);
+        setContext(['Semantic Cache HIT', '응답 0.12s'])
 
-          addMessage(
-            'ai',
-            `<div class="answer-text">
+        addMessage(
+          'ai',
+          `<div class="answer-text">
               5G 플랜은 라이트, 스탠다드, 프리미엄이 있어요.
               앞선 질문과 의미가 유사해 캐시된 답변을 즉시 재사용했어요.
             </div>
@@ -536,24 +401,17 @@ export function useAiDemo({
                 최초 생성 1.84s → 캐시 0.12s
               </span>
             </div>`,
-          );
+        )
 
-          return;
-        }
+        return
+      }
 
-        if (
-          /가까운\s*대리점|가까운\s*매장|대리점.*찾/.test(
-            question,
-          )
-        ) {
-          setContext([
-            '위치 37.50,127.03',
-            'PostGIS nearest-store',
-          ]);
+      if (/가까운\s*대리점|가까운\s*매장|대리점.*찾/.test(question)) {
+        setContext(['위치 37.50,127.03', 'PostGIS nearest-store'])
 
-          addMessage(
-            'ai',
-            `<div class="answer-text">
+        addMessage(
+          'ai',
+          `<div class="answer-text">
               현재 위치 기준으로 가장 가까운 대리점은
               <b>U봇 강남직영점</b>이고
               약 420m 떨어져 있어요.
@@ -571,96 +429,61 @@ export function useAiDemo({
             >
               매장 상세
             </button>`,
-          );
+        )
 
-          return;
-        }
+        return
+      }
 
-        if (
-          /인터넷\s*이전|이전\s*설치|이사/.test(
-            question,
-          )
-        ) {
-          setContext([
-            'FAQ 3건',
-          ]);
+      if (/인터넷\s*이전|이전\s*설치|이사/.test(question)) {
+        setContext(['FAQ 3건'])
 
-          addMessage(
-            'ai',
-            `<div class="answer-text">
+        addMessage(
+          'ai',
+          `<div class="answer-text">
               인터넷 이전 설치는 새 주소의 설치 가능 여부를 확인한 뒤
               희망 일정을 선택하면 돼요.
               기존 약정은 이전 설치 후 이어집니다.
             </div>`,
-          );
+        )
 
-          return;
-        }
+        return
+      }
 
-        addMessage(
-          'ai',
-          '현재는 시연용 Mock이라 준비된 시나리오에 맞춰 동작해요. 실시간 인기 질문에서 질문을 선택해보세요.',
-        );
-      },
-      [
-        addMessage,
-      ],
-    );
+      addMessage(
+        'ai',
+        '현재는 시연용 Mock이라 준비된 시나리오에 맞춰 동작해요. 실시간 인기 질문에서 질문을 선택해보세요.',
+      )
+    },
+    [addMessage],
+  )
 
-  const resetConversation =
-    useCallback(
-      () => {
-        setMessages([]);
-        setContext([]);
-        setChatActive(false);
-      },
-      [],
-    );
+  const resetConversation = useCallback(() => {
+    setMessages([])
+    setContext([])
+    setChatActive(false)
+  }, [])
 
-  const markNextFailure =
-    useCallback(
-      () => {
-        failNext.current =
-          true;
-      },
-      [],
-    );
+  const markNextFailure = useCallback(() => {
+    failNext.current = true
+  }, [])
 
-  const registerSatelliteFaq =
-    useCallback(
-      () => {
-        faqSatelliteRef.current =
-          true;
+  const registerSatelliteFaq = useCallback(() => {
+    faqSatelliteRef.current = true
 
-        setFaqSatellite(true);
-      },
-      [],
-    );
+    setFaqSatellite(true)
+  }, [])
 
-  const queueAfterLogin =
-    useCallback(
-      (
-        question: string,
-      ) => {
-        pendingAfterLogin.current =
-          question;
-      },
-      [],
-    );
+  const queueAfterLogin = useCallback((question: string) => {
+    pendingAfterLogin.current = question
+  }, [])
 
-  const takePendingAfterLogin =
-    useCallback(
-      () => {
-        const question =
-          pendingAfterLogin.current;
+  const takePendingAfterLogin = useCallback(() => {
+    const question = pendingAfterLogin.current
 
-        pendingAfterLogin.current =
-          null;
+    pendingAfterLogin.current = null
 
-        return question;
-      },
-      [],
-    );
+    return question
+  }, [])
 
   return {
     messages,
@@ -677,5 +500,5 @@ export function useAiDemo({
     registerSatelliteFaq,
     queueAfterLogin,
     takePendingAfterLogin,
-  };
+  }
 }

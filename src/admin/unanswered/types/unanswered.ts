@@ -28,7 +28,9 @@ export interface UnansweredGroupDetailResponse extends UnansweredGroupResponse {
   questions: UnansweredQuestionResponse[]
 }
 
-export interface UnansweredGroupStatusUpdateRequest { status: UnansweredGroupStatus }
+export interface UnansweredGroupStatusUpdateRequest {
+  status: UnansweredGroupStatus
+}
 
 export interface UnansweredGroupFaqCreateRequest {
   categoryId: number

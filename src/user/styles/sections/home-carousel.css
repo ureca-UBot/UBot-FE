@@ -1,0 +1,850 @@
+/* Home hero carousel */
+.ubot-user-app .hero-carousel {
+  position: relative;
+  min-height: 650px;
+  background: #faf5f8
+}
+
+.ubot-user-app .hero-slide .hero-art,
+.ubot-user-app .hero-slide .hero-location-art,
+.ubot-user-app .hero-slide .hero-ai-art {
+  translate: calc(var(--hero-x, 0) * 1px) calc(var(--hero-y, 0) * 1px);
+  transition: translate .5s cubic-bezier(.2, .75, .25, 1)
+}
+
+.ubot-user-app .hero-stage {
+  position: relative;
+  min-height: 650px
+}
+
+.ubot-user-app .hero-slide {
+  position: absolute;
+  inset: 0;
+  min-height: 650px;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(18px) scale(.997);
+  transition: opacity .6s cubic-bezier(.2, .72, .25, 1), transform .65s cubic-bezier(.2, .72, .25, 1), visibility .65s
+}
+
+.ubot-user-app .hero-slide.active {
+  z-index: 2;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0) scale(1)
+}
+
+.ubot-user-app .hero-slide-life {
+  background: radial-gradient(circle at 78% 55%, rgba(247, 37, 133, .09), transparent 28%), #faf5f8
+}
+
+.ubot-user-app .hero-slide-store {
+  background: radial-gradient(circle at 78% 45%, rgba(111, 85, 221, .16), transparent 30%), linear-gradient(120deg, #f7f8ff 0%, #f2f0ff 100%)
+}
+
+.ubot-user-app .hero-slide-ai {
+  color: #fff;
+  background: radial-gradient(circle at 78% 45%, rgba(247, 37, 133, .28), transparent 28%), linear-gradient(125deg, #17171a 0%, #222127 52%, #17171a 100%)
+}
+
+.ubot-user-app .hero-slide-ai .hero-copy p {
+  color: #c7c7cc
+}
+
+.ubot-user-app .hero-slide-ai .hero-kicker {
+  color: #ff72b4
+}
+
+.ubot-user-app .hero-slide-ai .black-btn {
+  color: #17171a;
+  background: #fff
+}
+
+.ubot-user-app .hero-slide-ai .black-btn:hover {
+  background: #f0f0f2
+}
+
+.ubot-user-app .hero-slide-ai .link-btn {
+  color: #fff
+}
+
+.ubot-user-app .hero-slide .hero-copy .hero-kicker,
+.ubot-user-app .hero-slide .hero-copy h1,
+.ubot-user-app .hero-slide .hero-copy p,
+.ubot-user-app .hero-slide .hero-copy .hero-actions {
+  opacity: 0;
+  animation: none
+}
+
+.ubot-user-app .hero-slide.active .hero-copy .hero-kicker {
+  animation: heroRise .58s .08s cubic-bezier(.2, .75, .25, 1) forwards
+}
+
+.ubot-user-app .hero-slide.active .hero-copy h1 {
+  animation: heroRise .62s .15s cubic-bezier(.2, .75, .25, 1) forwards
+}
+
+.ubot-user-app .hero-slide.active .hero-copy p {
+  animation: heroRise .62s .23s cubic-bezier(.2, .75, .25, 1) forwards
+}
+
+.ubot-user-app .hero-slide.active .hero-copy .hero-actions {
+  animation: heroRise .62s .31s cubic-bezier(.2, .75, .25, 1) forwards
+}
+
+.ubot-user-app .hero-slide-store .hero-copy h1 em {
+  color: #6f55dd
+}
+
+.ubot-user-app .hero-slide-ai .hero-copy h1 em {
+  color: #ff72b4
+}
+
+
+.ubot-user-app .hero-carousel-controls {
+  position: absolute;
+  bottom: 34px;
+  left: 50%;
+  z-index: 12;
+  display: flex;
+  width: min(calc(100% - 48px), var(--max));
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  transform: translateX(-50%)
+}
+
+.ubot-user-app .hero-pagination,
+.ubot-user-app .hero-arrow-buttons {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  pointer-events: auto
+}
+
+.ubot-user-app .hero-dot {
+  display: flex;
+  height: 30px;
+  padding: 0;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  color: #7c7d83;
+  background: transparent
+}
+
+.ubot-user-app .hero-dot span {
+  position: relative;
+  width: 34px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(23, 23, 26, .18);
+  transition: width .25s ease
+}
+
+.ubot-user-app .hero-dot span:after {
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left
+}
+
+.ubot-user-app .hero-dot em {
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800
+}
+
+.ubot-user-app .hero-dot.active {
+  color: var(--ink)
+}
+
+.ubot-user-app .hero-dot.active span {
+  width: 66px
+}
+
+.ubot-user-app .hero-dot.active span:after {
+  animation: heroProgress 5.8s linear forwards
+}
+
+.ubot-user-app .hero-slide-ai.active~.hero-carousel-controls .hero-dot {
+  color: rgba(255, 255, 255, .58)
+}
+
+.ubot-user-app .hero-carousel.paused .hero-dot.active span:after {
+  animation-play-state: paused
+}
+
+.ubot-user-app .hero-arrow-buttons button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(23, 23, 26, .14);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .72);
+  backdrop-filter: blur(10px);
+  font-size: 17px;
+  transition: transform .18s ease, background .18s ease
+}
+
+.ubot-user-app .hero-arrow-buttons button:hover {
+  background: #fff;
+  transform: translateY(-2px)
+}
+
+@keyframes heroProgress {
+  from {
+    transform: scaleX(0)
+  }
+
+  to {
+    transform: scaleX(1)
+  }
+}
+
+
+.ubot-user-app .hero-location-art,
+.ubot-user-app .hero-ai-art {
+  position: relative;
+  height: 555px
+}
+
+.ubot-user-app .location-map-card {
+  position: absolute;
+  top: 54px;
+  right: 6px;
+  width: 500px;
+  height: 390px;
+  overflow: hidden;
+  border: 8px solid #fff;
+  border-radius: 34px;
+  background: #f8f9fb;
+  box-shadow: 0 34px 80px rgba(61, 53, 112, .18);
+  transform: rotate(2deg)
+}
+
+.ubot-user-app .location-map-card:before {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(111, 85, 221, .07) 1px, transparent 1px), linear-gradient(90deg, rgba(111, 85, 221, .07) 1px, transparent 1px);
+  background-size: 42px 42px;
+  content: ""
+}
+
+.ubot-user-app .map-road {
+  position: absolute;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(211, 213, 222, .45)
+}
+
+.ubot-user-app .road-a {
+  top: -30px;
+  left: 190px;
+  width: 48px;
+  height: 470px;
+  transform: rotate(13deg)
+}
+
+.ubot-user-app .road-b {
+  top: 174px;
+  left: -40px;
+  width: 590px;
+  height: 54px;
+  transform: rotate(-8deg)
+}
+
+.ubot-user-app .road-c {
+  top: 76px;
+  left: -20px;
+  width: 520px;
+  height: 26px;
+  transform: rotate(29deg)
+}
+
+.ubot-user-app .map-label {
+  position: absolute;
+  z-index: 2;
+  padding: 4px 7px;
+  border-radius: 7px;
+  color: #8a8d94;
+  background: rgba(255, 255, 255, .75);
+  font-size: 10px;
+  font-weight: 700
+}
+
+.ubot-user-app .ml1 {
+  top: 47px;
+  left: 258px;
+  transform: rotate(13deg)
+}
+
+.ubot-user-app .ml2 {
+  top: 220px;
+  left: 48px;
+  transform: rotate(-8deg)
+}
+
+.ubot-user-app .hero-map-pin {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 5px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: #17171a;
+  box-shadow: 0 12px 24px rgba(23, 23, 26, .18);
+  font-size: 11px;
+  font-style: normal
+}
+
+.ubot-user-app .hp1 {
+  top: 88px;
+  left: 136px;
+  background: #6f55dd
+}
+
+.ubot-user-app .hp2 {
+  top: 155px;
+  right: 72px
+}
+
+.ubot-user-app .hp3 {
+  right: 156px;
+  bottom: 55px;
+  background: #f72585
+}
+
+.ubot-user-app .hero-current-pos {
+  position: absolute;
+  right: 169px;
+  bottom: 37px;
+  z-index: 6;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #fff;
+  background: #f72585;
+  box-shadow: 0 8px 18px rgba(247, 37, 133, .23);
+  font-size: 10px;
+  font-weight: 800
+}
+
+.ubot-user-app .route-line {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  overflow: visible
+}
+
+.ubot-user-app .route-line path {
+  fill: none;
+  stroke: #f72585;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 9 8;
+  animation: routeDash 12s linear infinite
+}
+
+@keyframes routeDash {
+  to {
+    stroke-dashoffset: -170
+  }
+}
+
+.ubot-user-app .nearest-store-card {
+  position: absolute;
+  right: 58px;
+  bottom: 34px;
+  z-index: 7;
+  width: 310px;
+  padding: 19px 20px;
+  border: 1px solid rgba(255, 255, 255, .8);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 22px 48px rgba(31, 28, 55, .17);
+  backdrop-filter: blur(15px)
+}
+
+.ubot-user-app .nearest-store-card small,
+.ubot-user-app .nearest-store-card strong,
+.ubot-user-app .nearest-store-card span {
+  display: block
+}
+
+.ubot-user-app .nearest-store-card small {
+  color: #777a81;
+  font-size: 11px
+}
+
+.ubot-user-app .nearest-store-card strong {
+  margin: 5px 0 2px;
+  font-size: 18px
+}
+
+.ubot-user-app .nearest-store-card span {
+  color: #686b72;
+  font-size: 11px
+}
+
+.ubot-user-app .nearest-store-card div {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid #ececf0
+}
+
+.ubot-user-app .nearest-store-card b {
+  color: #16825d;
+  font-size: 11px
+}
+
+.ubot-user-app .nearest-store-card em {
+  color: #686b72;
+  font-size: 11px;
+  font-style: normal
+}
+
+.ubot-user-app .location-chip,
+.ubot-user-app .ai-float {
+  position: absolute;
+  z-index: 8;
+  padding: 9px 13px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(31, 28, 55, .12);
+  font-size: 11px;
+  font-weight: 800;
+  animation: noteFloat 4.8s ease-in-out infinite
+}
+
+.ubot-user-app .lc1 {
+  top: 92px;
+  left: 4px;
+  color: #6f55dd
+}
+
+.ubot-user-app .lc2 {
+  top: 156px;
+  right: -5px;
+  animation-delay: -2.4s
+}
+
+
+.ubot-user-app .ai-orb {
+  position: absolute;
+  top: 72px;
+  right: 36px;
+  width: 410px;
+  height: 410px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff9aca 0%, #f72585 34%, #9d2263 65%, rgba(247, 37, 133, .12) 100%);
+  filter: saturate(1.08);
+  animation: orbitBreath 6.5s ease-in-out infinite
+}
+
+.ubot-user-app .ai-demo-window {
+  position: absolute;
+  top: 66px;
+  right: 42px;
+  width: 460px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 30px;
+  background: rgba(20, 20, 23, .9);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, .36);
+  backdrop-filter: blur(18px);
+  transform: rotate(-2deg)
+}
+
+.ubot-user-app .ai-demo-top {
+  display: flex;
+  height: 58px;
+  padding: 0 18px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  gap: 12px
+}
+
+.ubot-user-app .ai-demo-top>span {
+  display: flex;
+  gap: 5px
+}
+
+.ubot-user-app .ai-demo-top i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5d5d63
+}
+
+.ubot-user-app .ai-demo-top b {
+  font-size: 13px
+}
+
+.ubot-user-app .ai-demo-top em {
+  margin-left: auto;
+  color: #ff72b4;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .1em
+}
+
+.ubot-user-app .ai-demo-body {
+  padding: 22px
+}
+
+.ubot-user-app .ai-user-bubble {
+  width: max-content;
+  max-width: 82%;
+  padding: 12px 15px;
+  margin: 0 0 17px auto;
+  border-radius: 16px 16px 5px 16px;
+  color: #17171a;
+  background: #fff;
+  font-size: 13px
+}
+
+.ubot-user-app .ai-answer-bubble {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px
+}
+
+.ubot-user-app .mini-ai-mark {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border-radius: 10px;
+  color: #fff;
+  background: #f72585;
+  font-size: 9px;
+  font-weight: 900
+}
+
+.ubot-user-app .ai-answer-bubble p {
+  padding: 12px 14px;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 5px 16px 16px 16px;
+  color: #e9e9ec;
+  background: rgba(255, 255, 255, .07);
+  font-size: 12px;
+  line-height: 1.6
+}
+
+.ubot-user-app .ai-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 14px;
+  margin: 10px 0 0 40px;
+  border-radius: 13px;
+  color: #ececf0;
+  background: rgba(255, 255, 255, .07);
+  font-size: 11px
+}
+
+.ubot-user-app .ai-result-row b {
+  color: #ff72b4;
+  font-size: 9px;
+  letter-spacing: .05em
+}
+
+.ubot-user-app .ai-float {
+  color: #17171a
+}
+
+.ubot-user-app .af1 {
+  top: 90px;
+  left: 12px
+}
+
+.ubot-user-app .af2 {
+  right: -4px;
+  bottom: 100px;
+  animation-delay: -2.2s
+}
+
+
+.ubot-user-app .hero-carousel[data-current="2"] .hero-pagination {
+  color: #fff
+}
+
+.ubot-user-app .hero-carousel[data-current="2"] .hero-dot {
+  color: rgba(255, 255, 255, .5)
+}
+
+.ubot-user-app .hero-carousel[data-current="2"] .hero-dot.active {
+  color: #fff
+}
+
+.ubot-user-app .hero-carousel[data-current="2"] .hero-dot span {
+  background: rgba(255, 255, 255, .22)
+}
+
+.ubot-user-app .hero-carousel[data-current="2"] .hero-arrow-buttons button {
+  border-color: rgba(255, 255, 255, .18);
+  color: #fff;
+  background: rgba(255, 255, 255, .1)
+}
+
+.ubot-user-app .hero-carousel[data-current="2"] .hero-arrow-buttons button:hover {
+  background: rgba(255, 255, 255, .18)
+}
+
+.ubot-user-app .reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .7s cubic-bezier(.2, .75, .25, 1), transform .7s cubic-bezier(.2, .75, .25, 1)
+}
+
+.ubot-user-app .reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0)
+}
+
+.ubot-user-app .intro-block {
+  padding: 108px 24px;
+  text-align: center
+}
+
+.ubot-user-app .intro-block h2 {
+  margin: 15px 0 22px;
+  font-size: clamp(38px, 4vw, 50px);
+  line-height: 1.23;
+  letter-spacing: -.05em
+}
+
+.ubot-user-app .intro-block p,
+.ubot-user-app .story-text p {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.75
+}
+
+.ubot-user-app .story {
+  padding: 100px 0
+}
+
+.ubot-user-app .story-light {
+  background: #f6f6f7
+}
+
+.ubot-user-app .story-pink {
+  color: #fff;
+  background: var(--pink)
+}
+
+.ubot-user-app .story-cream {
+  background: #f7f2e9
+}
+
+.ubot-user-app .story-inner {
+  display: grid;
+  grid-template-columns: .9fr 1.1fr;
+  align-items: center;
+  width: min(calc(100% - 48px), 1120px);
+  margin: auto;
+  gap: 70px
+}
+
+.ubot-user-app .story-inner.reverse {
+  grid-template-columns: 1.1fr .9fr
+}
+
+.ubot-user-app .story-inner.reverse .story-text {
+  order: 2
+}
+
+.ubot-user-app .story-inner.reverse .story-visual {
+  order: 1
+}
+
+.ubot-user-app .story-text h2 {
+  margin: 17px 0 22px;
+  font-size: clamp(34px, 3.5vw, 44px);
+  line-height: 1.24;
+  letter-spacing: -.05em
+}
+
+.ubot-user-app .story-pink .story-text p {
+  color: #ffe7f2
+}
+
+.ubot-user-app .white-link {
+  color: #fff
+}
+
+.ubot-user-app .story-visual {
+  position: relative;
+  min-width: 0;
+  height: 420px
+}
+
+.ubot-user-app .search-panel,
+.ubot-user-app .unresolved-card,
+.ubot-user-app .thread-card {
+  position: absolute;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--shadow-lg)
+}
+
+.ubot-user-app .search-panel {
+  top: 20px;
+  right: 10px;
+  width: min(470px, 100%);
+  padding: 26px
+}
+
+.ubot-user-app .search-panel-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px
+}
+
+.ubot-user-app .search-panel-head small {
+  font-size: 14px;
+  font-weight: 800
+}
+
+.ubot-user-app .search-panel-head span {
+  color: var(--subtle);
+  font-size: 12px
+}
+
+.ubot-user-app .search-panel button {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  padding: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: #fff;
+  text-align: left
+}
+
+.ubot-user-app .search-panel em {
+  color: var(--subtle);
+  font-style: normal
+}
+
+.ubot-user-app .search-panel b {
+  font-size: 14px
+}
+
+.ubot-user-app .search-panel i {
+  color: var(--pink);
+  font-size: 12px;
+  font-style: normal
+}
+
+.ubot-user-app .unresolved-card {
+  top: 48px;
+  left: 16px;
+  width: min(470px, calc(100% - 16px));
+  padding: 30px;
+  color: var(--ink)
+}
+
+.ubot-user-app .unresolved-card span {
+  color: #b64d24;
+  font-size: 13px;
+  font-weight: 800
+}
+
+.ubot-user-app .unresolved-card b {
+  display: block;
+  margin: 15px 0;
+  font-size: 23px;
+  line-height: 1.45
+}
+
+.ubot-user-app .unresolved-card small {
+  color: var(--muted);
+  font-size: 13px
+}
+
+.ubot-user-app .unresolved-card hr {
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid var(--line)
+}
+
+.ubot-user-app .unresolved-card em {
+  font-size: 13px;
+  font-style: normal
+}
+
+.ubot-user-app .thread-card {
+  top: 34px;
+  right: 25px;
+  width: min(390px, calc(100% - 25px));
+  padding: 26px
+}
+
+.ubot-user-app .thread-card span {
+  color: var(--muted);
+  font-size: 12px
+}
+
+.ubot-user-app .thread-card p {
+  padding: 13px;
+  border-radius: 14px;
+  background: #f4f4f6;
+  font-size: 14px
+}
+
+.ubot-user-app .thread-card i {
+  display: block;
+  width: 1px;
+  height: 38px;
+  margin-left: 14px;
+  background: var(--line)
+}
+
+.ubot-user-app .thread-card strong {
+  display: block;
+  margin-top: 18px;
+  color: var(--pink-dark);
+  font-size: 13px
+}
+
+.ubot-user-app .floating-ai {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 50;
+  min-height: 50px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--ink);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, .22)
+}
+
+.ubot-user-app .floating-ai span {
+  margin-right: 7px;
+  color: #ff67b0
+}
+
+

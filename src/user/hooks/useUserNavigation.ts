@@ -1,34 +1,21 @@
-import { useCallback, useEffect, useState } from 'react'
-import {
-  pageFromLocation,
-  pageUrl,
-  userPageTitles,
-  type UserPage,
-} from '../routes'
-
-interface NavigateOptions {
-  fromHistory?: boolean
-}
+import { useCallback, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { userPageFromPath, userPagePath, userPageTitles, type UserPage } from '../routes'
 
 export function useUserNavigation() {
-  const [page, setPage] = useState<UserPage>(() => pageFromLocation())
+  const { pathname } = useLocation()
+  const routerNavigate = useNavigate()
+  const page = userPageFromPath(pathname)
 
   const navigate = useCallback(
-    (nextPage: UserPage, { fromHistory = false }: NavigateOptions = {}) => {
-      setPage(nextPage)
-
-      if (!fromHistory) {
-        window.history.pushState({ route: nextPage }, '', pageUrl(nextPage))
-      }
-
+    (nextPage: UserPage) => {
+      routerNavigate(userPagePath(nextPage), { state: { route: nextPage } })
       window.scrollTo({
         top: 0,
-        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ? 'auto'
-          : 'smooth',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
       })
     },
-    [],
+    [routerNavigate],
   )
 
   useEffect(() => {
@@ -36,12 +23,6 @@ export function useUserNavigation() {
     document.body.dataset.route = page
     document.dispatchEvent(new CustomEvent('ubot:route-change', { detail: { route: page } }))
   }, [page])
-
-  useEffect(() => {
-    const handlePopState = () => navigate(pageFromLocation(), { fromHistory: true })
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [navigate])
 
   return { page, navigate }
 }

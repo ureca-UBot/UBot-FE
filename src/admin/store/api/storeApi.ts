@@ -25,13 +25,7 @@ function listQuery({
   return query.toString()
 }
 
-function requestBody({
-  sido,
-  sigungu,
-  phoneNumber,
-  businessHours,
-  ...required
-}: StoreFormValues) {
+function requestBody({ sido, sigungu, phoneNumber, businessHours, ...required }: StoreFormValues) {
   const optional = (value: string) => value.trim() || undefined
 
   return {
@@ -45,32 +39,18 @@ function requestBody({
 
 export const adminStoreApi = {
   getStores: (params: StoreListParams = {}) =>
-    apiClient.get<PageResponse<AdminStore>>(
-      `/api/admin/stores?${listQuery(params)}`,
-    ),
+    apiClient.get<PageResponse<AdminStore>>(`/api/admin/stores?${listQuery(params)}`),
   getDeletedStores: (params: StoreListParams = {}) =>
-    apiClient.get<PageResponse<AdminStore>>(
-      `/api/admin/stores/deleted?${listQuery(params)}`,
-    ),
-  getStore: (storeId: number) =>
-    apiClient.get<StoreDetail>(`/api/stores/${storeId}`),
+    apiClient.get<PageResponse<AdminStore>>(`/api/admin/stores/deleted?${listQuery(params)}`),
+  getStore: (storeId: number) => apiClient.get<StoreDetail>(`/api/stores/${storeId}`),
   getSidos: () => apiClient.get<string[]>('/api/stores/regions/sidos'),
   getSigungus: (sido: string) =>
-    apiClient.get<string[]>(
-      `/api/stores/regions/sigungus?sido=${encodeURIComponent(sido)}`,
-    ),
+    apiClient.get<string[]>(`/api/stores/regions/sigungus?sido=${encodeURIComponent(sido)}`),
   createStore: (body: StoreFormValues) =>
     apiClient.post<AdminStore>('/api/admin/stores', requestBody(body)),
   updateStore: (storeId: number, body: StoreFormValues) =>
-    apiClient.patch<AdminStore>(
-      `/api/admin/stores/${storeId}`,
-      requestBody(body),
-    ),
-  deleteStore: (storeId: number) =>
-    apiClient.delete<void>(`/api/admin/stores/${storeId}`),
+    apiClient.patch<AdminStore>(`/api/admin/stores/${storeId}`, requestBody(body)),
+  deleteStore: (storeId: number) => apiClient.delete<void>(`/api/admin/stores/${storeId}`),
   activateStore: (storeId: number) =>
-    apiClient.patch<AdminStore>(
-      `/api/admin/stores/${storeId}/activate`,
-      {},
-    ),
+    apiClient.patch<AdminStore>(`/api/admin/stores/${storeId}/activate`, {}),
 }
