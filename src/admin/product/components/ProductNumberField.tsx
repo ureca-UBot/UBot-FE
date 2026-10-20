@@ -10,7 +10,15 @@ interface ProductNumberFieldProps {
 }
 
 // 숫자만 남깁니다. 음수·소수·지수 표기가 들어갈 수 없으므로 값은 빈 문자열이거나 0 이상의 정수입니다.
-export function ProductNumberField({ label, value, onChange, maxLength = 9, placeholder, hint, disabled = false }: ProductNumberFieldProps) {
+export function ProductNumberField({
+  label,
+  value,
+  onChange,
+  maxLength = 9,
+  placeholder,
+  hint,
+  disabled = false,
+}: ProductNumberFieldProps) {
   return (
     <label>
       {label}

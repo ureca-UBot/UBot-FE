@@ -119,11 +119,17 @@ export function formatShortMonth(month: string) {
 // 데이터 제공량이 정해져 있을 때만 사용률(0~100)을 돌려줍니다. 무제한이거나 제공량 기록이 없으면 null입니다.
 export function dataUsagePercent(usage: UsageRecord | null) {
   const allowance = usage?.allowance
-  if (!usage || !allowance || allowance.dataUnlimited !== false || !allowance.dataAmountMb) return null
+  if (!usage || !allowance || allowance.dataUnlimited !== false || !allowance.dataAmountMb)
+    return null
   return Math.min(100, Math.round((usage.dataUsedMb / allowance.dataAmountMb) * 100))
 }
 
-function describeUsage(used: string, unlimited: boolean | null | undefined, provided: string | null, remaining: string | null) {
+function describeUsage(
+  used: string,
+  unlimited: boolean | null | undefined,
+  provided: string | null,
+  remaining: string | null,
+) {
   if (unlimited) return `${used} 사용 · 무제한`
   if (provided === null || remaining === null) return `${used} 사용`
   return `${used} 사용 · ${remaining} 남음 (제공 ${provided})`
@@ -145,7 +151,9 @@ export function formatVoiceUsage(usage: UsageRecord) {
     `${usage.voiceUsedMinutes.toLocaleString('ko-KR')}분`,
     allowance?.voiceUnlimited,
     allowance?.voiceMinutes == null ? null : `${allowance.voiceMinutes.toLocaleString('ko-KR')}분`,
-    usage.remainingVoiceMinutes == null ? null : `${usage.remainingVoiceMinutes.toLocaleString('ko-KR')}분`,
+    usage.remainingVoiceMinutes == null
+      ? null
+      : `${usage.remainingVoiceMinutes.toLocaleString('ko-KR')}분`,
   )
 }
 

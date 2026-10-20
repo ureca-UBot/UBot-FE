@@ -1,6 +1,6 @@
-import type { DirectionsMode, DirectionsResult } from '../types/directions';
-import { storeRequest, type ApiResponse } from './client';
-import { unwrapApiResponse } from './stores';
+import type { DirectionsMode, DirectionsResult } from '../types/directions'
+import { storeRequest, type ApiResponse } from './client'
+import { unwrapApiResponse } from './stores'
 
 export async function getStoreDirections(
   storeId: number,
@@ -13,11 +13,13 @@ export async function getStoreDirections(
     mode,
     latitude: latitude.toFixed(6),
     longitude: longitude.toFixed(6),
-  });
-  return unwrapApiResponse(await storeRequest<ApiResponse<DirectionsResult[]>>(
-    `/stores/${storeId}/directions?${params.toString()}`,
-    { method: 'GET', signal },
-  ))
+  })
+  return unwrapApiResponse(
+    await storeRequest<ApiResponse<DirectionsResult[]>>(
+      `/stores/${storeId}/directions?${params.toString()}`,
+      { method: 'GET', signal },
+    ),
+  )
 }
 
 export async function getTransitDetail(
@@ -30,14 +32,16 @@ export async function getTransitDetail(
   const params = new URLSearchParams({
     latitude: latitude.toFixed(6),
     longitude: longitude.toFixed(6),
-  });
-  return unwrapApiResponse(await storeRequest<ApiResponse<DirectionsResult>>(
-    `/stores/${storeId}/directions/transit-detail?${params.toString()}`,
-    {
-      method: 'POST',
-      signal,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(candidate),
-    },
-  ))
+  })
+  return unwrapApiResponse(
+    await storeRequest<ApiResponse<DirectionsResult>>(
+      `/stores/${storeId}/directions/transit-detail?${params.toString()}`,
+      {
+        method: 'POST',
+        signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(candidate),
+      },
+    ),
+  )
 }

@@ -18,14 +18,21 @@ function formatTime(value: string) {
     : date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
 }
 
-export function ConversationHistory({ loggedIn, activeId, refreshKey, disabled, onSelect }: ConversationHistoryProps) {
+export function ConversationHistory({
+  loggedIn,
+  activeId,
+  refreshKey,
+  disabled,
+  onSelect,
+}: ConversationHistoryProps) {
   const [conversations, setConversations] = useState<ConversationSummary[]>([])
   const [error, setError] = useState(false)
 
   useEffect(() => {
     if (!loggedIn) return
     let ignore = false
-    chatApi.getMyConversationList()
+    chatApi
+      .getMyConversationList()
       .then((page) => {
         if (ignore) return
         setConversations(page.content)

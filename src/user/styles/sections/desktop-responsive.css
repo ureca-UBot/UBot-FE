@@ -1,0 +1,168 @@
+@media(max-width:1100px) and (min-width:768px) {
+  .ubot-user-app .global-nav {
+    grid-template-columns: 130px minmax(0, 1fr) 170px
+  }
+
+  .ubot-user-app .gnb {
+    gap: 20px
+  }
+
+  .ubot-user-app .header-tools {
+    gap: 10px
+  }
+
+  .ubot-user-app .header-tools button:nth-child(2) {
+    display: none
+  }
+
+  .ubot-user-app .mega-menu-inner {
+    grid-template-columns: .82fr 1fr .82fr;
+    width: min(calc(100% - 40px), 960px);
+    padding: 30px 0 32px;
+    gap: 28px
+  }
+
+  .ubot-user-app .mega-copy strong {
+    font-size: 21px
+  }
+
+  .ubot-user-app .mega-copy p {
+    font-size: 12px
+  }
+
+  .ubot-user-app .mega-links>button {
+    font-size: 13px
+  }
+
+  .ubot-user-app .mega-feature {
+    min-height: 176px;
+    padding: 21px
+  }
+
+  .ubot-user-app .mega-feature>b {
+    font-size: 18px
+  }
+
+  .ubot-user-app .hero-inner {
+    grid-template-columns: minmax(0, .9fr) minmax(430px, 1.1fr)
+  }
+
+  .ubot-user-app .hero-copy h1 {
+    font-size: 48px
+  }
+
+  .ubot-user-app .phone {
+    width: 205px;
+    height: 440px
+  }
+
+  .ubot-user-app .phone-back {
+    left: 32px
+  }
+
+  .ubot-user-app .phone-front {
+    right: 4px
+  }
+
+  .ubot-user-app .pink-orbit {
+    right: -35px;
+    width: 390px;
+    height: 390px
+  }
+
+  .ubot-user-app .story-inner {
+    gap: 38px
+  }
+
+  .ubot-user-app .ai-layout {
+    grid-template-columns: 190px minmax(0, 1fr)
+  }
+
+  .ubot-user-app .ai-right {
+    display: none
+  }
+
+  .ubot-user-app .product-detail-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px
+  }
+
+  .ubot-user-app .network-detail {
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr)
+  }
+
+  .ubot-user-app .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+  }
+
+}
+
+@media(max-width:860px) and (min-width:768px) {
+  .hero-copy h1 {
+    font-size: 40px
+  }
+
+  .ubot-user-app .hero-copy p {
+    font-size: 15px
+  }
+
+  .ubot-user-app .hero-actions {
+    gap: 14px
+  }
+
+  .ubot-user-app .black-btn {
+    padding: 0 18px
+  }
+
+  .ubot-user-app .story-inner {
+    grid-template-columns: .85fr 1.15fr
+  }
+
+  .ubot-user-app .story-inner.reverse {
+    grid-template-columns: 1.15fr .85fr
+  }
+}
+
+@media(max-width:1100px) and (min-width:768px) {
+  .mega-copy {
+    padding: 4px 12px 4px 0
+  }
+
+  .ubot-user-app .mega-links {
+    padding: 4px 18px
+  }
+
+  .ubot-user-app .mega-feature {
+    margin-left: 0
+  }
+
+  .ubot-user-app .hero-visual-badge {
+    transform: scale(.92);
+    transform-origin: right top
+  }
+
+  .ubot-user-app .hvb-life,
+  .ubot-user-app .hvb-store,
+  .ubot-user-app .hvb-ai {
+    right: 24px
+  }
+
+  .ubot-user-app .home-quick-inner {
+    grid-template-columns: 165px minmax(0, 1fr);
+    gap: 24px
+  }
+
+  .ubot-user-app .home-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+  }
+
+  .ubot-user-app .home-quick-grid button {
+    min-height: 86px
+  }
+
+  .ubot-user-app .home-quick-lead strong {
+    font-size: 21px
+  }
+}
+
+

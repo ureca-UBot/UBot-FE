@@ -3,7 +3,10 @@ export type EmbeddingBackfillTarget = 'faq' | 'unanswered'
 // 실행 순서입니다. 백엔드의 백필 스크립트(tools/backfill-embeddings.ps1)와 같은 순서입니다.
 export const EMBEDDING_BACKFILL_TARGETS: EmbeddingBackfillTarget[] = ['faq', 'unanswered']
 
-export const EMBEDDING_BACKFILL_LABELS: Record<EmbeddingBackfillTarget, { name: string; description: string }> = {
+export const EMBEDDING_BACKFILL_LABELS: Record<
+  EmbeddingBackfillTarget,
+  { name: string; description: string }
+> = {
   faq: {
     name: 'FAQ 질문 벡터',
     description: '삭제되지 않은 FAQ 중 현재 버전의 벡터가 없는 것을 임베딩합니다.',

@@ -14,7 +14,9 @@ export function DeletedFaqListPage() {
     void adminFaqApi
       .getDeletedFaqList()
       .then((response) => setItems(response.content))
-      .catch((caught: unknown) => setError(caught instanceof Error ? caught.message : '삭제된 FAQ를 불러오지 못했습니다.'))
+      .catch((caught: unknown) =>
+        setError(caught instanceof Error ? caught.message : '삭제된 FAQ를 불러오지 못했습니다.'),
+      )
   }
 
   useEffect(load, [])
@@ -66,19 +68,43 @@ export function DeletedFaqListPage() {
 
   return (
     <>
-      {success && <p className="login-success" role="status">{success}</p>}
-      {error && <p className="page-message page-message--error" role="alert">{error}</p>}
+      {success && (
+        <p className="login-success" role="status">
+          {success}
+        </p>
+      )}
+      {error && (
+        <p className="page-message page-message--error" role="alert">
+          {error}
+        </p>
+      )}
 
       <div className="faq-actions">
         {isRestoreMode ? (
           <>
-            <button className="secondary-button" disabled={isRestoring} onClick={cancelRestoreMode} type="button">취소</button>
-            <button className="primary-button" disabled={isRestoring || selectedFaqIds.size === 0} onClick={() => void restoreSelectedFaqs()} type="button">
-              {isRestoring ? '복구 중...' : `복구 시작${selectedFaqIds.size > 0 ? ` (${selectedFaqIds.size})` : ''}`}
+            <button
+              className="secondary-button"
+              disabled={isRestoring}
+              onClick={cancelRestoreMode}
+              type="button"
+            >
+              취소
+            </button>
+            <button
+              className="primary-button"
+              disabled={isRestoring || selectedFaqIds.size === 0}
+              onClick={() => void restoreSelectedFaqs()}
+              type="button"
+            >
+              {isRestoring
+                ? '복구 중...'
+                : `복구 시작${selectedFaqIds.size > 0 ? ` (${selectedFaqIds.size})` : ''}`}
             </button>
           </>
         ) : (
-          <button className="primary-button" onClick={startRestoreMode} type="button">복구</button>
+          <button className="primary-button" onClick={startRestoreMode} type="button">
+            복구
+          </button>
         )}
       </div>
 
@@ -94,19 +120,29 @@ export function DeletedFaqListPage() {
           </thead>
           <tbody>
             {items.length === 0 ? (
-              <tr><td colSpan={isRestoreMode ? 4 : 3}>삭제된 FAQ가 없습니다.</td></tr>
-            ) : items.map((faq) => (
-              <tr key={faq.id}>
-                {isRestoreMode && (
-                  <td className="faq-selection-column">
-                    <input aria-label={`FAQ ${faq.id} 선택`} checked={selectedFaqIds.has(faq.id)} disabled={isRestoring} onChange={() => toggleFaq(faq.id)} type="checkbox" />
-                  </td>
-                )}
-                <td>{faq.id}</td>
-                <td>{faq.question}</td>
-                <td>v{faq.version}</td>
+              <tr>
+                <td colSpan={isRestoreMode ? 4 : 3}>삭제된 FAQ가 없습니다.</td>
               </tr>
-            ))}
+            ) : (
+              items.map((faq) => (
+                <tr key={faq.id}>
+                  {isRestoreMode && (
+                    <td className="faq-selection-column">
+                      <input
+                        aria-label={`FAQ ${faq.id} 선택`}
+                        checked={selectedFaqIds.has(faq.id)}
+                        disabled={isRestoring}
+                        onChange={() => toggleFaq(faq.id)}
+                        type="checkbox"
+                      />
+                    </td>
+                  )}
+                  <td>{faq.id}</td>
+                  <td>{faq.question}</td>
+                  <td>v{faq.version}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

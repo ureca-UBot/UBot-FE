@@ -3,6 +3,7 @@ import type { FaqCategoryResponse } from '../types/faq'
 
 export interface FaqCategoryContextValue {
   categories: FaqCategoryResponse[]
+  error: string | null
   refreshCategories: () => Promise<void>
 }
 

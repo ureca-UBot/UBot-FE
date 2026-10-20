@@ -1,5 +1,8 @@
 import { apiClient } from '../../../shared/api/client'
-import type { GuestChatSettingsResponse, GuestChatSettingsUpdateRequest } from '../types/guestChatSettings'
+import type {
+  GuestChatSettingsResponse,
+  GuestChatSettingsUpdateRequest,
+} from '../types/guestChatSettings'
 
 const BASE_PATH = '/api/admin/guest-chat-settings'
 

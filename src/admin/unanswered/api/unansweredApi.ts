@@ -12,9 +12,16 @@ const BASE_PATH = '/api/admin/unanswered-groups'
 
 export const adminUnansweredApi = {
   getUnansweredGroupList: ({ status, minCount, sort, page, size }: UnansweredGroupListParams) => {
-    const searchParams = new URLSearchParams({ minCount: String(minCount), sort, page: String(page), size: String(size) })
+    const searchParams = new URLSearchParams({
+      minCount: String(minCount),
+      sort,
+      page: String(page),
+      size: String(size),
+    })
     if (status) searchParams.set('status', status)
-    return apiClient.get<PageResponse<UnansweredGroupResponse>>(`${BASE_PATH}?${searchParams.toString()}`)
+    return apiClient.get<PageResponse<UnansweredGroupResponse>>(
+      `${BASE_PATH}?${searchParams.toString()}`,
+    )
   },
   getUnansweredGroup: (groupId: number) =>
     apiClient.get<UnansweredGroupDetailResponse>(`${BASE_PATH}/${groupId}`),
