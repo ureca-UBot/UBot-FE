@@ -100,6 +100,8 @@ export function FaqCategoryInUseModal({ category, onClose, onDeleted }: FaqCateg
             question: deletingFaq.question,
             answer: deletingFaq.answer,
             intent: deletingFaq.intent,
+            cacheable: deletingFaq.cacheable,
+            similarQuestions: deletingFaq.similarQuestions ?? [],
             version: deletingFaq.version,
             adminId: deletingFaq.adminId,
             updatedAt: deletingFaq.updatedAt,

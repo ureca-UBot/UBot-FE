@@ -1,4 +1,6 @@
 import { LogoutButton } from '../../auth/components/LogoutButton'
+import { NotificationBadge } from '../notification/components/NotificationBadge'
+import { useNotificationUnread } from '../notification/hooks/useNotificationUnread'
 import logo from '../assets/ubot-logo.png'
 import type { UserPage } from '../routes'
 
@@ -11,6 +13,8 @@ interface DesktopHeaderProps {
 }
 
 export function DesktopHeader({ loggedIn, memberName, scrolled, page }: DesktopHeaderProps) {
+  const { unreadCount } = useNotificationUnread()
+  const unreadLabel = unreadCount ? `, 읽지 않은 알림 ${unreadCount}개` : ''
   return (
     <>
       <header className={`desktop-header${scrolled ? ' scrolled' : ''}`}>
@@ -39,7 +43,7 @@ export function DesktopHeader({ loggedIn, memberName, scrolled, page }: DesktopH
               </div>
             </div>
             <div className="gnb-item">
-              <button className={page === 'my' ? 'active' : ''} data-route="my" aria-haspopup="true">MY</button>
+              <button className={page === 'my' ? 'active' : ''} data-route="my" aria-haspopup="true" aria-label={`MY${unreadLabel}`}>MY<NotificationBadge className="notif-badge--nav" count={unreadCount} /></button>
               <div className="mega-menu">
                 <div className="mega-menu-inner mega-menu-grid">
                   <section className="mega-column"><strong>나의 가입 정보</strong><button data-route="my">가입 정보 확인</button><button data-route="my">이용 중인 상품</button><button data-route="my">약정 · 할부 정보</button></section>
@@ -81,7 +85,7 @@ export function DesktopHeader({ loggedIn, memberName, scrolled, page }: DesktopH
             <button className="header-action" data-route="stores" aria-label="매장찾기"><span className="header-action-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 35 C20 35 30 26 30 17.5 C30 12 25.5 8 20 8 C14.5 8 10 12 10 17.5 C10 26 20 35 20 35Z" stroke="#222" strokeWidth="2" strokeLinejoin="round" /><path d="M15 17H25 L24 14H16 L15 17Z" stroke="#222" strokeWidth="1.7" strokeLinejoin="round" /><path d="M16 17V23H24V17" stroke="#222" strokeWidth="1.7" strokeLinejoin="round" /><path d="M19 23V20H21V23" stroke="#222" strokeWidth="1.7" strokeLinejoin="round" /></svg></span><span className="header-action-label">매장찾기</span></button>
             <button className="header-action search-open" data-route="ai" aria-label="검색"><span className="header-action-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="8" stroke="#222" strokeWidth="2" /><path d="M24 24L31 31" stroke="#222" strokeWidth="2" strokeLinecap="round" /></svg></span><span className="header-action-label">검색</span></button>
             <button className="header-action header-cart" aria-label="장바구니"><span className="header-action-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 15H29L28 31H12L11 15Z" stroke="#222" strokeWidth="2" strokeLinejoin="round" /><path d="M16 16V13 C16 10.2 17.8 9 20 9 C22.2 9 24 10.2 24 13 V16" stroke="#222" strokeWidth="2" strokeLinecap="round" /></svg></span><span className="header-action-label">장바구니</span></button>
-            <button className={`header-action${memberName ? ' header-member' : ' open-login'}`} data-route={memberName ? 'my' : undefined} aria-label={memberName ? `${memberName}님 로그인됨, MY로 이동` : '로그인'} title={memberName ? `${memberName}님` : undefined}><span className="header-action-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="13" r="5.5" stroke="#222" strokeWidth="2" /><path d="M10 31 C10 25.5 14.5 22 20 22 C25.5 22 30 25.5 30 31" stroke="#222" strokeWidth="2" strokeLinecap="round" /></svg></span><span className="header-action-label" id="desktopLoginText">{memberName ? `${memberName}님` : loggedIn ? '김유저님' : '로그인'}</span></button>
+            <button className={`header-action${memberName ? ' header-member' : ' open-login'}`} data-route={memberName ? 'my' : undefined} aria-label={memberName ? `${memberName}님 로그인됨, MY로 이동${unreadLabel}` : '로그인'} title={memberName ? `${memberName}님` : undefined}><span className="header-action-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="13" r="5.5" stroke="#222" strokeWidth="2" /><path d="M10 31 C10 25.5 14.5 22 20 22 C25.5 22 30 25.5 30 31" stroke="#222" strokeWidth="2" strokeLinecap="round" /></svg>{memberName && <NotificationBadge className="notif-badge--icon" count={unreadCount} />}</span><span className="header-action-label" id="desktopLoginText">{memberName ? `${memberName}님` : loggedIn ? '김유저님' : '로그인'}</span></button>
             {memberName && <LogoutButton className="header-action" redirectTo={null}><span className="header-action-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 11H12V29H18" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M22 15L27 20L22 25" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M17 20H27" stroke="#222" strokeWidth="2" strokeLinecap="round" /></svg></span><span className="header-action-label">로그아웃</span></LogoutButton>}
           </div>
         </div>

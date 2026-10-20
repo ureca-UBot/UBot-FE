@@ -6,6 +6,8 @@ export interface FaqResponse {
   question: string
   answer: string
   intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
   version: number
   // 등록한 관리자 계정이 삭제되면 BE가 null로 내려줍니다.
   adminId: number | null
@@ -18,6 +20,8 @@ export interface FaqCreateRequest {
   question: string
   answer: string
   intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
 }
 
 export interface FaqUpdateRequest {
@@ -26,6 +30,8 @@ export interface FaqUpdateRequest {
   question: string
   answer: string
   intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
 }
 
 export interface FaqRestoreRequest { faqIds: number[] }

@@ -44,6 +44,8 @@ export function FaqListPage() {
     question: faq.question,
     answer: faq.answer,
     intent: faq.intent,
+    cacheable: faq.cacheable,
+    similarQuestions: faq.similarQuestions ?? [],
     version: faq.version,
     adminId: faq.adminId,
     updatedAt: faq.updatedAt,

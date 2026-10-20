@@ -2,9 +2,11 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useAuth } from '../../../auth/hooks/useAuth'
 import { ApiRequestError } from '../../../shared/api/client'
 import { chatApi } from '../api/chatApi'
+import type { ChatWaitOptions } from '../api/chatJobPolling'
 import type {
   ChatIntent,
   ChatLocation,
+  ChatProgress,
   ChatResearch,
   ChatResearchRequest,
   ChatResponse,
@@ -36,6 +38,19 @@ function isChatResponse(value: unknown): value is ChatResponse {
     && typeof data.attemptCount === 'number'
     && Number.isInteger(data.attemptCount) && data.attemptCount >= 0
     && typeof data.retryable === 'boolean'
+}
+
+// 답변을 기다리는 turn의 진행 상태만 바꿉니다.
+function updateProgress(turns: ChatTurn[], turnId: number, progress: ChatProgress): ChatTurn[] {
+  return turns.map((turn) => turn.id === turnId && turn.isPending ? { ...turn, progress } : turn)
+}
+
+// 답변을 기다리는 재검색의 진행 상태만 바꿉니다.
+function updateResearchProgress(turns: ChatTurn[], turnId: number, intent: ChatIntent, progress: ChatProgress): ChatTurn[] {
+  return turns.map((turn) => turn.id !== turnId ? turn : {
+    ...turn,
+    researches: turn.researches.map((item) => item.intent === intent && item.isPending ? { ...item, progress } : item),
+  })
 }
 
 // 요청 결과와 오류를 화면에 보여줄 값으로 정리합니다. 예외는 던지지 않습니다.
@@ -95,7 +110,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const nextTurnId = useRef(0)
   const previousUserId = useRef(userId)
   // 대화를 비울 때마다 바뀌며, 비우기 전에 보낸 요청의 늦은 응답을 걸러냅니다.
-  const conversation = useRef<object>({})
+  // 바꿀 때 이전 값을 abort해 답변 상태 조회도 멈춥니다. 서버 작업은 계속됩니다.
+  const conversation = useRef(new AbortController())
   const activeRequest = useRef<object | null>(null)
 
   // 로그아웃하거나 계정이 바뀐 렌더에서는 이전 사용자의 대화를 화면에 전달하지 않습니다.
@@ -108,7 +124,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (previousUserId.current === userId) return
     if (!keepsConversation(previousUserId.current, userId)) {
-      conversation.current = {}
+      conversation.current.abort()
+      conversation.current = new AbortController()
       activeRequest.current = null
     }
     previousUserId.current = userId
@@ -116,7 +133,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const runRequest = useCallback(async (
     turn: Pick<ChatTurn, 'id' | 'question'>,
-    request: () => Promise<ChatResponse>,
+    request: (options: ChatWaitOptions) => Promise<ChatResponse>,
   ): Promise<boolean> => {
     if (activeRequest.current) return false
     let error: string | null = null
@@ -135,6 +152,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const pendingTurn: ChatTurn = {
       ...turn,
       isPending: true,
+      progress: null,
       response: null,
       error: null,
       errorCode: null,
@@ -149,7 +167,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         : [...current.turns, pendingTurn],
     }))
 
-    const { response, error: responseError, errorCode: responseErrorCode } = await settleRequest(request)
+    const { response, error: responseError, errorCode: responseErrorCode } = await settleRequest(() => request({
+      signal: requestConversation.signal,
+      onProgress: (progress) => {
+        if (conversation.current !== requestConversation) return
+        setState((current) => ({ ...current, turns: updateProgress(current.turns, turn.id, progress) }))
+      },
+    }))
 
     // 새 대화·로그아웃 후의 응답은 반영하지 않습니다. 서버 작업 취소와는 별개입니다.
     if (conversation.current !== requestConversation) return true
@@ -158,7 +182,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       ...current,
       conversationId: response?.conversationId ?? current.conversationId,
       turns: current.turns.map((item) => item.id === turn.id
-        ? { ...item, isPending: false, response, error: responseError, errorCode: responseErrorCode }
+        ? { ...item, isPending: false, progress: null, response, error: responseError, errorCode: responseErrorCode }
         : item),
     }))
     return true
@@ -167,7 +191,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const sendQuestion = useCallback((rawQuestion: string) => {
     const question = rawQuestion.trim()
     const conversationId = state.conversationId ?? undefined
-    return runRequest({ id: ++nextTurnId.current, question }, () => chatApi.createQuestion({ question, conversationId }))
+    return runRequest({ id: ++nextTurnId.current, question }, (options) => chatApi.createQuestion({ question, conversationId }, options))
   }, [runRequest, state.conversationId])
 
   // 랭킹 API는 FAQ ID와 검증된 질문·답변을 함께 내려주므로 AI 생성 요청 없이 바로 대화에 추가합니다.
@@ -205,7 +229,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       return Promise.resolve(false)
     }
     const idempotencyKey = response.idempotencyKey
-    return runRequest(turn, () => chatApi.retryAnswer(idempotencyKey))
+    return runRequest(turn, (options) => chatApi.retryAnswer(idempotencyKey, options))
   }, [runRequest, state.turns])
 
   // 원래 turn의 답변은 그대로 두고, 선택한 의도의 결과만 turn.researches에 반영합니다.
@@ -245,33 +269,42 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       turns: upsertResearch(current.turns, turnId, {
         intent,
         isPending: true,
+        progress: null,
         response: null,
         error: null,
         errorCode: null,
       }),
     }))
 
-    const result = await settleRequest(() => chatApi.researchAnswer(idempotencyKey, body))
+    const result = await settleRequest(() => chatApi.researchAnswer(idempotencyKey, body, {
+      signal: requestConversation.signal,
+      onProgress: (progress) => {
+        if (conversation.current !== requestConversation) return
+        setState((current) => ({ ...current, turns: updateResearchProgress(current.turns, turnId, intent, progress) }))
+      },
+    }))
 
     // 새 대화·로그아웃 후의 응답은 반영하지 않습니다. 서버 작업 취소와는 별개입니다.
     if (conversation.current !== requestConversation) return true
     if (activeRequest.current === requestId) activeRequest.current = null
     setState((current) => ({
       ...current,
-      turns: upsertResearch(current.turns, turnId, { intent, isPending: false, ...result }),
+      turns: upsertResearch(current.turns, turnId, { intent, isPending: false, progress: null, ...result }),
     }))
     return true
   }, [isInitializing, state.turns, userId])
 
   const resetConversation = useCallback(() => {
-    conversation.current = {}
+    conversation.current.abort()
+    conversation.current = new AbortController()
     activeRequest.current = null
     setState((current) => ({ userId: current.userId, conversationId: null, turns: [], error: null }))
   }, [])
 
   const openConversation = useCallback(async (conversationId: string) => {
     if (activeRequest.current) return false
-    const requestConversation = {}
+    const requestConversation = new AbortController()
+    conversation.current.abort()
     conversation.current = requestConversation
     try {
       const messages = await chatApi.getConversationMessageList(conversationId)

@@ -5,8 +5,10 @@
 ## 구현 범위
 
 - 로그인한 사용자의 질문 전송과 답변 재시도를 기존 AI 검색 화면에 연결했습니다.
-- `POST /chat/questions`는 질문을 보내고 완성된 답변과 생성 결과를 받습니다.
-- `POST /chat/questions/retries`는 실패한 질문의 `Idempotency-Key` 헤더로 재시도합니다.
+- `POST /chat/questions`는 질문을 접수하고 `202`와 `jobId`를 받습니다. 답변은 `GET /chat/jobs/{jobId}`를 1.5초 간격으로 조회해 받습니다(`src/user/ai/api/chatJobPolling.ts`).
+- `POST /chat/questions/retries`는 실패한 질문의 `Idempotency-Key` 헤더로 재시도합니다. 응답은 새 `jobId`이며 같은 방식으로 조회합니다.
+- 조회 중에는 서버의 처리 단계(`phase`)를 안내 문구로 보여 줍니다. 429·5xx·네트워크 오류는 지수 백오프로 다시 조회하고, 새 대화·로그아웃 시 조회를 멈춥니다(서버 작업은 계속됨).
+- 작업 실패(`FAILED`)는 기존 실패 응답과 같은 모양(`ApiRequestError`의 `code`·`data`)으로 바꿔 화면의 오류·재시도 처리를 그대로 씁니다.
 - 생성 중에는 입력과 재시도 버튼을 비활성화하고 연속 클릭의 중복 요청을 막습니다.
 - 재시도 가능 여부와 시도 횟수는 서버의 `retryable`, `attemptCount`를 따릅니다. 프론트에 최대 횟수를 고정하지 않습니다.
 - 모델이 JSON 문자열을 반환하면 화면에는 `answer` 문장만 표시합니다. 원본 응답의 `status`, `evidence_ids`는 변경하지 않습니다. 일반 문장 응답도 표시할 수 있습니다.
@@ -19,6 +21,7 @@
 | --- | --- |
 | `src/user/ai/types/chat.ts` | 백엔드 요청·응답 및 화면 상태 타입 |
 | `src/user/ai/api/chatApi.ts` | 공용 `apiClient`를 사용하는 질문·재시도 요청 |
+| `src/user/ai/api/chatJobPolling.ts` | 접수된 답변 작업의 상태 조회, 진행 단계 전달, 최종 결과 변환 |
 | `src/user/ai/hooks/useChat.ts` | 공용 `useAuth`를 사용하는 채팅 상태와 요청 처리 |
 | `src/user/ai/components/ChatInput.tsx` | 질문 입력, Enter 전송, 한글 조합 중 전송 방지 |
 | `src/user/ai/components/ChatMessages.tsx` | 답변, 로딩, 오류, 재시도 표시 |

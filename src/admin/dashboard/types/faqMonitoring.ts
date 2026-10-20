@@ -78,6 +78,13 @@ export interface FaqDetailResponse {
 
 export type FaqImprovementType = 'LOW_RAG_QUALITY' | 'DUPLICATE_SUSPECTED' | 'LOW_USAGE'
 
+export interface FaqDuplicateCandidate {
+  faqId: number
+  question: string
+  top1Count: number
+  pairCount: number
+}
+
 export interface FaqImprovementItem {
   faqId: number
   question: string
@@ -96,4 +103,10 @@ export interface FaqImprovementItem {
 export interface FaqImprovementResponse {
   evaluatedAt: string
   items: FaqImprovementItem[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  first: boolean
+  last: boolean
 }

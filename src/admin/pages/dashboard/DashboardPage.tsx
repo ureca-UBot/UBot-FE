@@ -10,10 +10,14 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { ApiRequestError } from "../../../shared/api/client";
 import { faqMonitoringApi } from "../../dashboard/api/faqMonitoringApi";
+import { Pagination } from "../../faq/components/Pagination";
 import type {
   FaqDetailResponse,
-  FaqImprovementItem,
+  FaqDuplicateCandidate,
+  FaqImprovementResponse,
+  FaqImprovementType,
   FaqMonitoringResponse,
   FaqSimilarityItem,
   FaqUsageItem,
@@ -23,9 +27,9 @@ type RankingType = "top" | "low";
 type RankingIntent = "all" | "userData" | "storeData";
 
 const improvementTypeLabel = {
-  LOW_RAG_QUALITY: "검색 품질 낮음",
-  DUPLICATE_SUSPECTED: "FAQ 중복 의심",
-  LOW_USAGE: "활용도 낮음",
+  LOW_RAG_QUALITY: "검색품질",
+  DUPLICATE_SUSPECTED: "중복의심",
+  LOW_USAGE: "활용도",
 };
 const toInputDate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -35,6 +39,12 @@ const defaultStartDate = (() => {
   date.setDate(date.getDate() - 30);
   return toInputDate(date);
 })();
+const improvementPageSize = 5;
+const improvementTypes: FaqImprovementType[] = [
+  "LOW_RAG_QUALITY",
+  "LOW_USAGE",
+  "DUPLICATE_SUSPECTED",
+];
 const toAsOfDateTime = (date: Date) =>
   `${toInputDate(date)}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:00`;
 
@@ -95,7 +105,7 @@ function DraggableRankStrip({
               <span>TOP {index + 1}</span>
               <div>
                 <small>FAQ ID</small>
-                <b>F{item.faqId}</b>
+                <b>{item.faqId}</b>
               </div>
               <div>
                 <small>의도</small>
@@ -178,7 +188,7 @@ function DetailUsageChart({ detail }: { detail: FaqDetailResponse | null }) {
 
 function UsageChartFrame({ items }: { items: FaqUsageItem[] }) {
   const data = items.map((item) => ({
-    faqId: `F${item.faqId}`,
+    faqId: String(item.faqId),
     question: item.question,
     usage: item.count,
   }));
@@ -241,7 +251,7 @@ function UsageChartFrame({ items }: { items: FaqUsageItem[] }) {
 
 function SimilarityChartFrame({ items }: { items: FaqSimilarityItem[] }) {
   const data = items.map((item) => ({
-    faqId: `F${item.faqId}`,
+    faqId: String(item.faqId),
     question: item.question,
     similarity: item.averageSimilarity,
   }));
@@ -313,29 +323,49 @@ export function DashboardPage() {
   const [periodMode, setPeriodMode] = useState<"7d" | "30d" | "custom">("30d");
   const [detailRange, setDetailRange] = useState<
     "6h" | "today" | "month" | "year"
-  >("today");
+  >("month");
   const [detailAsOf, setDetailAsOf] = useState(() => new Date());
   const [selectedImprovementFaqId, setSelectedImprovementFaqId] = useState<
     number | null
   >(null);
-  const [improvementItems, setImprovementItems] = useState<
-    FaqImprovementItem[]
+  const [improvementPage, setImprovementPage] = useState(0);
+  const [improvementResponse, setImprovementResponse] =
+    useState<FaqImprovementResponse | null>(null);
+  const [selectedImprovementTypes, setSelectedImprovementTypes] = useState<
+    FaqImprovementType[]
   >([]);
   const [isImprovementLoading, setIsImprovementLoading] = useState(false);
-  const hasLoadedImprovements = useRef(false);
-  const improvementTableRef = useRef<HTMLDivElement>(null);
-  const improvementDragStartY = useRef(0);
-  const improvementDragStartScroll = useRef(0);
-  const [isImprovementDragging, setIsImprovementDragging] = useState(false);
+  const [improvementError, setImprovementError] = useState<string | null>(null);
+  const improvementRequestId = useRef(0);
+  const [duplicateCandidates, setDuplicateCandidates] = useState<{
+    faqId: number;
+    items: FaqDuplicateCandidate[];
+  } | null>(null);
+  const [isDuplicateLoading, setIsDuplicateLoading] = useState(false);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const duplicateRequestId = useRef(0);
+  const duplicateScrollRef = useRef<HTMLDivElement>(null);
+  const duplicateDragRef = useRef<{
+    pointerId: number;
+    clientX: number;
+    clientY: number;
+    scrollLeft: number;
+    scrollTop: number;
+    dragging: boolean;
+  } | null>(null);
+  const suppressDuplicateClickRef = useRef(false);
+  const [isDuplicateDragging, setIsDuplicateDragging] = useState(false);
   const [monitoringData, setMonitoringData] =
     useState<FaqMonitoringResponse | null>(null);
   const [detailFaqId, setDetailFaqId] = useState("");
   const [faqDetail, setFaqDetail] = useState<FaqDetailResponse | null>(null);
   const [detailError, setDetailError] = useState("");
   const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const detailRequestId = useRef(0);
   const [startDate, setStartDate] = useState(defaultStartDate);
   const [endDate, setEndDate] = useState(defaultEndDate);
   const [isMonitoringLoading, setIsMonitoringLoading] = useState(false);
+  const hasLoadedInitialMonitoring = useRef(false);
   const setRecentPeriod = (days: 7 | 30) => {
     const end = new Date();
     const start = new Date(end);
@@ -344,19 +374,30 @@ export function DashboardPage() {
     setEndDate(toInputDate(end));
     setPeriodMode(`${days}d` as "7d" | "30d");
   };
-  const applyMonitoringDateRange = async () => {
-    if (!startDate || !endDate || startDate > endDate) return;
-    setIsMonitoringLoading(true);
-    try {
-      setMonitoringData(
-        await faqMonitoringApi.getMonitoringData({ startDate, endDate }),
-      );
-    } catch (error) {
-      console.error("FAQ 모니터링 데이터를 불러오지 못했습니다.", error);
-    } finally {
-      setIsMonitoringLoading(false);
-    }
-  };
+  const loadMonitoringData = useCallback(
+    async (rangeStart: string, rangeEnd: string) => {
+      if (!rangeStart || !rangeEnd || rangeStart > rangeEnd) return;
+      setIsMonitoringLoading(true);
+      try {
+        setMonitoringData(
+          await faqMonitoringApi.getMonitoringData({
+            startDate: rangeStart,
+            endDate: rangeEnd,
+          }),
+        );
+      } catch (error) {
+        console.error("FAQ 모니터링 데이터를 불러오지 못했습니다.", error);
+      } finally {
+        setIsMonitoringLoading(false);
+      }
+    },
+    [],
+  );
+  useEffect(() => {
+    if (hasLoadedInitialMonitoring.current) return;
+    hasLoadedInitialMonitoring.current = true;
+    void loadMonitoringData(defaultStartDate, defaultEndDate);
+  }, [loadMonitoringData]);
   const detailPeriod = (
     range: typeof detailRange,
   ): FaqDetailResponse["usageTrend"]["period"] => {
@@ -375,33 +416,34 @@ export function DashboardPage() {
       setDetailError("올바른 FAQ ID를 입력해주세요.");
       return;
     }
+    const requestId = ++detailRequestId.current;
     setDetailError("");
     setIsDetailLoading(true);
     setDetailFaqId(String(faqId));
+    setFaqDetail(null);
     try {
-      setFaqDetail(
-        await faqMonitoringApi.getFaqDetail(
-          faqId,
-          detailPeriod(range),
-          toAsOfDateTime(asOf),
-        ),
+      const detail = await faqMonitoringApi.getFaqDetail(
+        faqId,
+        detailPeriod(range),
+        toAsOfDateTime(asOf),
       );
+      if (requestId === detailRequestId.current) setFaqDetail(detail);
     } catch (error) {
-      setFaqDetail(null);
-      setDetailError(
-        error instanceof Error
-          ? error.message
-          : "FAQ 상세정보를 불러오지 못했습니다.",
-      );
+      if (requestId === detailRequestId.current)
+        setDetailError(
+          error instanceof Error
+            ? error.message
+            : "FAQ 상세정보를 불러오지 못했습니다.",
+        );
     } finally {
-      setIsDetailLoading(false);
+      if (requestId === detailRequestId.current) setIsDetailLoading(false);
     }
   };
   const selectFaqFromRanking = (faqId: number) => {
     const now = new Date();
-    setDetailRange("today");
+    setDetailRange("month");
     setDetailAsOf(now);
-    void fetchFaqDetail(String(faqId), "today", now);
+    void fetchFaqDetail(String(faqId), "month", now);
   };
   const changeDetailRange = (range: typeof detailRange) => {
     setDetailRange(range);
@@ -431,36 +473,51 @@ export function DashboardPage() {
     else next.setFullYear(next.getFullYear() + 1);
     return next <= new Date();
   };
-  const loadImprovements = useCallback(async () => {
+  const loadImprovements = useCallback(async (
+    page: number,
+    types: FaqImprovementType[],
+  ) => {
+    const requestId = ++improvementRequestId.current;
     setIsImprovementLoading(true);
+    setImprovementError(null);
     try {
-      const response = await faqMonitoringApi.getFaqImprovements();
-      setImprovementItems(response.items);
+      const response = await faqMonitoringApi.getFaqImprovements(
+        page,
+        improvementPageSize,
+        types,
+      );
+      if (requestId === improvementRequestId.current) {
+        setImprovementResponse(response);
+      }
     } catch (error) {
       console.error("개선 대상 FAQ를 불러오지 못했습니다.", error);
+      if (requestId === improvementRequestId.current)
+        setImprovementError(
+          error instanceof ApiRequestError
+            ? `${error.message} (HTTP ${error.status})`
+            : error instanceof Error
+              ? error.message
+              : "네트워크 오류",
+        );
     } finally {
-      setIsImprovementLoading(false);
+      if (requestId === improvementRequestId.current)
+        setIsImprovementLoading(false);
     }
   }, []);
-  const beginImprovementDrag = (clientY: number) => {
-    const table = improvementTableRef.current;
-    if (!table) return;
-    improvementDragStartY.current = clientY;
-    improvementDragStartScroll.current = table.scrollTop;
-    setIsImprovementDragging(true);
-  };
-  const moveImprovementDrag = (clientY: number) => {
-    const table = improvementTableRef.current;
-    if (!table || !isImprovementDragging) return;
-    table.scrollTop =
-      improvementDragStartScroll.current -
-      (clientY - improvementDragStartY.current);
-  };
   useEffect(() => {
-    if (hasLoadedImprovements.current) return;
-    hasLoadedImprovements.current = true;
-    void loadImprovements();
-  }, [loadImprovements]);
+    void loadImprovements(improvementPage, selectedImprovementTypes);
+  }, [loadImprovements, improvementPage, selectedImprovementTypes]);
+  const improvementItems = improvementResponse?.items ?? [];
+  const toggleImprovementType = (type: FaqImprovementType) => {
+    setImprovementResponse(null);
+    setSelectedImprovementTypes((current) =>
+      current.includes(type)
+        ? current.filter((selected) => selected !== type)
+        : [...current, type],
+    );
+    setImprovementPage(0);
+    setSelectedImprovementFaqId(null);
+  };
   const usageRankingItems =
     monitoringData?.faqUsageRanking[usageIntent][usageType] ?? [];
   const similarityRankingItems =
@@ -469,6 +526,49 @@ export function DashboardPage() {
   const selectedImprovementItem =
     improvementItems.find((item) => item.faqId === selectedImprovementFaqId) ??
     null;
+  const selectedDuplicateFaqId =
+    selectedImprovementItem?.improvementTypes.includes("DUPLICATE_SUSPECTED")
+      ? selectedImprovementItem.faqId
+      : null;
+  const selectedDuplicateCandidates =
+    duplicateCandidates?.faqId === selectedDuplicateFaqId
+      ? duplicateCandidates.items
+      : null;
+  useEffect(() => {
+    const requestId = ++duplicateRequestId.current;
+    setDuplicateCandidates(null);
+    setDuplicateError(null);
+    if (selectedDuplicateFaqId === null) {
+      setIsDuplicateLoading(false);
+      return;
+    }
+    setIsDuplicateLoading(true);
+    void faqMonitoringApi
+      .getDuplicateCandidates(selectedDuplicateFaqId)
+      .then((items) => {
+        if (requestId === duplicateRequestId.current)
+          setDuplicateCandidates({ faqId: selectedDuplicateFaqId, items });
+      })
+      .catch((error) => {
+        console.error("중복 의심 FAQ를 불러오지 못했습니다.", error);
+        if (requestId === duplicateRequestId.current)
+          setDuplicateError(
+            error instanceof ApiRequestError
+              ? `${error.message} (HTTP ${error.status})`
+              : error instanceof Error
+                ? error.message
+                : "네트워크 오류",
+          );
+      })
+      .finally(() => {
+        if (requestId === duplicateRequestId.current)
+          setIsDuplicateLoading(false);
+      });
+  }, [selectedDuplicateFaqId, improvementResponse?.evaluatedAt]);
+  const stopDuplicateDrag = () => {
+    duplicateDragRef.current = null;
+    setIsDuplicateDragging(false);
+  };
   return (
     <section className="faq-dashboard">
       <header className="faq-dashboard-heading">
@@ -526,7 +626,7 @@ export function DashboardPage() {
             />
             <button
               disabled={isMonitoringLoading}
-              onClick={() => void applyMonitoringDateRange()}
+              onClick={() => void loadMonitoringData(startDate, endDate)}
               type="button"
             >
               {isMonitoringLoading ? "요청 중" : "적용"}
@@ -812,7 +912,7 @@ export function DashboardPage() {
                         .map((item, index) => (
                           <tr key={item.faqId}>
                             <td>{index + 1}</td>
-                            <td>F{item.faqId}</td>
+                            <td>{item.faqId}</td>
                             <td>{item.question}</td>
                             <td>{item.intent}</td>
                             <td>
@@ -844,30 +944,62 @@ export function DashboardPage() {
               aria-label="개선이 필요한 FAQ 새로고침"
               className="faq-dashboard-improvement-refresh"
               disabled={isImprovementLoading}
-              onClick={() => void loadImprovements()}
+              onClick={() =>
+                void loadImprovements(improvementPage, selectedImprovementTypes)
+              }
               type="button"
             >
               ↻
             </button>
           </div>
           <p className="faq-dashboard-improvement-hint">
-            FAQ 행을 클릭하면 하단에서 추가 지표를 확인할 수 있습니다.
+            FAQ 행을 클릭하면 하단에서 질문과 추가 지표를 확인할 수 있습니다.
           </p>
+          <p className="faq-dashboard-improvement-filter-hint">
+            여러 유형을 선택하면 모두 해당하는 FAQ를 보여줍니다.
+          </p>
+          {improvementError && (
+            <p className="faq-dashboard-improvement-error" role="alert">
+              개선 대상 FAQ를 불러오지 못했습니다. {improvementError}
+            </p>
+          )}
           <div
-            className={`faq-dashboard-table-wrap faq-dashboard-improvement-table-wrap${isImprovementDragging ? " is-dragging" : ""}`}
-            onMouseDown={(event) => beginImprovementDrag(event.clientY)}
-            onMouseMove={(event) => moveImprovementDrag(event.clientY)}
-            onMouseUp={() => setIsImprovementDragging(false)}
-            onMouseLeave={() => setIsImprovementDragging(false)}
-            onTouchStart={(event) =>
-              beginImprovementDrag(event.touches[0].clientY)
-            }
-            onTouchMove={(event) =>
-              moveImprovementDrag(event.touches[0].clientY)
-            }
-            onTouchEnd={() => setIsImprovementDragging(false)}
-            ref={improvementTableRef}
+            aria-label="개선 유형 필터"
+            className="faq-dashboard-improvement-filters"
+            role="group"
           >
+            <span>개선 유형</span>
+            <button
+              aria-pressed={selectedImprovementTypes.length === 0}
+              className={selectedImprovementTypes.length === 0 ? "is-active" : ""}
+              onClick={() => {
+                if (selectedImprovementTypes.length === 0) return;
+                setImprovementResponse(null);
+                setSelectedImprovementTypes([]);
+                setImprovementPage(0);
+                setSelectedImprovementFaqId(null);
+              }}
+              type="button"
+            >
+              전체
+            </button>
+            {improvementTypes.map((type) => (
+              <button
+                aria-pressed={selectedImprovementTypes.includes(type)}
+                className={selectedImprovementTypes.includes(type) ? "is-active" : ""}
+                data-type={type}
+                key={type}
+                onClick={() => toggleImprovementType(type)}
+                type="button"
+              >
+                {improvementTypeLabel[type]}
+                {type !== "DUPLICATE_SUSPECTED" && (
+                  <b className="faq-dashboard-improvement-type-arrow">⬇</b>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="faq-dashboard-table-wrap faq-dashboard-improvement-table-wrap">
             <table className="faq-dashboard-table faq-dashboard-improvement-table">
               <thead>
                 <tr>
@@ -894,8 +1026,15 @@ export function DashboardPage() {
                       )
                     }
                   >
-                    <td>F{item.faqId}</td>
-                    <td>{item.question}</td>
+                    <td>{item.faqId}</td>
+                    <td>
+                      <span
+                        className="faq-dashboard-improvement-question"
+                        title={item.question}
+                      >
+                        {item.question}
+                      </span>
+                    </td>
                     <td>{item.intent}</td>
                     <td>v{item.faqVersion}</td>
                     <td>
@@ -904,62 +1043,224 @@ export function DashboardPage() {
                     <td>
                       <div className="faq-dashboard-improvement-types">
                         {item.improvementTypes.map((type) => (
-                          <span key={type}>{improvementTypeLabel[type]}</span>
+                          <span data-type={type} key={type}>
+                            {improvementTypeLabel[type]}
+                            {type !== "DUPLICATE_SUSPECTED" && (
+                              <b className="faq-dashboard-improvement-type-arrow">⬇</b>
+                            )}
+                          </span>
                         ))}
                       </div>
                     </td>
                   </tr>
                 ))}
+                {improvementItems.length === 0 && (
+                  <tr>
+                    <td colSpan={6}>
+                      {improvementResponse === null
+                        ? improvementError
+                          ? `개선 대상 FAQ를 불러오지 못했습니다. ${improvementError}`
+                          : "개선 대상 FAQ를 불러오는 중입니다."
+                        : selectedImprovementTypes.length === 0
+                          ? "개선이 필요한 FAQ가 없습니다."
+                          : "선택한 개선 유형에 해당하는 FAQ가 없습니다."}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+          {improvementResponse && improvementResponse.totalPages > 1 && (
+            <div className="faq-dashboard-improvement-pagination">
+              <Pagination
+                onChange={(page) => {
+                  if (page === improvementPage) return;
+                  setImprovementResponse(null);
+                  setSelectedImprovementFaqId(null);
+                  setImprovementPage(page);
+                }}
+                page={improvementResponse.page}
+                showEdgeButtons
+                totalPages={improvementResponse.totalPages}
+              />
+            </div>
+          )}
           {selectedImprovementItem && (
             <div className="faq-dashboard-improvement-extra">
               <div className="faq-dashboard-improvement-extra__title">
                 <b>추가 정보</b>
-                <span>선택한 FAQ의 검색·사용 지표</span>
+                <span>선택한 FAQ의 질문과 검색·사용 지표</span>
               </div>
-              <div className="faq-dashboard-improvement-metrics">
-                <div>
-                  <span>Top-K 포함 횟수</span>
-                  <strong>
-                    {selectedImprovementItem.topKCount.toLocaleString("ko-KR")}
-                  </strong>
+              <div
+                className={`faq-dashboard-improvement-extra__content${selectedDuplicateFaqId !== null ? " has-duplicates" : ""}`}
+              >
+                <div className="faq-dashboard-improvement-extra__left">
+                  <div className="faq-dashboard-improvement-extra__question">
+                    <span>FAQ 질문</span>
+                    <p>{selectedImprovementItem.question}</p>
+                  </div>
+                  <div className="faq-dashboard-improvement-metrics">
+                    <div>
+                      <span>Top-K 포함 횟수</span>
+                      <strong>
+                        {selectedImprovementItem.topKCount.toLocaleString("ko-KR")}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>평균 Similarity</span>
+                      <strong>
+                        {selectedImprovementItem.averageSimilarity.toFixed(3)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Top-1 표본 수</span>
+                      <strong>
+                        {selectedImprovementItem.top1SampleCount.toLocaleString(
+                          "ko-KR",
+                        )}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>최근 사용량</span>
+                      <strong>
+                        {selectedImprovementItem.recentUsageCount.toLocaleString(
+                          "ko-KR",
+                        )}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>평균 Gap</span>
+                      <strong>
+                        {selectedImprovementItem.averageTopGap.toFixed(3)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Low Gap 비율</span>
+                      <strong>
+                        {(selectedImprovementItem.lowGapRate * 100).toFixed(1)}%
+                      </strong>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span>평균 Similarity</span>
-                  <strong>
-                    {selectedImprovementItem.averageSimilarity.toFixed(3)}
-                  </strong>
-                </div>
-                <div>
-                  <span>Top-1 표본 수</span>
-                  <strong>
-                    {selectedImprovementItem.top1SampleCount.toLocaleString(
-                      "ko-KR",
-                    )}
-                  </strong>
-                </div>
-                <div>
-                  <span>최근 사용량</span>
-                  <strong>
-                    {selectedImprovementItem.recentUsageCount.toLocaleString(
-                      "ko-KR",
-                    )}
-                  </strong>
-                </div>
-                <div>
-                  <span>평균 Gap</span>
-                  <strong>
-                    {selectedImprovementItem.averageTopGap.toFixed(3)}
-                  </strong>
-                </div>
-                <div>
-                  <span>Low Gap 비율</span>
-                  <strong>
-                    {(selectedImprovementItem.lowGapRate * 100).toFixed(1)}%
-                  </strong>
-                </div>
+                {selectedDuplicateFaqId !== null && (
+                  <div className="faq-dashboard-improvement-duplicates">
+                    <h3>중복 의심 FAQ 목록</h3>
+                    <p>
+                      중복 비율 = 중복 횟수 ÷ 선택 FAQ의 Top-1 표본 수
+                    </p>
+                    <div
+                      aria-label="중복 의심 FAQ 목록"
+                      className={`faq-dashboard-improvement-duplicates__table-wrap${isDuplicateDragging ? " is-dragging" : ""}`}
+                      onClickCapture={(event) => {
+                        if (!suppressDuplicateClickRef.current) return;
+                        event.preventDefault();
+                        event.stopPropagation();
+                        suppressDuplicateClickRef.current = false;
+                      }}
+                      onPointerDown={(event) => {
+                        if (event.pointerType === "mouse" && event.button !== 0)
+                          return;
+                        const container = duplicateScrollRef.current;
+                        if (!container) return;
+                        suppressDuplicateClickRef.current = false;
+                        duplicateDragRef.current = {
+                          pointerId: event.pointerId,
+                          clientX: event.clientX,
+                          clientY: event.clientY,
+                          scrollLeft: container.scrollLeft,
+                          scrollTop: container.scrollTop,
+                          dragging: false,
+                        };
+                      }}
+                      onPointerMove={(event) => {
+                        const drag = duplicateDragRef.current;
+                        const container = duplicateScrollRef.current;
+                        if (!drag || !container || drag.pointerId !== event.pointerId)
+                          return;
+                        if (!drag.dragging) {
+                          if (
+                            Math.abs(event.clientX - drag.clientX) < 5 &&
+                            Math.abs(event.clientY - drag.clientY) < 5
+                          )
+                            return;
+                          drag.dragging = true;
+                          suppressDuplicateClickRef.current = true;
+                          container.setPointerCapture(event.pointerId);
+                          setIsDuplicateDragging(true);
+                        }
+                        container.scrollLeft = drag.scrollLeft - (event.clientX - drag.clientX);
+                        container.scrollTop = drag.scrollTop - (event.clientY - drag.clientY);
+                      }}
+                      onPointerUp={(event) => {
+                        const container = duplicateScrollRef.current;
+                        if (container?.hasPointerCapture(event.pointerId))
+                          container.releasePointerCapture(event.pointerId);
+                        stopDuplicateDrag();
+                      }}
+                      onPointerCancel={stopDuplicateDrag}
+                      onPointerLeave={() => {
+                        if (!duplicateDragRef.current?.dragging) stopDuplicateDrag();
+                      }}
+                      onLostPointerCapture={stopDuplicateDrag}
+                      ref={duplicateScrollRef}
+                      role="region"
+                      tabIndex={0}
+                    >
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>FAQ ID</th>
+                            <th>질문</th>
+                            <th>중복 횟수</th>
+                            <th>중복 비율</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedDuplicateCandidates?.map((candidate) => (
+                            <tr
+                              aria-label={`FAQ ${candidate.faqId} 상세정보 조회`}
+                              className={`faq-dashboard-improvement-duplicates__row${detailFaqId === String(candidate.faqId) ? " is-selected" : ""}`}
+                              key={candidate.faqId}
+                              onClick={() => selectFaqFromRanking(candidate.faqId)}
+                              onKeyDown={(event) => {
+                                if (event.key !== "Enter" && event.key !== " ")
+                                  return;
+                                event.preventDefault();
+                                selectFaqFromRanking(candidate.faqId);
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              <td>{candidate.faqId}</td>
+                              <td title={candidate.question}>
+                                <span>{candidate.question}</span>
+                              </td>
+                              <td>{candidate.pairCount.toLocaleString("ko-KR")}</td>
+                              <td>
+                                {selectedImprovementItem.top1SampleCount > 0
+                                  ? `${((candidate.pairCount / selectedImprovementItem.top1SampleCount) * 100).toFixed(1)}%`
+                                  : "-"}
+                              </td>
+                            </tr>
+                          ))}
+                          {(!selectedDuplicateCandidates ||
+                            selectedDuplicateCandidates.length === 0) && (
+                            <tr>
+                              <td colSpan={4}>
+                                {duplicateError
+                                  ? `중복 의심 FAQ를 불러오지 못했습니다. ${duplicateError}`
+                                  : isDuplicateLoading ||
+                                      selectedDuplicateCandidates === null
+                                    ? "중복 의심 FAQ를 불러오는 중입니다."
+                                    : "중복 의심 FAQ가 없습니다."}
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
