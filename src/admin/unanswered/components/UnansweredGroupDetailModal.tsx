@@ -70,6 +70,9 @@ export function UnansweredGroupDetailModal({ groupId, onClose, onChanged }: Unan
               {group.questions.map((question) => (
                 <p key={question.id}>
                   <span>{question.question}</span>
+                  {question.searchQuery && question.searchQuery !== question.question && (
+                    <small>검색어: {question.searchQuery}</small>
+                  )}
                   <small>
                     {UNANSWERED_REASON_LABELS[question.reason]}
                     {question.bestSimilarity != null && ` · 최고 유사도 ${question.bestSimilarity.toFixed(2)}`}

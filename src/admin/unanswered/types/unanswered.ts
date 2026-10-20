@@ -16,7 +16,10 @@ export interface UnansweredGroupResponse {
 
 export interface UnansweredQuestionResponse {
   id: number
+  // question은 사용자가 입력한 원문 조각, searchQuery는 LLM이 맥락을 채워 다시 쓴 검색어입니다.
+  // 질문을 나누거나 다시 쓰지 않았으면 두 값이 같습니다.
   question: string
+  searchQuery: string
   reason: UnansweredReason
   bestFaqId: number | null
   bestSimilarity: number | null
