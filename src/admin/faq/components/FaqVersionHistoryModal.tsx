@@ -13,6 +13,12 @@ function formatDate(value: string | null) {
   return value ? value.replace('T', ' ').slice(0, 16) : '-';
 }
 
+// undefined는 아직 기록을 고르지 않은 상태, null은 관리자 계정이 삭제된 상태입니다.
+function formatAdmin(adminId: number | null | undefined) {
+  if (adminId === undefined) return '-';
+  return adminId ?? '삭제된 관리자';
+}
+
 export function FaqVersionHistoryModal({ faq, onClose }: FaqVersionHistoryModalProps) {
   const { categories } = useFaqCategories();
   const [oldFaqs, setOldFaqs] = useState<OldFaqResponse[]>([]);
@@ -71,11 +77,11 @@ export function FaqVersionHistoryModal({ faq, onClose }: FaqVersionHistoryModalP
           <dt>답변</dt>
           <dd>{isCurrentVersion ? faq.answer : selectedOldFaq?.answer}</dd>
           <dt>FAQ 생성자</dt>
-          <dd>{isCurrentVersion ? faq.adminId : selectedOldFaq?.createdById}</dd>
+          <dd>{formatAdmin(isCurrentVersion ? faq.adminId : selectedOldFaq?.createdById)}</dd>
           {!isCurrentVersion && selectedOldFaq && (
             <>
               <dt>FAQ 수정자</dt>
-              <dd>{selectedOldFaq.updatedById}</dd>
+              <dd>{formatAdmin(selectedOldFaq.updatedById)}</dd>
             </>
           )}
           <dt>수정 날짜</dt>
