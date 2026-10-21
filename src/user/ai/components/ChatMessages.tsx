@@ -10,6 +10,7 @@ import {
 } from '../types/chat'
 import { storeMapKey } from '../utils/storeMaps'
 import { ChatStoreCards } from './ChatStoreCards'
+import { ChatUserDataCards } from './ChatUserDataCards'
 import { ResearchIntentButtons } from './ResearchIntentButtons'
 
 interface ChatMessagesProps {
@@ -141,6 +142,7 @@ function ResearchResult({
             {getAnswerText(research.response?.answer)}
           </div>
           <ChatStoreCards store={research.response?.store} onOpenMap={onOpenMap} />
+          <ChatUserDataCards userData={research.response?.userData} />
         </>
       )}
     </div>
@@ -226,6 +228,7 @@ export function ChatMessages({
                     store={turn.response?.store}
                     onOpenMap={onOpenMap && ((storeId) => onOpenMap(storeMapKey(turn.id), storeId))}
                   />
+                  <ChatUserDataCards userData={turn.response?.userData} />
                   {canResearch &&
                     turn.response?.status === 'SUCCESS' &&
                     turn.response.idempotencyKey && (

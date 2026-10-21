@@ -98,6 +98,7 @@ export async function waitForAnswer(
         attemptCount: state.attemptCount,
         retryable: false,
         store: state.store ?? null,
+        userData: state.userData ?? null,
         conversationId,
       }
     }
