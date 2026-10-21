@@ -34,6 +34,7 @@
 .faq-table tbody tr:last-child td { border-bottom: 0; }
 .faq-table tbody tr:hover { background: #fafafa; }
 .faq-table__question { max-width: 380px; color: #111827; font-weight: 650; }
+.unanswered-topic { display: block; margin-bottom: 2px; color: #4f46e5; font-size: 12px; font-weight: 700; }
 .faq-table__category { display: inline-block; padding: 4px 8px; border-radius: 999px; color: #4338ca; background: #eef2ff; font-size: 12px; font-weight: 700; }
 .faq-tabs { display: flex; gap: 8px; margin: 0 0 24px; border-bottom: 1px solid #e5e7eb; }
 .faq-tab { padding: 10px 12px; color: #6b7280; text-decoration: none; }

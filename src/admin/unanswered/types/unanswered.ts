@@ -7,6 +7,8 @@ export type UnansweredGroupSort = 'recent' | 'count'
 export interface UnansweredGroupResponse {
   id: number
   representativeQuestion: string
+  topicName: string | null
+  suggestedCategoryId: number | null
   questionCount: number
   relatedFaqId: number | null
   resolvedFaqId: number | null

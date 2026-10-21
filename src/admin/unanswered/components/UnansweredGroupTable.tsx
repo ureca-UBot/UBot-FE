@@ -26,7 +26,10 @@ export function UnansweredGroupTable({ groups, onSelect }: UnansweredGroupTableP
           ) : groups.map((group) => (
             <tr key={group.id}>
               <td>{group.id}</td>
-              <td className="faq-table__question">{group.representativeQuestion}</td>
+              <td className="faq-table__question">
+                {group.topicName && <span className="unanswered-topic">{group.topicName}</span>}
+                {group.representativeQuestion}
+              </td>
               <td>{group.questionCount}</td>
               <td><UnansweredStatusBadge status={group.status} /></td>
               <td>{formatDate(group.lastOccurredAt)}</td>

@@ -18,7 +18,7 @@ interface UnansweredGroupFaqModalProps {
 
 export function UnansweredGroupFaqModal({ group, onClose, onCreated }: UnansweredGroupFaqModalProps) {
   const { categories } = useFaqCategories()
-  const [categoryId, setCategoryId] = useState('')
+  const [categoryId, setCategoryId] = useState(group.suggestedCategoryId ? String(group.suggestedCategoryId) : '')
   const [intent, setIntent] = useState<FaqIntent>('GENERAL')
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState('')

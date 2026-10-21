@@ -60,6 +60,7 @@ export function UnansweredGroupDetailModal({ groupId, onClose, onChanged }: Unan
         {group && (
           <>
             <dl>
+              {group.topicName && <><dt>주제</dt><dd>{group.topicName}</dd></>}
               <dt>대표 질문</dt><dd>{group.representativeQuestion}</dd>
               <dt>상태</dt><dd><UnansweredStatusBadge status={group.status} /></dd>
               <dt>질문 수</dt><dd>{group.questionCount}건</dd>
