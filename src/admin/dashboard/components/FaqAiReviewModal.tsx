@@ -106,7 +106,8 @@ export function FaqAiReviewModal({
 
                 {aiReviewUnsupported && (
                   <p className="faq-ai-review-tag__notice">
-                    활용도낮음은 AI 검토를 지원하지 않습니다. 실제로 FAQ를 보고 수정사항을 파악해주세요.
+                    활용도낮음은 AI 검토를 지원하지 않습니다. 실제로 FAQ를 보고 수정사항을
+                    파악해주세요.
                   </p>
                 )}
                 {duplicateNotReady && (
@@ -131,7 +132,9 @@ export function FaqAiReviewModal({
                       <span>권고사항</span>
                       <div className="faq-ai-review-modal__markdown faq-ai-review-modal__markdown--recommendation">
                         <FaqAiReviewMarkdown
-                          source={typeof result.recommendation === 'string' ? result.recommendation : ''}
+                          source={
+                            typeof result.recommendation === 'string' ? result.recommendation : ''
+                          }
                         />
                       </div>
                     </section>
