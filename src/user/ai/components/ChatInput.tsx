@@ -35,7 +35,7 @@ export function ChatInput({ id, large = false, disabled, onSend }: ChatInputProp
         id={id}
         rows={1}
         placeholder="궁금한 내용을 입력해 주세요."
-        aria-label="AI 검색어"
+        aria-label="AI 채팅 입력"
         value={question}
         onChange={(event) => setQuestion(event.target.value)}
         onKeyDown={handleKeyDown}

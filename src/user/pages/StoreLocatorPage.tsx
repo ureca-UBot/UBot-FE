@@ -19,7 +19,7 @@ export function StoreLocatorPage({ active }: PageProps) {
     <>
       <section className={`route page-standard${active ? ' active' : ''}`} data-page="stores">
         <div className="standard-hero store-hero">
-          <span>매장 찾기</span>
+          <span>매장 정보</span>
           <h1>
             가까운 곳에서
             <br />

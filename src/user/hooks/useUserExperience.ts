@@ -3,7 +3,6 @@ import { useNavigate as useRouterNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useSendQuestion } from '../ai/hooks/useSendQuestion'
 import { useAiDemo } from '../ai/useAiDemo'
-import { useHeroCarousel } from '../hooks/useHeroCarousel'
 import { useScrollReveal } from '../hooks/useScrollReveal'
 import { useUserNavigation } from '../hooks/useUserNavigation'
 import { useMyProfile } from '../my/hooks/useMyProfile'
@@ -16,7 +15,6 @@ import type { UserDialog } from '../components/UserDialogs'
 export function useUserExperience() {
   const routerNavigate = useRouterNavigate()
   const { page, navigate } = useUserNavigation()
-  const { heroIndex, previous, next, goTo } = useHeroCarousel()
   const [loggedIn, setLoggedIn] = useState(false)
   const { user, isInitializing } = useAuth()
   const sendQuestion = useSendQuestion()
@@ -32,7 +30,6 @@ export function useUserExperience() {
   const [activeDialog, setActiveDialog] = useState<UserDialog>(null)
   const [reserveStore, setReserveStore] = useState<ReservationStore | null>(null)
   const [toast, setToast] = useState('')
-  const [productTitle, setProductTitle] = useState('Galaxy S26')
 
   useScrollReveal()
 
@@ -129,26 +126,12 @@ export function useUserExperience() {
       }
       // 실제 채팅의 입력·재시도는 채팅 컴포넌트에서 처리합니다.
       if (target.closest('[data-live-chat]')) return
-      if (target.id === 'demoOpen' || target.id === 'mobileDemoOpen') {
-        setActiveDialog('demo')
-        return
-      }
       if (target.id === 'demoClose') {
         setActiveDialog(null)
         return
       }
       if (target.dataset.demo) {
         void runDemo(target.dataset.demo)
-        return
-      }
-      if (target.classList.contains('hero-prev')) return previous()
-      if (target.classList.contains('hero-next')) return next()
-      if (target.dataset.heroGo !== undefined) return goTo(Number(target.dataset.heroGo))
-      if (target.classList.contains('product-detail')) {
-        setProductTitle(
-          target.closest<HTMLElement>('.phone-product')?.dataset.product ?? 'Galaxy S26',
-        )
-        navigate('product')
         return
       }
       if (target.classList.contains('reserve-main') || target.hasAttribute('data-reserve')) {
@@ -174,21 +157,10 @@ export function useUserExperience() {
       if (target.dataset.chatRoute && isUserPage(target.dataset.chatRoute))
         navigate(target.dataset.chatRoute)
       if (target.dataset.productLink) {
-        setProductTitle(target.dataset.productLink)
-        navigate('product')
+        navigate('store')
       }
     },
-    [
-      goTo,
-      navigate,
-      next,
-      previous,
-      resetConversation,
-      routerNavigate,
-      runDemo,
-      sendAi,
-      sendQuestion,
-    ],
+    [navigate, resetConversation, routerNavigate, runDemo, sendAi, sendQuestion],
   )
 
   const handleKeyDown = useCallback(
@@ -216,7 +188,6 @@ export function useUserExperience() {
 
   return {
     page,
-    heroIndex,
     loggedIn,
     user,
     isInitializing,
@@ -231,7 +202,6 @@ export function useUserExperience() {
     activeDialog,
     reserveStore,
     toast,
-    productTitle,
     handleClick,
     handleKeyDown,
     handleLoginSuccess,
