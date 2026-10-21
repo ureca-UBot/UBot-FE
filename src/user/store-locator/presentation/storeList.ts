@@ -1,4 +1,5 @@
 import type { Store } from '../types/store'
+import { numberedPinSvg } from './markerImages'
 import { formatDistance } from './storeElements'
 
 interface StoreListElements {
@@ -33,7 +34,7 @@ export function renderStoreList(
 
     const number = document.createElement('span')
     number.className = 'store-list-number'
-    number.textContent = String(numberOffset + index + 1)
+    number.innerHTML = numberedPinSvg(numberOffset + index + 1)
     const content = document.createElement('div')
     content.className = 'store-list-content'
     const titleRow = document.createElement('div')
@@ -60,16 +61,6 @@ export function renderStoreList(
     }
     const badges = document.createElement('div')
     badges.className = 'store-list-badges'
-    if (store.phoneNumber) {
-      const badge = document.createElement('i')
-      badge.textContent = '전화 문의'
-      badges.appendChild(badge)
-    }
-    if (store.businessHours) {
-      const badge = document.createElement('i')
-      badge.textContent = '영업시간 안내'
-      badges.appendChild(badge)
-    }
     selectedServices.forEach((selectedService) => {
       const badge = document.createElement('i')
       badge.className = 'accent'

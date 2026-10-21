@@ -39,11 +39,11 @@
 
 .ubot-user-app .direction-guide-item:hover,
 .ubot-user-app .direction-guide-item.hovered {
-  background: #f6faff
+  background: var(--soft)
 }
 
 .ubot-user-app .direction-guide-item.active {
-  background: #eef5ff
+  background: var(--pink-soft)
 }
 
 .ubot-user-app .direction-guide-no {
@@ -55,9 +55,9 @@
   height: 20px;
   padding: 0 4px;
   place-items: center;
-  border: 1.5px solid #1677ff;
+  border: 1.5px solid var(--map-gray);
   border-radius: 999px;
-  color: #1677ff;
+  color: var(--map-gray);
   background: #fff;
   font-size: 9px;
   font-weight: 900;
@@ -66,11 +66,12 @@
 
 .ubot-user-app .direction-guide-no.start {
   color: #fff;
-  background: #1677ff
+  background: var(--map-gray)
 }
 
+/* 도착 지점만 핑크로 구분한다. */
 .ubot-user-app .direction-guide-no.end {
-  border-color: var(--pink-dark);
+  border-color: var(--pink);
   color: #fff;
   background: var(--pink)
 }
@@ -78,7 +79,7 @@
 .ubot-user-app .direction-guide-item.hovered .direction-guide-no.step,
 .ubot-user-app .direction-guide-item.active .direction-guide-no.step {
   color: #fff;
-  background: #1677ff
+  background: var(--pink)
 }
 
 .ubot-user-app .direction-guide-icon {
@@ -87,8 +88,8 @@
   height: 30px;
   place-items: center;
   border-radius: 9px;
-  color: #1677ff;
-  background: #eaf3ff
+  color: var(--map-gray);
+  background: var(--soft)
 }
 
 .ubot-user-app .direction-guide-item .direction-guide-icon {
@@ -122,7 +123,7 @@
 .ubot-user-app .direction-guide-item.hovered .direction-guide-icon,
 .ubot-user-app .direction-guide-item.active .direction-guide-icon {
   color: #fff;
-  background: #1677ff
+  background: var(--pink)
 }
 
 .ubot-user-app .direction-guide-icon.tinted {
@@ -162,9 +163,9 @@
   height: 14px;
   padding: 0 2px;
   place-items: center;
-  border: 1px solid #1677ff;
+  border: 1px solid var(--map-gray);
   border-radius: 999px;
-  color: #1677ff;
+  color: var(--map-gray);
   background: #fff;
   box-shadow: 0 1px 3px rgba(23, 23, 26, .25);
   font-size: 8px;
@@ -178,7 +179,7 @@
 .ubot-user-app .direction-guide-marker.hovered,
 .ubot-user-app .direction-guide-marker.active {
   color: #fff;
-  background: #1677ff;
+  background: var(--map-gray);
   transform: scale(1.4)
 }
 
@@ -190,7 +191,7 @@
   border: 1.5px solid #fff;
   border-radius: 50%;
   color: #fff;
-  background: var(--icon-color, #1677ff);
+  background: var(--icon-color, var(--map-gray));
   box-shadow: 0 1px 4px rgba(23, 23, 26, .3);
   cursor: pointer;
   transition: transform .15s ease
@@ -226,7 +227,7 @@
   border: 2px solid #fff;
   border-radius: 999px;
   color: #fff;
-  background: #1677ff;
+  background: var(--map-gray);
   font-size: 11px;
   font-weight: 900;
   line-height: 1.2;
@@ -237,7 +238,7 @@
   width: 0;
   height: 0;
   margin-top: -2px;
-  border-top: 8px solid #1677ff;
+  border-top: 8px solid var(--map-gray);
   border-right: 5px solid transparent;
   border-left: 5px solid transparent
 }
@@ -272,7 +273,7 @@
   left: 0;
   width: 3px;
   border-radius: 0 3px 3px 0;
-  background: #1677ff;
+  background: var(--pink);
   content: ""
 }
 
@@ -318,15 +319,29 @@
   border-radius: 50%;
   color: #4f535b;
   background: #fff;
-  font-size: 14px;
-  line-height: 1;
   cursor: pointer
 }
 
+/* 글자(‹ ›)는 글꼴마다 위아래 여백이 달라 가운데에서 벗어나므로 SVG 아이콘으로 그린다. */
+.ubot-user-app .direction-guide-popup button span {
+  display: grid;
+  place-items: center
+}
+
+.ubot-user-app .direction-guide-popup button svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round
+}
+
 .ubot-user-app .direction-guide-popup button:hover:not(:disabled) {
-  border-color: #8dbfff;
-  color: #075fc7;
-  background: #f3f8ff
+  border-color: rgba(247, 37, 133, .35);
+  color: var(--pink-dark);
+  background: var(--soft)
 }
 
 .ubot-user-app .direction-guide-popup button:disabled {
@@ -337,7 +352,6 @@
 .ubot-user-app .direction-guide-popup .direction-guide-popup-close {
   align-self: flex-start;
   border: 0;
-  color: #8b8e95;
-  font-size: 16px
+  color: #8b8e95
 }
 

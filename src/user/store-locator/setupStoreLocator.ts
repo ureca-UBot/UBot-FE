@@ -86,6 +86,7 @@ export function setupStoreLocator(
   const searchInput = byId<HTMLInputElement>('storeSearchInput')
   const searchButton = byId<HTMLButtonElement>('storeSearchButton')
   const locationButton = byId<HTMLButtonElement>('storeCurrentLocation')
+  const mapLocateButton = byId<HTMLButtonElement>('storeMapLocate')
   const sidoSelect = byId<HTMLSelectElement>('storeSido')
   const sigunguSelect = byId<HTMLSelectElement>('storeSigungu')
   const serviceTypeInputs = [
@@ -121,6 +122,7 @@ export function setupStoreLocator(
   let maps: KakaoMapsApi | null = null
   let map: KakaoMap | null = null
   let storeBubble: KakaoCustomOverlay | null = null
+  let currentPositionOverlay: KakaoCustomOverlay | null = null
   let bubbleFrameId: number | undefined
 
   const closeStoreBubble = () => {
@@ -798,6 +800,31 @@ export function setupStoreLocator(
     }
   }
 
+  const showCurrentPosition = (latitude: number, longitude: number) => {
+    if (!maps || !map) return
+    const position = new maps.LatLng(latitude, longitude)
+    if (currentPositionOverlay) {
+      currentPositionOverlay.setPosition(position)
+    } else {
+      const element = document.createElement('div')
+      element.className = 'store-current-position'
+      element.setAttribute('aria-hidden', 'true')
+      currentPositionOverlay = new maps.CustomOverlay({
+        position,
+        content: element,
+        xAnchor: 0.5,
+        yAnchor: 0.5,
+        zIndex: 1,
+      })
+    }
+    currentPositionOverlay.setMap(map)
+  }
+
+  const setLocationButtonsDisabled = (disabled: boolean) => {
+    if (locationButton) locationButton.disabled = disabled
+    if (mapLocateButton) mapLocateButton.disabled = disabled
+  }
+
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
       setStatus('이 브라우저에서는 현재 위치를 사용할 수 없습니다.', true)
@@ -805,18 +832,19 @@ export function setupStoreLocator(
     }
 
     directionsController.close()
-    if (locationButton) locationButton.disabled = true
+    setLocationButtonsDisabled(true)
     setStatus('현재 위치를 확인하고 있습니다.')
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
           await focusMap(coords.latitude, coords.longitude, '현재 위치')
+          if (!disposed) showCurrentPosition(coords.latitude, coords.longitude)
         } finally {
-          if (locationButton) locationButton.disabled = false
+          setLocationButtonsDisabled(false)
         }
       },
       () => {
-        if (locationButton) locationButton.disabled = false
+        setLocationButtonsDisabled(false)
         setStatus('위치 권한을 허용하면 현재 위치 주변 매장을 찾을 수 있습니다.', true)
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
@@ -962,6 +990,7 @@ export function setupStoreLocator(
   searchButton.addEventListener('click', searchLocation)
   searchInput.addEventListener('keydown', handleSearchKeydown)
   locationButton?.addEventListener('click', useCurrentLocation)
+  mapLocateButton?.addEventListener('click', useCurrentLocation)
   viewportSearchButton?.addEventListener('click', handleViewportSearch)
   regionSearchButton?.addEventListener('click', handleRegionSearch)
   prevPageButton?.addEventListener('click', handlePreviousPage)
@@ -1000,9 +1029,11 @@ export function setupStoreLocator(
     if (maps && map && mapClickHandler) maps.event.removeListener(map, 'click', mapClickHandler)
     clearMarkers()
     closeStoreBubble()
+    currentPositionOverlay?.setMap(null)
     searchButton.removeEventListener('click', searchLocation)
     searchInput.removeEventListener('keydown', handleSearchKeydown)
     locationButton?.removeEventListener('click', useCurrentLocation)
+    mapLocateButton?.removeEventListener('click', useCurrentLocation)
     viewportSearchButton?.removeEventListener('click', handleViewportSearch)
     regionSearchButton?.removeEventListener('click', handleRegionSearch)
     prevPageButton?.removeEventListener('click', handlePreviousPage)

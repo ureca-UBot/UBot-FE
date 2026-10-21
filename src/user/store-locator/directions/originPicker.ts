@@ -90,16 +90,13 @@ function matchRecent(query: string) {
 
 interface OriginPickerOptions {
   input: HTMLInputElement
-  locateButton: HTMLButtonElement
   results: HTMLElement
   getMaps: () => KakaoMapsApi | null
   onPick: (candidate: OriginCandidate) => void
-  onLocate: () => void
 }
 
 export interface OriginPicker {
   setValue(text: string): void
-  setLocating(locating: boolean): void
   focus(): void
   // 입력칸 글자를 검색해 첫 결과를 출발지로 확정한다. 결과가 없으면 null.
   pickFirstMatch(query: string): Promise<OriginCandidate | null>
@@ -107,7 +104,7 @@ export interface OriginPicker {
 }
 
 export function createOriginPicker(options: OriginPickerOptions): OriginPicker {
-  const { input, locateButton, results } = options
+  const { input, results } = options
   let entries: OptionEntry[] = []
   let activeIndex = -1
   let debounceId: number | undefined
@@ -286,25 +283,14 @@ export function createOriginPicker(options: OriginPickerOptions): OriginPicker {
     }
   }
 
-  const handleLocate = () => {
-    closeResults()
-    options.onLocate()
-  }
-
   input.addEventListener('focus', handleFocus)
   input.addEventListener('input', handleInput)
   input.addEventListener('keydown', handleKeydown)
   input.addEventListener('blur', closeResults)
-  locateButton.addEventListener('click', handleLocate)
 
   return {
     setValue(text) {
       if (document.activeElement !== input) input.value = text
-    },
-    setLocating(locating) {
-      locateButton.disabled = locating
-      locateButton.classList.toggle('locating', locating)
-      locateButton.setAttribute('aria-busy', String(locating))
     },
     focus() {
       input.focus()
@@ -324,7 +310,6 @@ export function createOriginPicker(options: OriginPickerOptions): OriginPicker {
       input.removeEventListener('input', handleInput)
       input.removeEventListener('keydown', handleKeydown)
       input.removeEventListener('blur', closeResults)
-      locateButton.removeEventListener('click', handleLocate)
     },
   }
 }

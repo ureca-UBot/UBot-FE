@@ -62,7 +62,7 @@
 .ubot-user-app .chat-map-resize:focus-visible::after,
 .ubot-user-app .chat-map-drawer.resizing .chat-map-resize::after {
   height: 64px;
-  background: #1677ff
+  background: var(--pink)
 }
 
 .ubot-user-app .chat-map-resize:focus-visible {
@@ -113,7 +113,7 @@
 }
 
 .ubot-user-app .chat-map-close:focus-visible {
-  outline: 2px solid #1677ff;
+  outline: 2px solid var(--pink);
   outline-offset: 2px
 }
 
