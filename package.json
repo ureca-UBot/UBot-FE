@@ -12,7 +12,11 @@
     "test:browser": "node --test scripts/regression.test.cjs",
     "test:visual": "node scripts/visual-regression.cjs",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\"",
+    "test:counsel": "node scripts/counsel-smoke.cjs",
+    "test:counsel:history": "node scripts/counsel-history-smoke.cjs",
+    "test:counsel:admin": "node scripts/counsel-admin-smoke.cjs",
+    "test:counsel:pages": "node scripts/counsel-pages-smoke.cjs"
   },
   "dependencies": {
     "react": "^19.2.8",

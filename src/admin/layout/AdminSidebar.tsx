@@ -3,6 +3,8 @@ import { NavLink } from 'react-router-dom'
 const menuItems = [
   { label: 'FAQ 대시보드', to: '/admin/dashboard' },
   { label: '운영 대시보드', to: '/admin/operation' },
+  { label: '상담 안전성 모니터링', to: '/admin/counsel-safety' },
+  { label: '상담 금지 문장', to: '/admin/counsel-sentences' },
   { label: 'FAQ 관리', to: '/admin/faqs' },
   { label: '상품 관리', to: '/admin/products' },
   { label: '매장 관리', to: '/admin/stores' },

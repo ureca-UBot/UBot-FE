@@ -2,6 +2,11 @@
 
 UBot 프론트엔드입니다. React 19 · TypeScript · Vite 8 로 만들었습니다.
 
+## 상담사 연결
+
+- 고객은 `/#/ai`의 `상담사 호출`, 상담사는 `/#/counselor`, 관리자는 `/#/admin/counsel-safety`·`/#/admin/counsel-sentences`를 씁니다.
+- 기존 `UBot-BE`의 `/api/counsel`을 씁니다. 구현 범위·배포 설정·확인 방법은 [상담사 연결 작업 정리](docs/COUNSEL_WORK_SUMMARY.md)를 참고하세요.
+
 ## 진행 현황
 
 ### 관리자 페이지

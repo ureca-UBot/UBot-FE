@@ -1,10 +1,12 @@
 @import './sections/tokens.css';
+@import '../../shared/styles/chat.css';
 @import './sections/header.css';
 @import './sections/layout.css';
 @import './sections/home.css';
 @import './sections/home-carousel.css';
 @import './sections/standard-pages.css';
 @import './sections/ai.css';
+@import './sections/counsel.css';
 @import './sections/dialogs.css';
 @import './sections/home-polish.css';
 @import './sections/desktop-responsive.css';

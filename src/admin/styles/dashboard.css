@@ -152,7 +152,7 @@
   .faq-dashboard-usage-content { grid-template-columns: 1fr; }.faq-dashboard-usage-chart { grid-column: auto; }.faq-dashboard-table-wrap { padding: 7px; }
   .faq-dashboard-rank-card { grid-template-columns: 43px 1fr 1fr; gap: 6px; }.faq-dashboard-rank-card__question { grid-column: 2 / -1; }.faq-dashboard-rank-card > div:last-child { grid-column: 1 / 2; grid-row: 2; }.faq-dashboard-strip-label span { display: none; }
   .admin-layout { grid-template-columns: 1fr; }
-  .admin-sidebar { padding: 16px; }
+  .admin-sidebar { min-width: 0; padding: 16px; }
   .admin-logo { margin: 0 0 16px; }
   .admin-navigation { display: flex; overflow-x: auto; }
   .admin-navigation__label { display: none; }

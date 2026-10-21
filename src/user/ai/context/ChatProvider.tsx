@@ -2,6 +2,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useAuth } from '../../../auth/hooks/useAuth'
 import { ApiRequestError } from '../../../shared/api/client'
 import { chatApi } from '../api/chatApi'
+import { saveFaqSelection, type FaqSelectionRequest } from '../api/faqSelectionApi'
 import type { ChatWaitOptions } from '../api/chatJobPolling'
 import {
   canResearchAgain,
@@ -45,6 +46,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // 바꿀 때 이전 값을 abort해 답변 상태 조회도 멈춥니다. 서버 작업은 계속됩니다.
   const conversation = useRef(new AbortController())
   const activeRequest = useRef<object | null>(null)
+  const pendingFaq = useRef<FaqSelectionRequest | null>(null)
+  const conversationLocked = useRef(false)
+  const setConversationLocked = useCallback((locked: boolean) => {
+    conversationLocked.current = locked
+  }, [])
 
   // 로그아웃하거나 계정이 바뀐 렌더에서는 이전 사용자의 대화를 화면에 전달하지 않습니다.
   if (state.userId !== userId) {
@@ -61,6 +67,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       conversation.current.abort()
       conversation.current = new AbortController()
       activeRequest.current = null
+      pendingFaq.current = null
     }
     previousUserId.current = userId
   }, [userId])
@@ -70,7 +77,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       turn: Pick<ChatTurn, 'id' | 'question'>,
       request: (options: ChatWaitOptions) => Promise<ChatResponse>,
     ): Promise<boolean> => {
-      if (activeRequest.current) return false
+      if (activeRequest.current || conversationLocked.current) return false
       let error: string | null = null
       if (isInitializing) error = '로그인 상태를 확인하는 중입니다.'
       else if (!turn.question) error = '질문을 입력해 주세요.'
@@ -144,9 +151,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   )
 
   const sendQuestion = useCallback(
-    (rawQuestion: string) => {
+    (rawQuestion: string, targetConversationId?: string) => {
       const question = rawQuestion.trim()
-      const conversationId = state.conversationId ?? undefined
+      const conversationId = targetConversationId ?? state.conversationId ?? undefined
       return runRequest({ id: ++nextTurnId.current, question }, (options) =>
         chatApi.createQuestion({ question, conversationId }, options),
       )
@@ -154,41 +161,88 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [runRequest, state.conversationId],
   )
 
-  // 랭킹 API는 FAQ ID와 검증된 질문·답변을 함께 내려주므로 AI 생성 요청 없이 바로 대화에 추가합니다.
+  // 회원의 FAQ 선택은 서버에 저장한 원문을 표시함. 비회원은 화면에서만 확인함
   const sendFaqAnswer = useCallback(
-    (faq: FaqAnswerSelection): Promise<boolean> => {
+    async (faq: FaqAnswerSelection, targetConversationId?: string): Promise<boolean> => {
       const question = faq.question.trim()
       const answer = faq.answer.trim()
       let error: string | null = null
       if (isInitializing) error = '로그인 상태를 확인하는 중입니다.'
       else if (!question || !answer) error = 'FAQ 답변을 확인할 수 없습니다.'
-      else if (activeRequest.current) return Promise.resolve(false)
+      else if (activeRequest.current || conversationLocked.current) return false
 
       if (error) {
         setState((current) => ({ ...current, error }))
-        return Promise.resolve(false)
+        return false
       }
 
       const turn: ChatTurn = {
         id: ++nextTurnId.current,
         faqId: faq.faqId,
         question,
-        isPending: false,
-        response: {
-          answer,
-          status: 'SUCCESS',
-          idempotencyKey: null,
-          attemptCount: 0,
-          retryable: false,
-        },
+        isPending: Boolean(userId),
+        response: userId
+          ? null
+          : { answer, status: 'SUCCESS', idempotencyKey: null, attemptCount: 0, retryable: false },
         error: null,
         errorCode: null,
         researches: [],
       }
+      const requestId = {}
+      const requestConversation = conversation.current
+      if (userId) activeRequest.current = requestId
       setState((current) => ({ ...current, error: null, turns: [...current.turns, turn] }))
-      return Promise.resolve(true)
+      if (!userId) return true
+      const conversationId = targetConversationId ?? state.conversationId
+      if (
+        pendingFaq.current?.faqId !== faq.faqId ||
+        pendingFaq.current?.conversationId !== conversationId
+      ) {
+        pendingFaq.current = { selectionId: crypto.randomUUID(), conversationId, faqId: faq.faqId }
+      }
+      try {
+        const saved = await saveFaqSelection(pendingFaq.current)
+        if (conversation.current !== requestConversation) return true
+        pendingFaq.current = null
+        setState((current) => ({
+          ...current,
+          conversationId: saved.conversationId,
+          turns: current.turns.map((item) =>
+            item.id === turn.id
+              ? {
+                  ...item,
+                  question: saved.question,
+                  isPending: false,
+                  response: {
+                    answer: saved.answer,
+                    status: 'SUCCESS',
+                    idempotencyKey: null,
+                    attemptCount: 0,
+                    retryable: false,
+                  },
+                }
+              : item,
+          ),
+        }))
+      } catch (cause) {
+        if (conversation.current !== requestConversation) return true
+        if (cause instanceof ApiRequestError && cause.status >= 400 && cause.status < 500)
+          pendingFaq.current = null
+        const error =
+          cause instanceof Error
+            ? cause.message
+            : 'FAQ 선택을 저장하지 못했습니다. 다시 선택해 주세요.'
+        setState((current) => ({
+          ...current,
+          error,
+          turns: current.turns.filter((item) => item.id !== turn.id),
+        }))
+      } finally {
+        if (activeRequest.current === requestId) activeRequest.current = null
+      }
+      return true
     },
-    [isInitializing],
+    [isInitializing, state.conversationId, userId],
   )
 
   const retryAnswer = useCallback(
@@ -213,7 +267,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // 원래 turn의 답변은 그대로 두고, 선택한 의도의 결과만 turn.researches에 반영합니다.
   const researchAnswer = useCallback(
     async (turnId: number, intent: ChatIntent, location?: ChatLocation): Promise<boolean> => {
-      if (activeRequest.current) return false
+      if (activeRequest.current || conversationLocked.current) return false
       const turn = state.turns.find((item) => item.id === turnId)
       const original = turn?.response
       if (!turn || turn.isPending || original?.status !== 'SUCCESS' || !original.idempotencyKey)
@@ -283,9 +337,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   )
 
   const resetConversation = useCallback(() => {
+    if (conversationLocked.current) return
     conversation.current.abort()
     conversation.current = new AbortController()
     activeRequest.current = null
+    pendingFaq.current = null
     setState((current) => ({
       userId: current.userId,
       conversationId: null,
@@ -295,7 +351,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const openConversation = useCallback(async (conversationId: string) => {
-    if (activeRequest.current) return false
+    if (activeRequest.current || conversationLocked.current) return false
     const requestConversation = new AbortController()
     conversation.current.abort()
     conversation.current = requestConversation
@@ -341,9 +397,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       researchAnswer,
       resetConversation,
       openConversation,
+      setConversationLocked,
     }),
     [
       openConversation,
+      setConversationLocked,
       researchAnswer,
       resetConversation,
       retryAnswer,

@@ -31,6 +31,17 @@ const OperationDashboardPage = lazy(() =>
   })),
 )
 
+const SafetyMonitorPage = lazy(() =>
+  import('../counsel/pages/SafetyMonitorPage').then((module) => ({
+    default: module.SafetyMonitorPage,
+  })),
+)
+const SafetySentencesPage = lazy(() =>
+  import('../counsel/pages/SafetySentencesPage').then((module) => ({
+    default: module.SafetySentencesPage,
+  })),
+)
+
 export default function AdminApp() {
   return (
     <Routes>
@@ -44,6 +55,8 @@ export default function AdminApp() {
         <Route index element={<Navigate replace to="dashboard" />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="operation" element={<OperationDashboardPage />} />
+        <Route path="counsel-safety" element={<SafetyMonitorPage />} />
+        <Route path="counsel-sentences" element={<SafetySentencesPage />} />
 
         <Route path="faqs" element={<FaqLayout />}>
           <Route index element={<FaqListPage />} />

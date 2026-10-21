@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 interface PageProps {
   active: boolean
 }
@@ -6,6 +8,9 @@ export function SupportPage({ active }: PageProps) {
   return (
     <>
       <section className={`route page-standard${active ? ' active' : ''}`} data-page="support">
+        <div className="standard-wrap">
+          <Link to="/counsel">상담사에게 문의하기 →</Link>
+        </div>
         <div className="standard-hero network-hero">
           <span>통신 상태</span>
           <h1>

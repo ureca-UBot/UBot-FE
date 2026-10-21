@@ -38,8 +38,8 @@ export function StorePage({ active }: PageProps) {
             ))}
           </div>
 
-          {/* 스토어 화면이 보일 때만 조회합니다. 모든 화면이 늘 마운트돼 있어서, 조건이 없으면 다른 화면에서도 요청이 나갑니다. */}
-          {active && catalogKind && <ProductCatalog key={catalogKind.key} kind={catalogKind} />}
+          {/* 첫 방문까지의 마운트는 VisitedPage가 제어함. 메뉴를 오갈 때는 검색값을 유지함 */}
+          {catalogKind && <ProductCatalog key={catalogKind.key} kind={catalogKind} />}
         </div>
       </section>
 

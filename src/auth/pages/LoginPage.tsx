@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
-function getDestination(role: 'USER' | 'ADMIN') {
-  return role === 'ADMIN' ? '/admin/dashboard' : '/'
+function getDestination(role: 'USER' | 'ADMIN' | 'COUNSELOR') {
+  return role === 'ADMIN' ? '/admin/dashboard' : role === 'COUNSELOR' ? '/counselor' : '/'
 }
 
 export function LoginPage() {
