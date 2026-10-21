@@ -4,15 +4,25 @@ interface ChatInputProps {
   id: string
   large?: boolean
   disabled: boolean
+  isGenerating: boolean
+  onCancel: () => void
   onSend: (question: string) => Promise<boolean>
 }
 
-export function ChatInput({ id, large = false, disabled, onSend }: ChatInputProps) {
+export function ChatInput({
+  id,
+  large = false,
+  disabled,
+  isGenerating,
+  onCancel,
+  onSend,
+}: ChatInputProps) {
   const [question, setQuestion] = useState('')
+  const buttonDisabled = !isGenerating && (disabled || !question.trim())
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (disabled || !question.trim()) return
+    if (disabled || isGenerating || !question.trim()) return
     void onSend(question)
     setQuestion('')
   }
@@ -54,12 +64,14 @@ export function ChatInput({ id, large = false, disabled, onSend }: ChatInputProp
       </button>
       <button
         className="send-ai"
-        type="submit"
-        aria-label="질문 보내기"
-        disabled={disabled || !question.trim()}
-        style={{ opacity: disabled || !question.trim() ? 0.5 : 1 }}
+        type={isGenerating ? 'button' : 'submit'}
+        aria-label={isGenerating ? '답변 생성 중단' : '질문 보내기'}
+        title={isGenerating ? '답변 생성 중단' : '질문 보내기'}
+        onClick={isGenerating ? onCancel : undefined}
+        disabled={buttonDisabled}
+        style={{ opacity: buttonDisabled ? 0.5 : 1 }}
       >
-        ↑
+        {isGenerating ? '■' : '↑'}
       </button>
     </form>
   )

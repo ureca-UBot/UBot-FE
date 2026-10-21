@@ -51,6 +51,7 @@ export function AiPage({
   const counsel = useCustomerCounsel(chat)
   const hasConversation = chat ? chat.turns.length > 0 : chatActive
   const inputDisabled = chat ? isInitializing || chat.isPending || counsel.blocking : false
+  const isGenerating = chat ? chat.turns.some((turn) => turn.isPending) : false
   const startNewChat = chat
     ? () => {
         if (inputDisabled) return
@@ -275,6 +276,8 @@ export function AiPage({
                           key={inputVersion}
                           id="aiContinuedInput"
                           disabled={inputDisabled}
+                          isGenerating={isGenerating}
+                          onCancel={chat.cancelQuestion}
                           onSend={(question) =>
                             chat.sendQuestion(
                               question,
@@ -306,6 +309,8 @@ export function AiPage({
                         id="aiHeroInput"
                         large
                         disabled={inputDisabled}
+                        isGenerating={isGenerating}
+                        onCancel={chat.cancelQuestion}
                         onSend={chat.sendQuestion}
                       />
                     ) : (
@@ -336,7 +341,6 @@ export function AiPage({
                         turns={chat.turns}
                         disabled={inputDisabled}
                         canResearch={loggedIn && !isInitializing}
-                        onRetry={chat.retryAnswer}
                         onResearch={chat.researchAnswer}
                         onOpenMap={openMap}
                       />
@@ -366,6 +370,8 @@ export function AiPage({
                           key={inputVersion}
                           id="aiChatInput"
                           disabled={inputDisabled}
+                          isGenerating={isGenerating}
+                          onCancel={chat.cancelQuestion}
                           onSend={chat.sendQuestion}
                         />
                       ) : (

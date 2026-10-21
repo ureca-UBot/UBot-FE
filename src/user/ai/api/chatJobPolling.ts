@@ -12,6 +12,8 @@ const MAX_WAIT_MS = 20 * 60_000
 export const CHAT_JOB_RESULT_UNKNOWN = 'FE-CHAT-001'
 
 export interface ChatWaitOptions {
+  // 접수 응답이 늦게 와도 중단 요청을 실제 서버 작업에 연결합니다.
+  onSubmitted?: (submission: ChatJobSubmission) => void | Promise<void>
   onProgress?: (progress: ChatProgress) => void
   // 새 대화·로그아웃으로 더 기다릴 필요가 없을 때 조회를 멈춥니다. 서버 작업은 계속됩니다.
   signal?: AbortSignal
@@ -68,7 +70,8 @@ export async function waitForAnswer(
   submission: ChatJobSubmission,
   options: ChatWaitOptions = {},
 ): Promise<ChatResponse> {
-  const { onProgress, signal } = options
+  const { onProgress, signal, onSubmitted } = options
+  await onSubmitted?.(submission)
   const conversationId = submission.conversationId ?? null
   const startedAt = Date.now()
   const initial = toProgress(submission)

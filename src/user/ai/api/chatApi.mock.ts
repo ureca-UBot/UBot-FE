@@ -14,17 +14,23 @@ import type { ChatWaitOptions } from './chatJobPolling'
 // .env.local에 VITE_CHAT_MOCK=true를 넣고 개발 서버를 실행했을 때만 사용합니다.
 // 재검색 API가 병합되어 실제 연동을 확인한 뒤에는 이 파일과 chatApi.ts의 스위치를 제거합니다.
 
+let nextMockJobId = 0
+
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // 실제 API처럼 대기 → 검색 → 생성 단계를 차례로 알립니다.
 async function simulateProgress(totalMs: number, options?: ChatWaitOptions) {
   const step = totalMs / 3
+  options?.signal?.throwIfAborted()
   options?.onProgress?.({ status: 'QUEUED', phase: 'WAITING', remainingMs: 10 * 60_000 })
   await wait(step)
+  options?.signal?.throwIfAborted()
   options?.onProgress?.({ status: 'RUNNING', phase: 'SEARCHING', remainingMs: 3 * 60_000 })
   await wait(step)
+  options?.signal?.throwIfAborted()
   options?.onProgress?.({ status: 'RUNNING', phase: 'GENERATING', remainingMs: 3 * 60_000 })
   await wait(step)
+  options?.signal?.throwIfAborted()
 }
 
 // 채팅 지도 드로어 확인용: '매장'이 들어간 질문에는 강남역 기준 매장 조회 결과를 함께 돌려줍니다. (V5 매장 데이터)
@@ -252,7 +258,15 @@ function mockUserData(question: string): ChatUserData | null {
 }
 
 export const chatMockApi: ChatApi = {
+  cancelJob: async (jobId) => ({ jobId, cancelled: true }),
   createQuestion: async (request, options) => {
+    await options?.onSubmitted?.({
+      jobId: ++nextMockJobId,
+      status: 'QUEUED',
+      conversationId: request.conversationId ?? null,
+      idempotencyKey: 'a'.repeat(64),
+      attemptCount: 1,
+    })
     await simulateProgress(1500, options)
     const asksStore = request.question.includes('매장')
     const userData = mockUserData(request.question)

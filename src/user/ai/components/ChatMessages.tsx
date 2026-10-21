@@ -20,7 +20,6 @@ interface ChatMessagesProps {
   disabled: boolean
   // 로그인한 회원에게만 의도 선택 버튼을 보여줍니다.
   canResearch: boolean
-  onRetry: (turnId: number) => Promise<boolean>
   onResearch: (turnId: number, intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
   // 답변의 매장 지도를 열고 고른 매장을 보여 줍니다. 키는 storeMapKey로 만듭니다.
   onOpenMap?: (key: string, storeId: number) => void
@@ -121,7 +120,6 @@ export function ChatMessages({
   turns,
   disabled,
   canResearch,
-  onRetry,
   onResearch,
   onOpenMap,
 }: ChatMessagesProps) {
@@ -150,8 +148,20 @@ export function ChatMessages({
           <div className="msg ai">
             <div className="msg-avatar">AI</div>
             <div className="msg-body">
-              {turn.isPending ? (
-                <ProgressLine progress={turn.progress} />
+              {turn.isCancelling ? (
+                <ProgressLine progress={null} message="답변 중단을 요청하고 있습니다." />
+              ) : turn.isCancelled ? (
+                <ProgressLine progress={null} message="답변 생성을 중단했습니다." />
+              ) : turn.isPending ? (
+                <>
+                  <ProgressLine
+                    progress={turn.progress}
+                    message={
+                      turn.response?.status === 'FAIL' ? '오류로 인해 재시도 중입니다.' : undefined
+                    }
+                  />
+                  {turn.cancelError && <p role="alert">{turn.cancelError}</p>}
+                </>
               ) : turn.error ? (
                 <div className="chat-card error-card">
                   <div className="chat-card-pad">
@@ -167,20 +177,6 @@ export function ChatMessages({
                         </button>
                       </div>
                     )}
-                    {turn.response?.status === 'FAIL' &&
-                      turn.response.retryable &&
-                      turn.response.idempotencyKey && (
-                        <div className="answer-actions">
-                          <button
-                            className="retry-btn primary"
-                            type="button"
-                            disabled={disabled}
-                            onClick={() => void onRetry(turn.id)}
-                          >
-                            답변 재시도
-                          </button>
-                        </div>
-                      )}
                   </div>
                 </div>
               ) : (

@@ -23,6 +23,17 @@ import type {
 import { ChatContext, type ChatContextValue } from './ChatContext'
 import { ChatSendContext } from './ChatSendContext'
 
+const MAX_CHAT_ATTEMPTS = 3
+
+interface ActiveRequest {
+  turnId?: number
+  controller?: AbortController
+  conversation?: AbortController
+  jobId?: number
+  cancelRequested?: boolean
+  cancelInFlight?: Promise<void>
+}
+
 interface ChatState {
   userId: string | null
   conversationId: string | null
@@ -45,7 +56,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // 대화를 비울 때마다 바뀌며, 비우기 전에 보낸 요청의 늦은 응답을 걸러냅니다.
   // 바꿀 때 이전 값을 abort해 답변 상태 조회도 멈춥니다. 서버 작업은 계속됩니다.
   const conversation = useRef(new AbortController())
-  const activeRequest = useRef<object | null>(null)
+  const activeRequest = useRef<ActiveRequest | null>(null)
   const pendingFaq = useRef<FaqSelectionRequest | null>(null)
   const conversationLocked = useRef(false)
   const setConversationLocked = useCallback((locked: boolean) => {
@@ -72,6 +83,68 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     previousUserId.current = userId
   }, [userId])
 
+  const cancelServerRequest = useCallback(async (request: ActiveRequest): Promise<void> => {
+    if (request.jobId === undefined) return
+    if (request.cancelInFlight) return request.cancelInFlight
+    const jobId = request.jobId
+    request.cancelInFlight = (async () => {
+      try {
+        const result = await chatApi.cancelJob(jobId)
+        if (activeRequest.current !== request || conversation.current !== request.conversation)
+          return
+        if (result.cancelled) {
+          activeRequest.current = null
+          request.controller?.abort()
+          setState((current) => ({
+            ...current,
+            turns: current.turns.map((turn) =>
+              turn.id === request.turnId
+                ? {
+                    ...turn,
+                    isPending: false,
+                    isCancelling: false,
+                    isCancelled: true,
+                    cancelError: null,
+                    progress: null,
+                    response: null,
+                    error: null,
+                    errorCode: null,
+                  }
+                : turn,
+            ),
+          }))
+        } else {
+          // 완료가 먼저 확정됐으면 진행 중인 조회가 기존 답변·거절 결과를 받도록 둡니다.
+          setState((current) => ({
+            ...current,
+            turns: current.turns.map((turn) =>
+              turn.id === request.turnId ? { ...turn, isCancelling: false } : turn,
+            ),
+          }))
+        }
+      } catch {
+        if (activeRequest.current !== request || conversation.current !== request.conversation)
+          return
+        // 서버 취소를 확인하지 못했을 때 중단 완료로 표시하거나 새 재시도를 만들지 않습니다.
+        setState((current) => ({
+          ...current,
+          turns: current.turns.map((turn) =>
+            turn.id === request.turnId
+              ? {
+                  ...turn,
+                  isCancelling: false,
+                  cancelError: '중단 요청을 확인하지 못했습니다. 답변 상태를 계속 확인합니다.',
+                }
+              : turn,
+          ),
+        }))
+      } finally {
+        request.cancelInFlight = undefined
+      }
+    })()
+    return request.cancelInFlight
+  }, [])
+
   const runRequest = useCallback(
     async (
       turn: Pick<ChatTurn, 'id' | 'question'>,
@@ -88,12 +161,19 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       }
 
       // React가 다시 렌더링되기 전의 연속 클릭도 한 요청으로 제한합니다.
-      const requestId = {}
       const requestConversation = conversation.current
+      const requestId: ActiveRequest = {
+        turnId: turn.id,
+        controller: new AbortController(),
+        conversation: requestConversation,
+      }
       activeRequest.current = requestId
       const pendingTurn: ChatTurn = {
         ...turn,
         isPending: true,
+        isCancelled: false,
+        isCancelling: false,
+        cancelError: null,
         progress: null,
         response: null,
         error: null,
@@ -109,25 +189,62 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           : [...current.turns, pendingTurn],
       }))
 
-      const {
-        response,
-        error: responseError,
-        errorCode: responseErrorCode,
-      } = await settleRequest(() =>
-        request({
-          signal: requestConversation.signal,
-          onProgress: (progress) => {
-            if (conversation.current !== requestConversation) return
+      const options: ChatWaitOptions = {
+        signal: AbortSignal.any([requestConversation.signal, requestId.controller!.signal]),
+        onSubmitted: async (submission) => {
+          requestId.jobId = submission.jobId
+          if (activeRequest.current === requestId && conversation.current === requestConversation) {
             setState((current) => ({
               ...current,
-              turns: updateProgress(current.turns, turn.id, progress),
+              conversationId: submission.conversationId ?? current.conversationId,
             }))
-          },
-        }),
-      )
+          }
+          if (requestId.cancelRequested) await cancelServerRequest(requestId)
+        },
+        onProgress: (progress) => {
+          if (conversation.current !== requestConversation || activeRequest.current !== requestId)
+            return
+          setState((current) => ({
+            ...current,
+            turns: updateProgress(current.turns, turn.id, progress),
+          }))
+        },
+      }
+      let result = await settleRequest(() => request(options))
+      const idempotencyKey = result.response?.idempotencyKey
 
-      // 새 대화·로그아웃 후의 응답은 반영하지 않습니다. 서버 작업 취소와는 별개입니다.
-      if (conversation.current !== requestConversation) return true
+      // 재시도 가능한 최종 실패에만 기존 API를 사용하며 같은 질문의 멱등키를 유지합니다.
+      for (let requestCount = 1; requestCount < MAX_CHAT_ATTEMPTS; requestCount += 1) {
+        if (conversation.current !== requestConversation || activeRequest.current !== requestId)
+          return true
+        if (requestId.cancelRequested) {
+          await requestId.cancelInFlight
+          break
+        }
+        const response = result.response
+        if (
+          response?.status !== 'FAIL' ||
+          !response.retryable ||
+          !idempotencyKey ||
+          response.attemptCount < 1 ||
+          response.attemptCount >= MAX_CHAT_ATTEMPTS
+        )
+          break
+        setState((current) => ({
+          ...current,
+          turns: current.turns.map((item) =>
+            item.id === turn.id
+              ? { ...item, response, progress: null, error: null, errorCode: null }
+              : item,
+          ),
+        }))
+        result = await settleRequest(() => chatApi.retryAnswer(idempotencyKey, options))
+      }
+
+      const { response, error: responseError, errorCode: responseErrorCode } = result
+      // 중단·새 대화·로그아웃 후의 응답은 반영하지 않습니다. 서버 작업 취소와는 별개입니다.
+      if (conversation.current !== requestConversation || activeRequest.current !== requestId)
+        return true
       if (activeRequest.current === requestId) activeRequest.current = null
       setState((current) => ({
         ...current,
@@ -137,6 +254,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             ? {
                 ...item,
                 isPending: false,
+                isCancelling: false,
                 progress: null,
                 response,
                 error: responseError,
@@ -147,8 +265,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       }))
       return true
     },
-    [isInitializing],
+    [isInitializing, cancelServerRequest],
   )
+
+  const cancelQuestion = useCallback(() => {
+    const request = activeRequest.current
+    if (request?.turnId === undefined) return
+    request.cancelRequested = true
+    setState((current) => ({
+      ...current,
+      turns: current.turns.map((turn) =>
+        turn.id === request.turnId ? { ...turn, isCancelling: true, cancelError: null } : turn,
+      ),
+    }))
+    // 접수 전에는 onSubmitted가 뒤늦은 jobId를 받아 같은 중단을 이어갑니다.
+    void cancelServerRequest(request)
+  }, [cancelServerRequest])
 
   const sendQuestion = useCallback(
     (rawQuestion: string, targetConversationId?: string) => {
@@ -243,25 +375,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       return true
     },
     [isInitializing, state.conversationId, userId],
-  )
-
-  const retryAnswer = useCallback(
-    (turnId: number) => {
-      const turn = state.turns.find((item) => item.id === turnId)
-      const response = turn?.response
-      if (
-        !turn ||
-        turn.isPending ||
-        response?.status !== 'FAIL' ||
-        !response.retryable ||
-        !response.idempotencyKey
-      ) {
-        return Promise.resolve(false)
-      }
-      const idempotencyKey = response.idempotencyKey
-      return runRequest(turn, (options) => chatApi.retryAnswer(idempotencyKey, options))
-    },
-    [runRequest, state.turns],
   )
 
   // 원래 turn의 답변은 그대로 두고, 선택한 의도의 결과만 turn.researches에 반영합니다.
@@ -393,18 +506,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       error: state.error,
       sendQuestion,
       sendFaqAnswer,
-      retryAnswer,
+      cancelQuestion,
       researchAnswer,
       resetConversation,
       openConversation,
       setConversationLocked,
     }),
     [
+      cancelQuestion,
       openConversation,
       setConversationLocked,
       researchAnswer,
       resetConversation,
-      retryAnswer,
       sendFaqAnswer,
       sendQuestion,
       state.conversationId,

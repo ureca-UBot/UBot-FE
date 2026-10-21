@@ -1,4 +1,9 @@
 // BE ChatRequestDto
+export interface ChatJobCancellation {
+  jobId: number
+  cancelled: boolean
+}
+
 export interface ChatRequest {
   question: string
   conversationId?: string
@@ -238,6 +243,9 @@ export interface ChatTurn {
   question: string
   faqId?: number
   isPending: boolean
+  isCancelled?: boolean
+  isCancelling?: boolean
+  cancelError?: string | null
   // 답변 대기 중에만 값이 있습니다.
   progress?: ChatProgress | null
   response: ChatResponse | null
