@@ -1,5 +1,5 @@
-import type { BundleProduct } from '../../../user/product/types/product'
-import { formatWon } from '../../../user/product/utils/format'
+import { formatWon } from '../../../shared/product/format'
+import type { BundleProduct } from '../../../shared/product/types'
 import { adminBundleProductApi } from '../api/productApi'
 import { BundleProductFormFields } from '../components/BundleProductFormFields'
 import type {
@@ -39,7 +39,8 @@ export const bundleProductKind: ProductKind<
     discountAmount: String(detail.discountAmount),
   }),
   validate: (values, isCreate) =>
-    validateCommonValues(values, isCreate) ?? (values.discountAmount === '' ? '할인 금액을 입력해 주세요.' : null),
+    validateCommonValues(values, isCreate) ??
+    (values.discountAmount === '' ? '할인 금액을 입력해 주세요.' : null),
   toCreateRequest: (values) => ({ code: values.code.trim(), ...toUpdateRequest(values) }),
   toUpdateRequest,
   FormFields: BundleProductFormFields,

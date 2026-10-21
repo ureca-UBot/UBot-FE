@@ -39,34 +39,79 @@ export function UserDialogs({ activeDialog, reserveStore, onClose, onReserved }:
   return (
     <>
       <dialog className="modal" ref={reserveRef}>
-        {activeDialog === 'reserve' && <ReservationForm onClose={onClose} onReserved={onReserved} store={reserveStore} />}
+        {activeDialog === 'reserve' && (
+          <ReservationForm onClose={onClose} onReserved={onReserved} store={reserveStore} />
+        )}
       </dialog>
 
       <dialog className="modal" ref={bundleRef}>
         <form method="dialog">
           <div className="modal-head">
-            <div><small>결합 변경</small><h3>인터넷 결합으로 변경할까요?</h3></div>
-            <button value="cancel" aria-label="닫기">×</button>
+            <div>
+              <small>결합 변경</small>
+              <h3>인터넷 결합으로 변경할까요?</h3>
+            </div>
+            <button value="cancel" aria-label="닫기">
+              ×
+            </button>
           </div>
-          <div className="bundle-preview"><span>현재</span><b>5G 스탠다드</b><i>＋</i><span>추가</span><b>기가 인터넷 500M</b><p>시연용 예상 할인: 월 11,000원</p></div>
-          <button id="bundleSubmit" className="black-btn modal-full" value="default">변경 완료</button>
+          <div className="bundle-preview">
+            <span>현재</span>
+            <b>5G 스탠다드</b>
+            <i>＋</i>
+            <span>추가</span>
+            <b>기가 인터넷 500M</b>
+            <p>시연용 예상 할인: 월 11,000원</p>
+          </div>
+          <button id="bundleSubmit" className="black-btn modal-full" value="default">
+            변경 완료
+          </button>
         </form>
       </dialog>
 
       <dialog className="demo-dialog" ref={demoRef}>
         <div className="demo-head">
-          <div><small>DEMO SCENARIOS</small><h3>사용자 시연 바로 실행</h3></div>
-          <button id="demoClose" aria-label="닫기">×</button>
+          <div>
+            <small>DEMO SCENARIOS</small>
+            <h3>사용자 시연 바로 실행</h3>
+          </div>
+          <button id="demoClose" aria-label="닫기">
+            ×
+          </button>
         </div>
         <div className="demo-grid">
-          <button data-demo="1"><b>01</b><span>실검 → 최신폰</span></button>
-          <button data-demo="2"><b>02</b><span>FAQ 미응답</span></button>
-          <button data-demo="3"><b>03</b><span>응답 실패 → 재시도</span></button>
-          <button data-demo="4"><b>04</b><span>로그인 유도</span></button>
-          <button data-demo="5"><b>05</b><span>세션 승계</span></button>
-          <button data-demo="6"><b>06</b><span>모호 질문 재질문</span></button>
-          <button data-demo="8"><b>08</b><span>캐시 효과</span></button>
-          <button data-demo="9"><b>09</b><span>방문 예약</span></button>
+          <button data-demo="1">
+            <b>01</b>
+            <span>실검 → 최신폰</span>
+          </button>
+          <button data-demo="2">
+            <b>02</b>
+            <span>FAQ 미응답</span>
+          </button>
+          <button data-demo="3">
+            <b>03</b>
+            <span>응답 실패 → 재시도</span>
+          </button>
+          <button data-demo="4">
+            <b>04</b>
+            <span>로그인 유도</span>
+          </button>
+          <button data-demo="5">
+            <b>05</b>
+            <span>세션 승계</span>
+          </button>
+          <button data-demo="6">
+            <b>06</b>
+            <span>모호 질문 재질문</span>
+          </button>
+          <button data-demo="8">
+            <b>08</b>
+            <span>캐시 효과</span>
+          </button>
+          <button data-demo="9">
+            <b>09</b>
+            <span>방문 예약</span>
+          </button>
         </div>
       </dialog>
     </>

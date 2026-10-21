@@ -1,6 +1,21 @@
 export type RegionSido =
-  | 'SEOUL' | 'BUSAN' | 'DAEGU' | 'INCHEON' | 'GWANGJU' | 'DAEJEON' | 'ULSAN' | 'SEJONG'
-  | 'GYEONGGI' | 'GANGWON' | 'CHUNGBUK' | 'CHUNGNAM' | 'JEONBUK' | 'JEONNAM' | 'GYEONGBUK' | 'GYEONGNAM' | 'JEJU'
+  | 'SEOUL'
+  | 'BUSAN'
+  | 'DAEGU'
+  | 'INCHEON'
+  | 'GWANGJU'
+  | 'DAEJEON'
+  | 'ULSAN'
+  | 'SEJONG'
+  | 'GYEONGGI'
+  | 'GANGWON'
+  | 'CHUNGBUK'
+  | 'CHUNGNAM'
+  | 'JEONBUK'
+  | 'JEONNAM'
+  | 'GYEONGBUK'
+  | 'GYEONGNAM'
+  | 'JEJU'
 
 export interface PopularRankingItem {
   rank: number

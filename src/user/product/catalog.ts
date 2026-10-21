@@ -1,6 +1,12 @@
 import type { PageResponse } from '../../shared/types/api'
 import { productApi } from './api/productApi'
-import type { AddonService, BundleProduct, PlanDetail, PlanSummary, RoamingProduct } from './types/product'
+import type {
+  AddonService,
+  BundleProduct,
+  PlanDetail,
+  PlanSummary,
+  RoamingProduct,
+} from './types/product'
 import {
   NETWORK_TYPE_LABELS,
   PLAN_TARGET_GROUP_LABELS,
@@ -55,7 +61,10 @@ export interface ProductCatalogKind {
 
 const PAGE_SIZE = 12
 
-function mapPage<TItem>(page: PageResponse<TItem>, toCard: (item: TItem) => ProductCard): PageResponse<ProductCard> {
+function mapPage<TItem>(
+  page: PageResponse<TItem>,
+  toCard: (item: TItem) => ProductCard,
+): PageResponse<ProductCard> {
   return { ...page, content: page.content.map(toCard) }
 }
 
@@ -71,19 +80,33 @@ function planCard(plan: PlanSummary): ProductCard {
     summary: null,
     priceLabel: '월 요금',
     price: formatWon(plan.monthlyFee),
-    specs: [`데이터 ${formatPlanData(plan)}`, `음성 ${formatPlanVoice(plan)}`, `문자 ${formatPlanSms(plan)}`],
+    specs: [
+      `데이터 ${formatPlanData(plan)}`,
+      `음성 ${formatPlanVoice(plan)}`,
+      `문자 ${formatPlanSms(plan)}`,
+    ],
   }
 }
 
-function planDetailView({ summary: plan, description, tetheringAmountMb, minAge, maxAge }: PlanDetail): ProductDetailView {
-  const data = plan.exhaustedSpeedKbps === null
-    ? formatPlanData(plan)
-    : `${formatPlanData(plan)} (소진 후 최대 ${formatSpeed(plan.exhaustedSpeedKbps)})`
+function planDetailView({
+  summary: plan,
+  description,
+  tetheringAmountMb,
+  minAge,
+  maxAge,
+}: PlanDetail): ProductDetailView {
+  const data =
+    plan.exhaustedSpeedKbps === null
+      ? formatPlanData(plan)
+      : `${formatPlanData(plan)} (소진 후 최대 ${formatSpeed(plan.exhaustedSpeedKbps)})`
   const rows = [
     { label: '데이터', value: data },
     { label: '음성', value: formatPlanVoice(plan) },
     { label: '문자', value: formatPlanSms(plan) },
-    { label: '테더링', value: tetheringAmountMb > 0 ? formatDataAmount(tetheringAmountMb) : '제공하지 않음' },
+    {
+      label: '테더링',
+      value: tetheringAmountMb > 0 ? formatDataAmount(tetheringAmountMb) : '제공하지 않음',
+    },
   ]
   const ageRange = formatAgeRange(minAge, maxAge)
   if (ageRange) rows.push({ label: '가입 연령', value: ageRange })
@@ -143,7 +166,9 @@ function cardFrom(id: number, view: ProductDetailView): ProductCard {
     summary: view.description,
     priceLabel: view.priceLabel,
     price: view.price,
-    specs: view.rows.filter((row) => row.label !== '이용 국가').map((row) => `${row.label} ${row.value}`),
+    specs: view.rows
+      .filter((row) => row.label !== '이용 국가')
+      .map((row) => `${row.label} ${row.value}`),
   }
 }
 
@@ -178,9 +203,8 @@ export const productCatalogKinds: ProductCatalogKind[] = [
     emptyMessage: '판매 중인 부가서비스가 없습니다.',
     filtersByCountry: false,
     getCards: async ({ keyword, page }) =>
-      mapPage(
-        await productApi.getAddonServiceList({ keyword, page, size: PAGE_SIZE }),
-        (service) => cardFrom(service.addonServiceId, addonView(service)),
+      mapPage(await productApi.getAddonServiceList({ keyword, page, size: PAGE_SIZE }), (service) =>
+        cardFrom(service.addonServiceId, addonView(service)),
       ),
     getDetail: async (id) => addonView(await productApi.getAddonService(id)),
   },

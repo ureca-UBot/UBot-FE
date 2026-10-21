@@ -1,5 +1,5 @@
-import type { NetworkType, PlanTargetGroup } from '../../../user/product/types/product'
-import { NETWORK_TYPE_LABELS, PLAN_TARGET_GROUP_LABELS } from '../../../user/product/utils/format'
+import { NETWORK_TYPE_LABELS, PLAN_TARGET_GROUP_LABELS } from '../../../shared/product/format'
+import type { NetworkType, PlanTargetGroup } from '../../../shared/product/types'
 import type { PlanFormValues } from '../types/product'
 import type { ProductFormFieldsProps } from '../types/productKind'
 import { ProductCommonFields } from './ProductCommonFields'
@@ -8,26 +8,48 @@ import { ProductNumberField } from './ProductNumberField'
 const NETWORK_TYPES = Object.keys(NETWORK_TYPE_LABELS) as NetworkType[]
 const TARGET_GROUPS = Object.keys(PLAN_TARGET_GROUP_LABELS) as PlanTargetGroup[]
 
-export function PlanFormFields({ values, isCreate, onChange }: ProductFormFieldsProps<PlanFormValues>) {
+export function PlanFormFields({
+  values,
+  isCreate,
+  onChange,
+}: ProductFormFieldsProps<PlanFormValues>) {
   return (
     <>
       <ProductCommonFields isCreate={isCreate} onChange={onChange} values={values} />
 
       <label>
         통신 방식
-        <select onChange={(event) => onChange({ networkType: event.target.value as NetworkType })} value={values.networkType}>
-          {NETWORK_TYPES.map((type) => <option key={type} value={type}>{NETWORK_TYPE_LABELS[type]}</option>)}
+        <select
+          onChange={(event) => onChange({ networkType: event.target.value as NetworkType })}
+          value={values.networkType}
+        >
+          {NETWORK_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {NETWORK_TYPE_LABELS[type]}
+            </option>
+          ))}
         </select>
       </label>
 
       <label>
         대상
-        <select onChange={(event) => onChange({ targetGroup: event.target.value as PlanTargetGroup })} value={values.targetGroup}>
-          {TARGET_GROUPS.map((group) => <option key={group} value={group}>{PLAN_TARGET_GROUP_LABELS[group]}</option>)}
+        <select
+          onChange={(event) => onChange({ targetGroup: event.target.value as PlanTargetGroup })}
+          value={values.targetGroup}
+        >
+          {TARGET_GROUPS.map((group) => (
+            <option key={group} value={group}>
+              {PLAN_TARGET_GROUP_LABELS[group]}
+            </option>
+          ))}
         </select>
       </label>
 
-      <ProductNumberField label="월 요금 (원)" onChange={(monthlyFee) => onChange({ monthlyFee })} value={values.monthlyFee} />
+      <ProductNumberField
+        label="월 요금 (원)"
+        onChange={(monthlyFee) => onChange({ monthlyFee })}
+        value={values.monthlyFee}
+      />
 
       <ProductNumberField
         hint="제공하지 않으면 0을 입력합니다."
@@ -43,9 +65,13 @@ export function PlanFormFields({ values, isCreate, onChange }: ProductFormFields
         <label>
           <input
             checked={values.dataUnlimited}
-            onChange={(event) => onChange(event.target.checked
-              ? { dataUnlimited: true, dataAmountMb: '', exhaustedSpeedKbps: '' }
-              : { dataUnlimited: false })}
+            onChange={(event) =>
+              onChange(
+                event.target.checked
+                  ? { dataUnlimited: true, dataAmountMb: '', exhaustedSpeedKbps: '' }
+                  : { dataUnlimited: false },
+              )
+            }
             type="checkbox"
           />
           데이터 무제한
@@ -53,9 +79,13 @@ export function PlanFormFields({ values, isCreate, onChange }: ProductFormFields
         <label>
           <input
             checked={values.voiceUnlimited}
-            onChange={(event) => onChange(event.target.checked
-              ? { voiceUnlimited: true, voiceMinutes: '' }
-              : { voiceUnlimited: false })}
+            onChange={(event) =>
+              onChange(
+                event.target.checked
+                  ? { voiceUnlimited: true, voiceMinutes: '' }
+                  : { voiceUnlimited: false },
+              )
+            }
             type="checkbox"
           />
           음성 무제한
@@ -63,9 +93,13 @@ export function PlanFormFields({ values, isCreate, onChange }: ProductFormFields
         <label>
           <input
             checked={values.smsUnlimited}
-            onChange={(event) => onChange(event.target.checked
-              ? { smsUnlimited: true, smsCount: '' }
-              : { smsUnlimited: false })}
+            onChange={(event) =>
+              onChange(
+                event.target.checked
+                  ? { smsUnlimited: true, smsCount: '' }
+                  : { smsUnlimited: false },
+              )
+            }
             type="checkbox"
           />
           문자 무제한

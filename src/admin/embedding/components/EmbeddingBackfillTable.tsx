@@ -49,7 +49,13 @@ export function EmbeddingBackfillTable({ runs, busy, now, onRun }: EmbeddingBack
     <div className="faq-table-wrapper">
       <table className="faq-table embedding-backfill-table">
         <thead>
-          <tr><th>대상</th><th>채우는 내용</th><th>상태</th><th>결과</th><th>관리</th></tr>
+          <tr>
+            <th>대상</th>
+            <th>채우는 내용</th>
+            <th>상태</th>
+            <th>결과</th>
+            <th>관리</th>
+          </tr>
         </thead>
         <tbody>
           {EMBEDDING_BACKFILL_TARGETS.map((target) => {
@@ -60,7 +66,9 @@ export function EmbeddingBackfillTable({ runs, busy, now, onRun }: EmbeddingBack
                 <td className="embedding-backfill-table__name">{name}</td>
                 <td>{description}</td>
                 <td>
-                  <span className={`embedding-backfill-status embedding-backfill-status--${run.status}`}>
+                  <span
+                    className={`embedding-backfill-status embedding-backfill-status--${run.status}`}
+                  >
                     {STATUS_LABELS[run.status]}
                   </span>
                 </td>
@@ -72,7 +80,12 @@ export function EmbeddingBackfillTable({ runs, busy, now, onRun }: EmbeddingBack
                 </td>
                 <td>
                   <div className="faq-row-actions">
-                    <button className="table-action-button" disabled={busy} onClick={() => onRun(target)} type="button">
+                    <button
+                      className="table-action-button"
+                      disabled={busy}
+                      onClick={() => onRun(target)}
+                      type="button"
+                    >
                       {run.status === 'failed' ? '다시 실행' : '실행'}
                     </button>
                   </div>

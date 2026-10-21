@@ -3,10 +3,13 @@ import { NavLink } from 'react-router-dom'
 const menuItems = [
   { label: 'FAQ 대시보드', to: '/admin/dashboard' },
   { label: '운영 대시보드', to: '/admin/operation' },
+  { label: '상담 안전성 모니터링', to: '/admin/counsel-safety' },
+  { label: '상담 금지 문장', to: '/admin/counsel-sentences' },
   { label: 'FAQ 관리', to: '/admin/faqs' },
   { label: '상품 관리', to: '/admin/products' },
   { label: '매장 관리', to: '/admin/stores' },
   { label: '매장 예약 관리', to: '/admin/reservations' },
+  { label: '고객문의', to: '/admin/inquiries' },
   { label: '공지·장애 관리', to: '/admin/notices' },
   { label: '금지어 관리', to: '/admin/forbidden-words' },
   { label: '미응답 질문 관리', to: '/admin/unanswered-groups' },
@@ -17,20 +20,33 @@ const menuItems = [
 export function AdminSidebar() {
   return (
     <aside className="admin-sidebar">
-      <p className="admin-logo">U<span>Bot</span> Admin</p>
+      <p className="admin-logo">
+        U<span>Bot</span> Admin
+      </p>
       <nav className="admin-navigation" aria-label="관리자 메뉴">
         <p className="admin-navigation__label">콘텐츠 관리</p>
-        {menuItems.map(({ label, to }) => (
+        {menuItems.map(({ label, to }) =>
           to ? (
-            <NavLink className={({ isActive }) => `admin-navigation__item${isActive ? ' admin-navigation__item--active' : ''}`} key={label} to={to}>
+            <NavLink
+              className={({ isActive }) =>
+                `admin-navigation__item${isActive ? ' admin-navigation__item--active' : ''}`
+              }
+              key={label}
+              to={to}
+            >
               {label}
             </NavLink>
           ) : (
-            <span aria-disabled="true" className="admin-navigation__item admin-navigation__item--disabled" key={label}>
-              {label}<small>준비 중</small>
+            <span
+              aria-disabled="true"
+              className="admin-navigation__item admin-navigation__item--disabled"
+              key={label}
+            >
+              {label}
+              <small>준비 중</small>
             </span>
-          )
-        ))}
+          ),
+        )}
       </nav>
     </aside>
   )

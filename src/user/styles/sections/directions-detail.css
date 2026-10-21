@@ -1,0 +1,357 @@
+/* 상세 경로 목록: 칸 대신 구분선으로 나누고, 번호끼리는 옅은 회색 점선으로 잇는다 */
+.ubot-user-app .direction-guide-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px 28px minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  padding: 10px 4px;
+  gap: 8px;
+  border: 0;
+  border-bottom: 1px solid #f0f1f4;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s ease
+}
+
+.ubot-user-app .direction-guide-item:last-child {
+  border-bottom: 0
+}
+
+.ubot-user-app .direction-guide-item::before {
+  position: absolute;
+  top: 0;
+  bottom: -1px;
+  left: 18px;
+  border-left: 2px dotted #d5d7db;
+  content: ""
+}
+
+.ubot-user-app .direction-guide-item:first-child::before {
+  top: 50%
+}
+
+.ubot-user-app .direction-guide-item:last-child::before {
+  bottom: 50%
+}
+
+.ubot-user-app .direction-guide-item:hover,
+.ubot-user-app .direction-guide-item.hovered {
+  background: var(--soft)
+}
+
+.ubot-user-app .direction-guide-item.active {
+  background: var(--pink-soft)
+}
+
+.ubot-user-app .direction-guide-no {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-self: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  place-items: center;
+  border: 1.5px solid var(--map-gray);
+  border-radius: 999px;
+  color: var(--map-gray);
+  background: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1
+}
+
+.ubot-user-app .direction-guide-no.start {
+  color: #fff;
+  background: var(--map-gray)
+}
+
+/* 도착 지점만 핑크로 구분한다. */
+.ubot-user-app .direction-guide-no.end {
+  border-color: var(--pink);
+  color: #fff;
+  background: var(--pink)
+}
+
+.ubot-user-app .direction-guide-item.hovered .direction-guide-no.step,
+.ubot-user-app .direction-guide-item.active .direction-guide-no.step {
+  color: #fff;
+  background: var(--pink)
+}
+
+.ubot-user-app .direction-guide-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--map-gray);
+  background: var(--soft)
+}
+
+.ubot-user-app .direction-guide-item .direction-guide-icon {
+  position: relative;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px
+}
+
+.ubot-user-app .direction-guide-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round
+}
+
+.ubot-user-app .direction-guide-item .direction-guide-icon svg {
+  width: 18px;
+  height: 18px
+}
+
+.ubot-user-app .direction-guide-icon svg.filled {
+  fill: currentColor;
+  stroke: none
+}
+
+.ubot-user-app .direction-guide-item.hovered .direction-guide-icon,
+.ubot-user-app .direction-guide-item.active .direction-guide-icon {
+  color: #fff;
+  background: var(--pink)
+}
+
+.ubot-user-app .direction-guide-icon.tinted {
+  color: #fff;
+  background: var(--icon-color)
+}
+
+.ubot-user-app .direction-guide-item.hovered .direction-guide-icon.tinted,
+.ubot-user-app .direction-guide-item.active .direction-guide-icon.tinted {
+  background: var(--icon-color);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--icon-color)
+}
+
+.ubot-user-app .direction-guide-body {
+  min-width: 0
+}
+
+.ubot-user-app .direction-guide-text {
+  display: block;
+  color: #1b1c1f;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45
+}
+
+.ubot-user-app .direction-guide-body small {
+  display: block;
+  margin-top: 3px;
+  color: #84878e;
+  font-size: 10px
+}
+
+/* 지도 마커는 지도를 덜 가리도록 목록 배지보다 더 작게 */
+.ubot-user-app .direction-guide-marker {
+  display: grid;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 2px;
+  place-items: center;
+  border: 1px solid var(--map-gray);
+  border-radius: 999px;
+  color: var(--map-gray);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(23, 23, 26, .25);
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease, color .15s ease
+}
+
+.ubot-user-app .direction-guide-marker:hover,
+.ubot-user-app .direction-guide-marker.hovered,
+.ubot-user-app .direction-guide-marker.active {
+  color: #fff;
+  background: var(--map-gray);
+  transform: scale(1.4)
+}
+
+.ubot-user-app .direction-step-marker {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--icon-color, var(--map-gray));
+  box-shadow: 0 1px 4px rgba(23, 23, 26, .3);
+  cursor: pointer;
+  transition: transform .15s ease
+}
+
+.ubot-user-app .direction-step-marker svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round
+}
+
+.ubot-user-app .direction-step-marker:hover,
+.ubot-user-app .direction-step-marker.hovered,
+.ubot-user-app .direction-step-marker.active {
+  transform: scale(1.3);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 2px 8px rgba(23, 23, 26, .35)
+}
+
+.ubot-user-app .direction-endpoint-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 2px 3px rgba(23, 23, 26, .3));
+  pointer-events: none
+}
+
+.ubot-user-app .direction-endpoint-marker span {
+  padding: 4px 9px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--map-gray);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: nowrap
+}
+
+.ubot-user-app .direction-endpoint-marker i {
+  width: 0;
+  height: 0;
+  margin-top: -2px;
+  border-top: 8px solid var(--map-gray);
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent
+}
+
+.ubot-user-app .direction-endpoint-marker.end span {
+  background: var(--pink)
+}
+
+.ubot-user-app .direction-endpoint-marker.end i {
+  border-top-color: var(--pink)
+}
+
+.ubot-user-app .direction-guide-popup {
+  position: relative;
+  bottom: 22px;
+  display: flex;
+  align-items: center;
+  width: max-content;
+  min-width: 230px;
+  max-width: min(460px, 80vw);
+  padding: 10px 8px 10px 16px;
+  gap: 10px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(23, 23, 26, .2)
+}
+
+.ubot-user-app .direction-guide-popup:before {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--pink);
+  content: ""
+}
+
+.ubot-user-app .direction-guide-popup:after {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  transform: translateX(-50%) rotate(45deg);
+  content: ""
+}
+
+.ubot-user-app .direction-guide-popup .direction-guide-icon {
+  flex: 0 0 auto
+}
+
+.ubot-user-app .direction-guide-popup-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #1b1c1f;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: keep-all
+}
+
+.ubot-user-app .direction-guide-popup-nav {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px
+}
+
+.ubot-user-app .direction-guide-popup button {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #d9dce2;
+  border-radius: 50%;
+  color: #4f535b;
+  background: #fff;
+  cursor: pointer
+}
+
+/* 글자(‹ ›)는 글꼴마다 위아래 여백이 달라 가운데에서 벗어나므로 SVG 아이콘으로 그린다. */
+.ubot-user-app .direction-guide-popup button span {
+  display: grid;
+  place-items: center
+}
+
+.ubot-user-app .direction-guide-popup button svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round
+}
+
+.ubot-user-app .direction-guide-popup button:hover:not(:disabled) {
+  border-color: rgba(247, 37, 133, .35);
+  color: var(--pink-dark);
+  background: var(--soft)
+}
+
+.ubot-user-app .direction-guide-popup button:disabled {
+  cursor: default;
+  opacity: .35
+}
+
+.ubot-user-app .direction-guide-popup .direction-guide-popup-close {
+  align-self: flex-start;
+  border: 0;
+  color: #8b8e95
+}
+

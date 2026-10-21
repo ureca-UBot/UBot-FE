@@ -1,6 +1,12 @@
 import { apiClient } from '../../../shared/api/client'
+import type {
+  AddonService,
+  BundleProduct,
+  PlanDetail,
+  PlanSummary,
+  RoamingProduct,
+} from '../../../shared/product/types'
 import type { PageResponse } from '../../../shared/types/api'
-import type { AddonService, BundleProduct, PlanDetail, PlanSummary, RoamingProduct } from '../types/product'
 
 export interface ProductListParams {
   keyword?: string
@@ -26,19 +32,25 @@ export const productApi = {
   getPlan: (planId: number) => apiClient.get<PlanDetail>(`/api/plans/${planId}`),
 
   getBundleProductList: (params: ProductListParams = {}) =>
-    apiClient.get<PageResponse<BundleProduct>>(`/api/bundle-products?${listQuery(params).toString()}`),
+    apiClient.get<PageResponse<BundleProduct>>(
+      `/api/bundle-products?${listQuery(params).toString()}`,
+    ),
   getBundleProduct: (bundleProductId: number) =>
     apiClient.get<BundleProduct>(`/api/bundle-products/${bundleProductId}`),
 
   getAddonServiceList: (params: ProductListParams = {}) =>
-    apiClient.get<PageResponse<AddonService>>(`/api/addon-services?${listQuery(params).toString()}`),
+    apiClient.get<PageResponse<AddonService>>(
+      `/api/addon-services?${listQuery(params).toString()}`,
+    ),
   getAddonService: (addonServiceId: number) =>
     apiClient.get<AddonService>(`/api/addon-services/${addonServiceId}`),
 
   getRoamingProductList: ({ country, ...params }: RoamingProductListParams = {}) => {
     const searchParams = listQuery(params)
     if (country?.trim()) searchParams.set('country', country.trim())
-    return apiClient.get<PageResponse<RoamingProduct>>(`/api/roaming-products?${searchParams.toString()}`)
+    return apiClient.get<PageResponse<RoamingProduct>>(
+      `/api/roaming-products?${searchParams.toString()}`,
+    )
   },
   getRoamingProduct: (roamingProductId: number) =>
     apiClient.get<RoamingProduct>(`/api/roaming-products/${roamingProductId}`),

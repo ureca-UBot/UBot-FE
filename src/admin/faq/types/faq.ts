@@ -34,10 +34,38 @@ export interface FaqUpdateRequest {
   similarQuestions: string[]
 }
 
-export interface FaqRestoreRequest { faqIds: number[] }
+export interface FaqRestoreRequest {
+  faqIds: number[]
+}
 
-export interface FaqCategoryResponse { faqCategoryId: number; name: string; createdAt: string; updatedAt: string }
-export interface FaqCategoryCreateRequest { name: string }
-export interface FaqCategoryUpdateRequest { afterName: string }
-export interface FaqLogResponse { id: number; questionLogId: number; faqId: number; rank: number; similarity: number; createdAt: string }
-export interface OldFaqResponse { faqId: number; version: number; categoryId: number; question: string; answer: string; intent: FaqIntent; createdById: number | null; updatedById: number | null; updatedAt: string }
+export interface FaqCategoryResponse {
+  faqCategoryId: number
+  name: string
+  createdAt: string
+  updatedAt: string
+}
+export interface FaqCategoryCreateRequest {
+  name: string
+}
+export interface FaqCategoryUpdateRequest {
+  afterName: string
+}
+export interface FaqLogResponse {
+  id: number
+  questionLogId: number
+  faqId: number
+  rank: number
+  similarity: number
+  createdAt: string
+}
+export interface OldFaqResponse {
+  faqId: number
+  version: number
+  categoryId: number
+  question: string
+  answer: string
+  intent: FaqIntent
+  createdById: number | null
+  updatedById: number | null
+  updatedAt: string
+}

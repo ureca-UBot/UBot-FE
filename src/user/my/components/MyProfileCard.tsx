@@ -35,7 +35,8 @@ function validate(form: ProfileForm) {
   if (name.length > 20) return '이름은 20자까지 입력할 수 있습니다.'
   if (!residenceArea) return '거주 지역을 입력해 주세요.'
   if (residenceArea.length > 100) return '거주 지역은 100자까지 입력할 수 있습니다.'
-  if (form.birthDate && form.birthDate > today()) return '생년월일은 오늘 이후로 입력할 수 없습니다.'
+  if (form.birthDate && form.birthDate > today())
+    return '생년월일은 오늘 이후로 입력할 수 없습니다.'
   return null
 }
 
@@ -78,7 +79,9 @@ export function MyProfileCard({ active }: { active: boolean }) {
       .catch((error: unknown) => {
         if (!cancelled) setLoadError(errorMessage(error, '회원 정보를 불러오지 못했습니다.'))
       })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [active, refreshProfile])
 
   function updateField<Key extends keyof ProfileForm>(key: Key, value: ProfileForm[Key]) {
@@ -132,45 +135,115 @@ export function MyProfileCard({ active }: { active: boolean }) {
     <section className="my-profile" aria-labelledby="myProfileTitle">
       <div className="my-profile-head">
         <h3 id="myProfileTitle">회원 정보</h3>
-        {profile && !form && <button className="my-profile-ghost" onClick={startEdit} type="button">수정</button>}
+        {profile && !form && (
+          <button className="my-profile-ghost" onClick={startEdit} type="button">
+            수정
+          </button>
+        )}
       </div>
 
-      {!profile && !loadError && <p className="my-profile-message">회원 정보를 불러오는 중입니다.</p>}
-      {loadError && <p className="my-profile-message error" role="alert">{loadError}</p>}
+      {!profile && !loadError && (
+        <p className="my-profile-message">회원 정보를 불러오는 중입니다.</p>
+      )}
+      {loadError && (
+        <p className="my-profile-message error" role="alert">
+          {loadError}
+        </p>
+      )}
 
       {profile && !form && (
         <dl className="my-profile-list">
-          <dt>이메일</dt><dd>{profile.email}</dd>
-          <dt>이름</dt><dd>{profile.name}</dd>
-          <dt>생년월일</dt><dd>{profile.birthDate ?? '-'}</dd>
-          <dt>성별</dt><dd>{profile.gender ? genderLabels[profile.gender] : '-'}</dd>
-          <dt>거주 지역</dt><dd>{profile.residenceArea ?? '-'}</dd>
-          <dt>가입일</dt><dd>{profile.createdAt.slice(0, 10)}</dd>
+          <dt>이메일</dt>
+          <dd>{profile.email}</dd>
+          <dt>이름</dt>
+          <dd>{profile.name}</dd>
+          <dt>생년월일</dt>
+          <dd>{profile.birthDate ?? '-'}</dd>
+          <dt>성별</dt>
+          <dd>{profile.gender ? genderLabels[profile.gender] : '-'}</dd>
+          <dt>거주 지역</dt>
+          <dd>{profile.residenceArea ?? '-'}</dd>
+          <dt>가입일</dt>
+          <dd>{profile.createdAt.slice(0, 10)}</dd>
         </dl>
       )}
 
       {profile && form && (
         <form className="my-profile-form" onSubmit={handleSubmit}>
-          <label className="my-profile-form__full"><span>이메일</span><input disabled value={profile.email} /></label>
-          <label><span>이름</span><input disabled={saving} maxLength={20} onChange={(event) => updateField('name', event.target.value)} required value={form.name} /></label>
-          <label><span>생년월일</span><input disabled={saving} max={today()} onChange={(event) => updateField('birthDate', event.target.value)} type="date" value={form.birthDate} /></label>
-          <label><span>성별</span>
-            <select disabled={saving} onChange={(event) => updateField('gender', event.target.value as ProfileForm['gender'])} value={form.gender}>
+          <label className="my-profile-form__full">
+            <span>이메일</span>
+            <input disabled value={profile.email} />
+          </label>
+          <label>
+            <span>이름</span>
+            <input
+              disabled={saving}
+              maxLength={20}
+              onChange={(event) => updateField('name', event.target.value)}
+              required
+              value={form.name}
+            />
+          </label>
+          <label>
+            <span>생년월일</span>
+            <input
+              disabled={saving}
+              max={today()}
+              onChange={(event) => updateField('birthDate', event.target.value)}
+              type="date"
+              value={form.birthDate}
+            />
+          </label>
+          <label>
+            <span>성별</span>
+            <select
+              disabled={saving}
+              onChange={(event) =>
+                updateField('gender', event.target.value as ProfileForm['gender'])
+              }
+              value={form.gender}
+            >
               {!form.gender && <option value="">선택해 주세요</option>}
               <option value="MALE">남성</option>
               <option value="FEMALE">여성</option>
             </select>
           </label>
-          <label><span>거주 지역</span><input disabled={saving} maxLength={100} onChange={(event) => updateField('residenceArea', event.target.value)} required value={form.residenceArea} /></label>
-          {saveError && <p className="my-profile-message error my-profile-form__full" role="alert">{saveError}</p>}
+          <label>
+            <span>거주 지역</span>
+            <input
+              disabled={saving}
+              maxLength={100}
+              onChange={(event) => updateField('residenceArea', event.target.value)}
+              required
+              value={form.residenceArea}
+            />
+          </label>
+          {saveError && (
+            <p className="my-profile-message error my-profile-form__full" role="alert">
+              {saveError}
+            </p>
+          )}
           <div className="my-profile-actions">
-            <button className="my-profile-ghost" disabled={saving} onClick={cancelEdit} type="button">취소</button>
-            <button className="black-btn" disabled={saving} type="submit">{saving ? '저장 중...' : '저장'}</button>
+            <button
+              className="my-profile-ghost"
+              disabled={saving}
+              onClick={cancelEdit}
+              type="button"
+            >
+              취소
+            </button>
+            <button className="black-btn" disabled={saving} type="submit">
+              {saving ? '저장 중...' : '저장'}
+            </button>
           </div>
         </form>
       )}
 
-      {notice && !form && <p className="my-profile-message" role="status">{notice}</p>}
+      {notice && !form && (
+        <p className="my-profile-message" role="status">
+          {notice}
+        </p>
+      )}
     </section>
   )
 }

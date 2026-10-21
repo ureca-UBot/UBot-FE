@@ -1,0 +1,47 @@
+/* Shared route */
+.ubot-user-app .route {
+  display: none
+}
+
+.ubot-user-app .route.active {
+  display: block
+}
+
+.ubot-user-app .black-btn,
+.ubot-user-app .product-detail,
+.ubot-user-app .reserve-main,
+.ubot-user-app .network-detail-card>button {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--ink);
+  font-size: 14px;
+  font-weight: 750
+}
+
+.ubot-user-app .black-btn:hover,
+.ubot-user-app .product-detail:hover,
+.ubot-user-app .reserve-main:hover,
+.ubot-user-app .network-detail-card>button:hover {
+  background: #303035
+}
+
+.ubot-user-app .black-btn.wide {
+  width: 100%;
+  border-radius: var(--r-sm)
+}
+
+.ubot-user-app .link-btn,
+.ubot-user-app .text-link,
+.ubot-user-app .white-link {
+  min-height: 44px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 750
+}
+
+

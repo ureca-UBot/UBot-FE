@@ -18,7 +18,8 @@ export function collectStoreMaps(turns: ChatTurn[]): ChatStoreMapEntry[] {
     if (map) entries.push({ key: storeMapKey(turn.id), map })
     turn.researches.forEach((research) => {
       const researchMap = research.response?.store?.map
-      if (researchMap) entries.push({ key: storeMapKey(turn.id, research.intent), map: researchMap })
+      if (researchMap)
+        entries.push({ key: storeMapKey(turn.id, research.intent), map: researchMap })
     })
   })
   return entries

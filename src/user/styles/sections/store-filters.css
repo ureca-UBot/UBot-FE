@@ -1,0 +1,173 @@
+/* Store service multi-select dropdown */
+.ubot-user-app .store-service-filter {
+  position: relative
+}
+
+.ubot-user-app .store-region-search .store-service-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  align-items: center;
+  justify-content: space-between;
+  border-color: #d6d7db;
+  color: #383a40;
+  background: #fff;
+  font-weight: 700;
+  text-align: left
+}
+
+.ubot-user-app .store-service-toggle i {
+  color: #8b8e95;
+  font-size: 15px;
+  font-style: normal;
+  transition: transform .18s ease
+}
+
+.ubot-user-app .store-service-toggle[aria-expanded="true"] {
+  border-color: rgba(247, 37, 133, .35);
+  box-shadow: 0 0 0 3px rgba(247, 37, 133, .09)
+}
+
+.ubot-user-app .store-service-toggle[aria-expanded="true"] i {
+  transform: rotate(180deg)
+}
+
+.ubot-user-app .store-service-options {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  left: 0;
+  z-index: 30;
+  display: grid;
+  min-height: 0;
+  padding: 7px;
+  gap: 4px;
+  border-color: #d9dce2;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(24, 37, 58, .16)
+}
+
+.ubot-user-app .store-service-options[hidden] {
+  display: none !important
+}
+
+.ubot-user-app .store-service-options label {
+  width: 100%
+}
+
+.ubot-user-app .store-service-options span {
+  display: flex;
+  min-height: 38px;
+  padding: 0 11px;
+  align-items: center;
+  justify-content: flex-start
+}
+
+.ubot-user-app .store-service-options input:checked+span:after {
+  margin-left: auto;
+  color: var(--pink);
+  content: "✓";
+  font-size: 13px;
+  font-weight: 900
+}
+
+.ubot-user-app button.store-search-submit,
+.ubot-user-app button.store-region-submit,
+.ubot-user-app .store-list-footer .reserve-main {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, #ff4f9f, #f72585);
+  box-shadow: 0 7px 16px rgba(247, 37, 133, .2);
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease
+}
+
+.ubot-user-app button.store-search-submit:hover,
+.ubot-user-app button.store-region-submit:hover,
+.ubot-user-app .store-list-footer .reserve-main:hover {
+  background: linear-gradient(135deg, #ff68ad, #e91875);
+  box-shadow: 0 10px 21px rgba(247, 37, 133, .28);
+  transform: translateY(-1px)
+}
+
+.ubot-user-app button.store-search-submit:disabled,
+.ubot-user-app button.store-region-submit:disabled,
+.ubot-user-app .store-list-footer .reserve-main:disabled {
+  box-shadow: none;
+  transform: none
+}
+
+.ubot-user-app .store-pagination {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 13px;
+  gap: 8px
+}
+
+.ubot-user-app .store-pagination[hidden] {
+  display: none
+}
+
+.ubot-user-app .store-pagination button {
+  min-height: 34px;
+  border: 1px solid #d9dce2;
+  border-radius: 9px;
+  color: #4f535b;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 800
+}
+
+.ubot-user-app .store-pagination button:hover:not(:disabled) {
+  border-color: rgba(247, 37, 133, .35);
+  color: var(--pink-dark);
+  background: var(--soft)
+}
+
+.ubot-user-app .store-pagination button:disabled {
+  cursor: default;
+  opacity: .4
+}
+
+.ubot-user-app .store-pagination span {
+  margin: 0 !important;
+  color: #656971 !important;
+  font-size: 11px !important;
+  font-weight: 800;
+  text-align: center
+}
+
+@media(max-width:1100px) and (min-width:768px) {
+  .ubot-user-app .stores-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr)
+  }
+}
+
+@media(max-width:767px) {
+  .ubot-user-app .stores-grid {
+    display: block
+  }
+
+  .ubot-user-app .stores-map {
+    height: 330px
+  }
+
+  .ubot-user-app .stores-list {
+    margin-top: 20px
+  }
+
+  .ubot-user-app .store-search-large {
+    min-height: 52px
+  }
+
+  .ubot-user-app .store-region-search {
+    grid-template-columns: 1fr 1fr
+  }
+
+  .ubot-user-app .store-service-filter,
+  .ubot-user-app .store-region-search button {
+    grid-column: 1/-1
+  }
+}
+

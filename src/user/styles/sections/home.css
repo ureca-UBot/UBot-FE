@@ -1,0 +1,350 @@
+/* Home */
+.ubot-user-app .editorial-hero {
+  min-height: 650px;
+  overflow: hidden;
+  background: radial-gradient(circle at 78% 55%, rgba(247, 37, 133, .08), transparent 28%), #faf5f8
+}
+
+.ubot-user-app .hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, .95fr) minmax(500px, 1.05fr);
+  align-items: center;
+  width: min(calc(100% - 48px), var(--max));
+  min-height: 650px;
+  margin: auto;
+  gap: 24px
+}
+
+.ubot-user-app .hero-kicker,
+.ubot-user-app .section-kicker,
+.ubot-user-app .story-num,
+.ubot-user-app .product-label {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .06em
+}
+
+.ubot-user-app .hero-copy h1 {
+  margin: 15px 0 24px;
+  font-size: clamp(48px, 4.7vw, 64px);
+  line-height: 1.12;
+  letter-spacing: -.06em
+}
+
+.ubot-user-app .hero-copy h1 em {
+  color: var(--pink);
+  font-style: normal
+}
+
+.ubot-user-app .hero-copy p {
+  margin: 0;
+  color: #555961;
+  font-size: 17px;
+  line-height: 1.75
+}
+
+.ubot-user-app .hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 34px
+}
+
+.ubot-user-app .hero-art {
+  position: relative;
+  height: 555px
+}
+
+.ubot-user-app .pink-orbit {
+  position: absolute;
+  top: 66px;
+  right: 8px;
+  width: 430px;
+  height: 430px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0 8%, #ffd8e9 24%, #f8bdd7 62%, #f5a4ca 100%)
+}
+
+.ubot-user-app .phone {
+  position: absolute;
+  width: 235px;
+  height: 485px;
+  padding: 9px;
+  border-radius: 40px;
+  background: #101012;
+  box-shadow: var(--shadow-lg)
+}
+
+.ubot-user-app .phone:before {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  z-index: 2;
+  width: 80px;
+  height: 21px;
+  border-radius: 0 0 14px 14px;
+  background: #101012;
+  content: "";
+  transform: translateX(-50%)
+}
+
+.ubot-user-app .screen {
+  height: 100%;
+  padding: 36px 19px 20px;
+  overflow: hidden;
+  border-radius: 32px;
+  background: #fff
+}
+
+.ubot-user-app .phone-back {
+  top: 48px;
+  left: 58px;
+  transform: rotate(-7deg)
+}
+
+.ubot-user-app .phone-front {
+  top: 20px;
+  right: 22px;
+  transform: rotate(7deg)
+}
+
+.ubot-user-app .screen-logo {
+  gap: 6px;
+  margin-bottom: 58px
+}
+
+.ubot-user-app .screen-logo img {
+  width: 28px;
+  height: 26px;
+  object-fit: contain
+}
+
+.ubot-user-app .screen-logo b {
+  font-size: 15px;
+  letter-spacing: -.05em
+}
+
+.ubot-user-app .screen-caption {
+  color: var(--subtle);
+  font-size: 12px
+}
+
+.ubot-user-app .screen-price {
+  display: block;
+  margin: 7px 0 14px;
+  font-size: 28px
+}
+
+.ubot-user-app .usage-line {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ededf0
+}
+
+.ubot-user-app .usage-line span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pink)
+}
+
+.ubot-user-app .screen-menu {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-top: 14px
+}
+
+.ubot-user-app .screen-menu i {
+  padding: 12px 4px;
+  border-radius: 11px;
+  background: #f4f4f6;
+  font-size: 11px;
+  font-style: normal;
+  text-align: center
+}
+
+.ubot-user-app .screen-title {
+  display: block;
+  margin: 8px 0 18px;
+  font-size: 20px;
+  line-height: 1.4
+}
+
+.ubot-user-app .signal-art {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #f1f1f3
+}
+
+.ubot-user-app .signal-art i {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff
+}
+
+.ubot-user-app .signal-art i:nth-child(1) {
+  top: 25px;
+  left: -10px;
+  width: 85px;
+  height: 85px
+}
+
+.ubot-user-app .signal-art i:nth-child(2) {
+  top: 15px;
+  right: 10px;
+  width: 70px;
+  height: 70px
+}
+
+.ubot-user-app .signal-art i:nth-child(3) {
+  bottom: 10px;
+  left: 45px;
+  width: 60px;
+  height: 60px
+}
+
+.ubot-user-app .signal-art strong {
+  position: absolute;
+  right: 25px;
+  bottom: 35px;
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--pink)
+}
+
+.ubot-user-app .screen-note {
+  display: block;
+  margin-top: 13px;
+  color: var(--subtle);
+  font-size: 12px
+}
+
+.ubot-user-app .float-note {
+  position: absolute;
+  padding: 10px 15px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  font-weight: 750
+}
+
+.ubot-user-app .n1 {
+  top: 335px;
+  left: 0
+}
+
+.ubot-user-app .n2 {
+  top: 400px;
+  right: -4px
+}
+
+.ubot-user-app .hero-copy .hero-kicker,
+.ubot-user-app .hero-copy h1,
+.ubot-user-app .hero-copy p,
+.ubot-user-app .hero-copy .hero-actions {
+  opacity: 0;
+  animation: heroRise .65s cubic-bezier(.2, .75, .25, 1) forwards
+}
+
+.ubot-user-app .hero-copy h1 {
+  animation-delay: .08s
+}
+
+.ubot-user-app .hero-copy p {
+  animation-delay: .16s
+}
+
+.ubot-user-app .hero-copy .hero-actions {
+  animation-delay: .24s
+}
+
+.ubot-user-app .pink-orbit {
+  animation: orbitBreath 6.5s ease-in-out infinite
+}
+
+.ubot-user-app .phone-back {
+  animation: phoneFloatBack 5.8s ease-in-out infinite
+}
+
+.ubot-user-app .phone-front {
+  animation: phoneFloatFront 5.1s ease-in-out infinite
+}
+
+.ubot-user-app .float-note {
+  animation: noteFloat 4.6s ease-in-out infinite
+}
+
+.ubot-user-app .n2 {
+  animation-delay: -2.1s
+}
+
+@keyframes heroRise {
+  from {
+    opacity: 0;
+    transform: translateY(24px)
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0)
+  }
+}
+
+@keyframes orbitBreath {
+
+  0%,
+  100% {
+    transform: scale(1)
+  }
+
+  50% {
+    transform: scale(1.035)
+  }
+}
+
+@keyframes phoneFloatBack {
+
+  0%,
+  100% {
+    translate: 0 0
+  }
+
+  50% {
+    translate: 0 -10px
+  }
+}
+
+@keyframes phoneFloatFront {
+
+  0%,
+  100% {
+    translate: 0 0
+  }
+
+  50% {
+    translate: 0 12px
+  }
+}
+
+@keyframes noteFloat {
+
+  0%,
+  100% {
+    translate: 0 0
+  }
+
+  50% {
+    translate: 0 -7px
+  }
+}
+
+

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useModalFocus } from '../../../shared/hooks/useModalFocus'
 import { adminForbiddenWordApi } from '../api/forbiddenWordApi'
 import type { ForbiddenWordResponse } from '../types/forbiddenWord'
 
@@ -8,7 +9,16 @@ interface ForbiddenWordEditModalProps {
   onSaved: () => void
 }
 
-export function ForbiddenWordEditModal({ forbiddenWord, onClose, onSaved }: ForbiddenWordEditModalProps) {
+export function ForbiddenWordEditModal({
+  forbiddenWord,
+  onClose,
+  onSaved,
+}: ForbiddenWordEditModalProps) {
+  const modalFocusRef = useModalFocus<HTMLFormElement>(() => {
+    if (saving) return
+    onClose()
+  })
+
   const [word, setWord] = useState(forbiddenWord.word)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,16 +45,32 @@ export function ForbiddenWordEditModal({ forbiddenWord, onClose, onSaved }: Forb
 
   return (
     <div className="modal-backdrop">
-      <form aria-labelledby="forbidden-word-edit-title" aria-modal="true" className="faq-modal" onSubmit={(event) => void save(event)} role="dialog">
+      <form
+        ref={modalFocusRef}
+        aria-labelledby="forbidden-word-edit-title"
+        aria-modal="true"
+        className="faq-modal"
+        onSubmit={(event) => void save(event)}
+        role="dialog"
+      >
         <h2 id="forbidden-word-edit-title">금지어 수정</h2>
         <label>
           금지어
-          <input autoFocus maxLength={100} onChange={(event) => setWord(event.target.value)} value={word} />
+          <input
+            autoFocus
+            maxLength={100}
+            onChange={(event) => setWord(event.target.value)}
+            value={word}
+          />
         </label>
         {error && <p className="login-error">{error}</p>}
         <div className="faq-modal__actions">
-          <button className="primary-button" disabled={saving} type="submit">{saving ? '수정 중...' : '수정'}</button>
-          <button className="secondary-button" disabled={saving} onClick={onClose} type="button">취소</button>
+          <button className="primary-button" disabled={saving} type="submit">
+            {saving ? '수정 중...' : '수정'}
+          </button>
+          <button className="secondary-button" disabled={saving} onClick={onClose} type="button">
+            취소
+          </button>
         </div>
       </form>
     </div>

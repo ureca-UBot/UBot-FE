@@ -12,7 +12,13 @@ export function ProductLayout() {
     <section>
       <nav aria-label="상품 종류" className="faq-tabs">
         {tabs.map(([label, to]) => (
-          <NavLink className={({ isActive }) => `faq-tab${isActive ? ' faq-tab--active' : ''}`} key={to} to={to}>{label}</NavLink>
+          <NavLink
+            className={({ isActive }) => `faq-tab${isActive ? ' faq-tab--active' : ''}`}
+            key={to}
+            to={to}
+          >
+            {label}
+          </NavLink>
         ))}
       </nav>
       <Outlet />
