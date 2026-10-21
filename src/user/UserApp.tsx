@@ -7,21 +7,17 @@ import { DesktopHeader } from './layout/DesktopHeader'
 import { MobileBottomNav } from './layout/MobileBottomNav'
 import { MobileHeader } from './layout/MobileHeader'
 import { NoticeBanners } from './notice/components/NoticeBanners'
-import { BenefitsPage } from './pages/BenefitsPage'
-import { HomePage } from './pages/HomePage'
+import { CustomerCenterPage } from './pages/CustomerCenterPage'
 import { MyPage } from './pages/MyPage'
 import { NoticePage } from './pages/NoticePage'
-import { ProductPage } from './pages/ProductPage'
 import { StoreLocatorPage } from './pages/StoreLocatorPage'
 import { StorePage } from './pages/StorePage'
-import { SupportPage } from './pages/SupportPage'
 import { userPageTitles } from './routes'
 import './styles/user.css'
 
 export default function UserApp() {
   const {
     page,
-    heroIndex,
     loggedIn,
     user,
     isInitializing,
@@ -36,7 +32,6 @@ export default function UserApp() {
     activeDialog,
     reserveStore,
     toast,
-    productTitle,
     handleClick,
     handleKeyDown,
     handleLoginSuccess,
@@ -48,31 +43,23 @@ export default function UserApp() {
   return (
     <div className="ubot-user-app" onClick={handleClick} onKeyDown={handleKeyDown}>
       <NoticeBanners onNoticePage={page === 'notices'} />
-      <DesktopHeader loggedIn={loggedIn} memberName={memberName} scrolled={scrolled} page={page} />
+      <DesktopHeader
+        canLogout={Boolean(user)}
+        loggedIn={loggedIn || Boolean(user)}
+        memberName={memberName}
+        scrolled={scrolled}
+        page={page}
+      />
       <MobileHeader title={userPageTitles[page]} />
       <main>
-        <VisitedPage active={page === 'home'}>
-          <HomePage
-            active={page === 'home'}
-            heroIndex={heroIndex}
-            loggedIn={loggedIn}
-            memberName={memberName}
-          />
-        </VisitedPage>
         <VisitedPage active={page === 'store'}>
           <StorePage active={page === 'store'} />
-        </VisitedPage>
-        <VisitedPage active={page === 'product'}>
-          <ProductPage active={page === 'product'} productTitle={productTitle} />
         </VisitedPage>
         <VisitedPage active={page === 'my'}>
           <MyPage active={page === 'my'} loggedIn={loggedIn} />
         </VisitedPage>
-        <VisitedPage active={page === 'benefits'}>
-          <BenefitsPage active={page === 'benefits'} />
-        </VisitedPage>
-        <VisitedPage active={page === 'support'}>
-          <SupportPage active={page === 'support'} />
+        <VisitedPage active={page === 'customer'}>
+          <CustomerCenterPage active={page === 'customer'} />
         </VisitedPage>
         <VisitedPage active={page === 'stores'}>
           <StoreLocatorPage active={page === 'stores'} />
@@ -90,7 +77,6 @@ export default function UserApp() {
             context={context}
             isDemo={isAiDemo}
             isInitializing={isInitializing}
-            memberName={memberName}
             residenceArea={profile?.residenceArea}
           />
         </VisitedPage>

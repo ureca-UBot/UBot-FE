@@ -646,6 +646,7 @@
   }
 
   .ubot-user-app .ai-app {
+    height: auto;
     min-height: calc(100vh - 126px);
     border: 0;
     border-radius: 0;
@@ -659,47 +660,22 @@
 
   .ubot-user-app .ai-layout {
     display: block;
+    height: auto;
     min-height: 0
   }
 
   .ubot-user-app .ai-center {
+    height: auto;
     min-height: 0
   }
 
-  .ubot-user-app .ai-center>.ranking-faq {
-    top: 12px;
-    right: 18px;
-    left: 18px
-  }
-
   .ubot-user-app .ai-center>.status-line {
-    top: 78px;
+    top: 18px;
     left: 18px
   }
 
   .ubot-user-app .ai-home-view {
-    padding: 96px 18px 28px
-  }
-
-  .ubot-user-app .ranking-faq__header {
-    min-height: 62px;
-    padding: 12px 14px
-  }
-
-  .ubot-user-app .ranking-faq__content {
-    padding: 0 14px 12px
-  }
-
-  .ubot-user-app .ranking-faq__title-wrap h2 {
-    font-size: 17px
-  }
-
-  .ubot-user-app .ranking-faq__toggle {
-    padding: 0 7px
-  }
-
-  .ubot-user-app .ranking-faq__toggle span {
-    display: none
+    padding: 48px 18px 28px
   }
 
   .ubot-user-app .ai-greeting h1 {
@@ -714,7 +690,7 @@
   .ubot-user-app .ai-chat-view {
     height: calc(100vh - 176px);
     min-height: 0;
-    padding-top: 72px
+    padding-top: 20px
   }
 
   .ubot-user-app .chat-thread {
@@ -783,7 +759,7 @@
     left: 0;
     z-index: 70;
     display: grid !important;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     height: calc(68px + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
     border-top: 1px solid rgba(229, 230, 233, .9);
@@ -811,7 +787,8 @@
   }
 
   .ubot-user-app .bottom-nav b {
-    font-size: 11px
+    font-size: 10px;
+    white-space: nowrap
   }
 
   .ubot-user-app .bottom-nav button.active {

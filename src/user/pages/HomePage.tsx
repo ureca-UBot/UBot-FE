@@ -304,7 +304,7 @@ export function HomePage({ active, heroIndex, loggedIn, memberName }: PageProps)
                 </span>
                 <em>↗</em>
               </button>
-              <button data-route="support">
+              <button data-route="notices">
                 <i>03</i>
                 <span>
                   <b>통신 상태</b>
@@ -312,7 +312,7 @@ export function HomePage({ active, heroIndex, loggedIn, memberName }: PageProps)
                 </span>
                 <em>↗</em>
               </button>
-              <button data-route="benefits">
+              <button data-route="store">
                 <i>04</i>
                 <span>
                   <b>나의 혜택</b>
@@ -364,11 +364,11 @@ export function HomePage({ active, heroIndex, loggedIn, memberName }: PageProps)
               <span>▦</span>
               <b>휴대폰</b>
             </button>
-            <button data-route="benefits">
+            <button data-route="store">
               <span>◇</span>
               <b>혜택</b>
             </button>
-            <button data-route="support">
+            <button data-route="notices">
               <span>◉</span>
               <b>통신 상태</b>
             </button>
@@ -387,7 +387,7 @@ export function HomePage({ active, heroIndex, loggedIn, memberName }: PageProps)
             <div className="trend-arrow">↗</div>
           </article>
 
-          <article className="mobile-network" data-route="support">
+          <article className="mobile-network" data-route="notices">
             <div>
               <span>우리 동네 통신 상태</span>
               <h2>역삼동에서 유사 제보가 늘고 있어요</h2>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { rankingApi } from '../api/rankingApi'
 import type { FaqAnswerSelection } from '../types/chat'
 import type {
@@ -9,7 +9,6 @@ import type {
   TrendRankingItem,
 } from '../types/ranking'
 
-type RankingTab = 'popular' | 'national' | 'regional'
 type RankingItem = PopularRankingItem | TrendRankingItem
 
 const RANKING_REFRESH_INTERVAL_MS = 60_000
@@ -100,9 +99,54 @@ function getMetric(item: RankingItem): string {
   return `${item.currentCount}회`
 }
 
-function getCalculatedAt(snapshot: RankingSnapshot<RankingItem> | null | undefined): string {
-  if (!snapshot?.calculatedAt) return '집계 준비 중'
-  return `집계 ${snapshot.calculatedAt.replace('T', ' ').slice(0, 16)}`
+interface RankingSectionProps {
+  title: string
+  criterion: string
+  snapshot: RankingSnapshot<RankingItem> | null | undefined
+  isLoading: boolean
+  loadError: string | null
+  disabled: boolean
+  onSelect: (faq: RankingItem) => void
+}
+
+function RankingSection({
+  title,
+  criterion,
+  snapshot,
+  isLoading,
+  loadError,
+  disabled,
+  onSelect,
+}: RankingSectionProps) {
+  const items = snapshot?.rankings ?? []
+
+  return (
+    <section className="ranking-sidebar__section" aria-label={title}>
+      <div className="ranking-sidebar__section-head">
+        <b>{title}</b>
+        <small>{criterion}</small>
+      </div>
+      {isLoading ? (
+        <p className="ranking-sidebar__status">불러오는 중입니다.</p>
+      ) : loadError ? (
+        <p className="ranking-sidebar__status error">순위를 불러오지 못했습니다.</p>
+      ) : !snapshot || items.length === 0 ? (
+        <p className="ranking-sidebar__status">집계된 질문이 없습니다.</p>
+      ) : (
+        <ol>
+          {items.map((faq) => (
+            <li key={faq.faqId}>
+              <button disabled={disabled} onClick={() => onSelect(faq)} title={faq.question} type="button">
+                <strong>{faq.rank}</strong>
+                <span>{faq.question}</span>
+                <em>{getMetric(faq)}</em>
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  )
 }
 
 export function RankingFaqPanel({
@@ -111,18 +155,14 @@ export function RankingFaqPanel({
   disabled = false,
   onSelectFaq,
 }: RankingFaqPanelProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<RankingTab>('popular')
   const [rankings, setRankings] = useState<RankingResponse | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const rankingsRef = useRef<RankingResponse | null>(null)
   const isRefreshInFlightRef = useRef(false)
-  const panelId = useId()
   const sido = useMemo(() => getSido(residenceArea), [residenceArea])
 
   const refreshRankings = useCallback(async () => {
     if (!active || isRefreshInFlightRef.current) return
-
     isRefreshInFlightRef.current = true
 
     try {
@@ -131,9 +171,7 @@ export function RankingFaqPanel({
       setRankings(response)
       setLoadError(null)
     } catch {
-      if (!rankingsRef.current) {
-        setLoadError('FAQ 순위를 불러오지 못했습니다.')
-      }
+      if (!rankingsRef.current) setLoadError('FAQ 순위를 불러오지 못했습니다.')
     } finally {
       isRefreshInFlightRef.current = false
     }
@@ -143,9 +181,7 @@ export function RankingFaqPanel({
     if (!active) return
 
     const refreshWhenVisible = () => {
-      if (document.visibilityState === 'visible') {
-        void refreshRankings()
-      }
+      if (document.visibilityState === 'visible') void refreshRankings()
     }
 
     refreshWhenVisible()
@@ -160,123 +196,42 @@ export function RankingFaqPanel({
     }
   }, [active, refreshRankings])
 
-  const tabs: { id: RankingTab; label: string }[] = [
-    { id: 'popular', label: '인기 FAQ' },
-    { id: 'national', label: '전국 급상승 FAQ' },
-    { id: 'regional', label: `${REGION_SIDO_LABELS[sido]} 급상승 FAQ` },
-  ]
-  const activeLabel = tabs.find((tab) => tab.id === activeTab)?.label ?? tabs[0].label
-  const selectedSnapshot =
-    activeTab === 'popular'
-      ? rankings?.popular
-      : activeTab === 'national'
-        ? rankings?.trend
-        : rankings?.regionalTrend?.[sido]
-  const faqItems = selectedSnapshot?.rankings ?? []
   const isLoading = active && rankings === null && loadError === null
   const selectionDisabled = disabled || isLoading || !onSelectFaq
-
   const selectFaq = (faq: RankingItem) => {
     if (selectionDisabled) return
-    setIsOpen(false)
-    onSelectFaq({ faqId: faq.faqId, question: faq.question, answer: faq.answer })
+    onSelectFaq?.({ faqId: faq.faqId, question: faq.question, answer: faq.answer })
   }
 
-  const togglePanel = () => setIsOpen((current) => !current)
-
   return (
-    <section
-      className={`ranking-faq${isOpen ? ' is-open' : ''}`}
-      aria-labelledby={`${panelId}-title`}
-    >
-      <div
-        aria-controls={`${panelId}-content`}
-        aria-expanded={isOpen}
-        aria-label={`인기 및 급상승 FAQ ${isOpen ? '접기' : '펼치기'}`}
-        className="ranking-faq__header"
-        onClick={togglePanel}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault()
-            togglePanel()
-          }
-        }}
-        role="button"
-        tabIndex={0}
-      >
-        <div className="ranking-faq__title-wrap">
-          <span className="ranking-faq__spark" aria-hidden="true">
-            ✦
-          </span>
-          <div>
-            <p>지금 많이 찾는 질문</p>
-            <h2 id={`${panelId}-title`}>인기 및 급상승 FAQ</h2>
-          </div>
-        </div>
-        <span className="ranking-faq__toggle" aria-hidden="true">
-          <span>{isOpen ? '접기' : '펼치기'}</span>
-          <svg aria-hidden="true" viewBox="0 0 20 20">
-            <path d="m5 7.5 5 5 5-5" />
-          </svg>
-        </span>
-      </div>
-
-      <div className="ranking-faq__content" id={`${panelId}-content`} hidden={!isOpen}>
-        <div aria-label="FAQ 순위 유형" className="ranking-faq__tabs" role="tablist">
-          {tabs.map((tab) => (
-            <button
-              aria-controls={`${panelId}-results`}
-              aria-selected={activeTab === tab.id}
-              className={activeTab === tab.id ? 'active' : ''}
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              role="tab"
-              type="button"
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div
-          aria-busy={isLoading}
-          aria-label={activeLabel}
-          className="ranking-faq__results"
-          id={`${panelId}-results`}
-          role="tabpanel"
-        >
-          <div className="ranking-faq__results-head">
-            <b>{activeLabel}</b>
-            <small>{getCalculatedAt(selectedSnapshot)}</small>
-          </div>
-          {isLoading ? (
-            <p className="ranking-faq__status" role="status">
-              FAQ 순위를 불러오는 중입니다.
-            </p>
-          ) : loadError ? (
-            <p className="ranking-faq__status error" role="alert">
-              {loadError}
-            </p>
-          ) : !selectedSnapshot ? (
-            <p className="ranking-faq__status">아직 집계된 FAQ 순위가 없습니다.</p>
-          ) : faqItems.length === 0 ? (
-            <p className="ranking-faq__status">현재 표시할 FAQ가 없습니다.</p>
-          ) : (
-            <ol>
-              {faqItems.map((faq) => (
-                <li key={faq.faqId}>
-                  <button disabled={selectionDisabled} onClick={() => selectFaq(faq)} type="button">
-                    <strong>{faq.rank}</strong>
-                    <span>{faq.question}</span>
-                    <em>{getMetric(faq)}</em>
-                    <i aria-hidden="true">›</i>
-                  </button>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-      </div>
-    </section>
+    <div className="ranking-sidebar">
+      <RankingSection
+        criterion="최근 사용량 TOP 5 FAQ"
+        disabled={selectionDisabled}
+        isLoading={isLoading}
+        loadError={loadError}
+        onSelect={selectFaq}
+        snapshot={rankings?.popular}
+        title="인기"
+      />
+      <RankingSection
+        criterion="이전 대비 사용량 급상승 TOP 5 FAQ"
+        disabled={selectionDisabled}
+        isLoading={isLoading}
+        loadError={loadError}
+        onSelect={selectFaq}
+        snapshot={rankings?.trend}
+        title="급상승"
+      />
+      <RankingSection
+        criterion={`${REGION_SIDO_LABELS[sido]} 기준 급상승 TOP 5 FAQ`}
+        disabled={selectionDisabled}
+        isLoading={isLoading}
+        loadError={loadError}
+        onSelect={selectFaq}
+        snapshot={rankings?.regionalTrend?.[sido]}
+        title="지역 급상승"
+      />
+    </div>
   )
 }

@@ -16,15 +16,16 @@ export function MobileHeader({ title }: MobileHeaderProps) {
           </span>
         </div>
         <div className="mobile-actions">
-          <button className="mobile-icon-btn notification-btn" aria-label="알림">
-            <span aria-hidden="true"></span>
-          </button>
-          <button
-            id="mobileDemoOpen"
-            className="mobile-icon-btn mobile-more-btn"
-            aria-label="시연 메뉴"
-          >
-            •••
+          <button className="mobile-icon-btn" data-route="my" aria-label="내 정보" type="button">
+            <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+              <circle cx="20" cy="13" r="5.5" stroke="currentColor" strokeWidth="2" />
+              <path
+                d="M10 31 C10 25.5 14.5 22 20 22 C25.5 22 30 25.5 30 31"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
         </div>
       </header>
