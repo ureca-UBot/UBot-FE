@@ -2,7 +2,14 @@ import { getStoreDirections, getTransitDetail } from '../api/directions'
 import { kakaoRouteUrl } from '../kakao/links'
 import { locatorQuery, type LocatorScope } from '../scope'
 import type { DirectionsMode, DirectionsPoint, DirectionsResult } from '../types/directions'
-import type { KakaoCustomOverlay, KakaoMap, KakaoMapsApi, KakaoPolyline } from '../types/kakao'
+import type {
+  KakaoCustomOverlay,
+  KakaoLatLng,
+  KakaoMap,
+  KakaoMapsApi,
+  KakaoPoint,
+  KakaoPolyline,
+} from '../types/kakao'
 import type { Store } from '../types/store'
 import { formatDistance, formatDuration, formatFare, formatTransitFare } from './format'
 import { createRouteIcon } from './icons'
@@ -24,7 +31,7 @@ interface RouteLine {
   color: string
 }
 
-const ROUTE_COLOR = '#1677ff'
+const ROUTE_COLOR = '#666666'
 // 같은 도로를 왕복(유턴)해도 두 선이 겹치지 않도록 진행 방향 오른쪽으로 미는 거리.
 const ROUTE_OFFSET_PX = 4
 const MARKER_Z = 3
@@ -32,6 +39,8 @@ const MARKER_ACTIVE_Z = 6
 const ENDPOINT_MARKER_Z = 8
 const POPUP_Z = 10
 const FOCUS_MAX_LEVEL = 4
+// 지도를 축소했을 때 안내 마커끼리 이 거리(px)보다 가까우면 뒤의 마커를 숨긴다.
+const MARKER_MIN_GAP_PX = 26
 const ORIGIN_FALLBACK_LABEL = '현재 위치'
 const REVERSE_GEOCODE_TIMEOUT_MS = 3000
 
@@ -81,7 +90,6 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   const stepsCountEl = byId('directionStepsCount')
   const stepsEl = byId('directionSteps')
   const originInput = byId<HTMLInputElement>('directionOriginInput')
-  const originLocateButton = byId<HTMLButtonElement>('directionOriginLocate')
   const originResultsEl = byId('directionOriginResults')
   const searchButton = byId<HTMLButtonElement>('directionSearchButton')
 
@@ -103,7 +111,6 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     !stepsCountEl ||
     !stepsEl ||
     !originInput ||
-    !originLocateButton ||
     !originResultsEl ||
     !searchButton
   ) {
@@ -124,10 +131,15 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   let routeFallbackUrl: string | null = null
   let routeItems: RouteItem[] = []
   let itemEls: HTMLButtonElement[] = []
-  let itemMarkers: Array<{ overlay: KakaoCustomOverlay; element: HTMLElement } | null> = []
+  let itemMarkers: Array<{
+    overlay: KakaoCustomOverlay
+    element: HTMLElement
+    shown: boolean
+  } | null> = []
   let popup: KakaoCustomOverlay | null = null
   let activeIndex = -1
   let endpointMarkers: KakaoCustomOverlay[] = []
+  let endpointPositions: KakaoLatLng[] = []
   let transitCandidates: DirectionsResult[] = []
   let originAddress: { key: string; label: string } | null = null
   let places: RoutePlaces = { origin: ORIGIN_FALLBACK_LABEL, destination: '' }
@@ -171,6 +183,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   const clearEndpoints = () => {
     endpointMarkers.forEach((overlay) => overlay.setMap(null))
     endpointMarkers = []
+    endpointPositions = []
   }
 
   const showEndpoints = (origin: { latitude: number; longitude: number }, store: Store) => {
@@ -190,8 +203,10 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       text.textContent = label
       const tail = document.createElement('i')
       element.append(text, tail)
+      const position = new maps.LatLng(latitude, longitude)
+      endpointPositions.push(position)
       const overlay = new maps.CustomOverlay({
-        position: new maps.LatLng(latitude, longitude),
+        position,
         content: element,
         xAnchor: 0.5,
         yAnchor: 1,
@@ -270,7 +285,10 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       hasPoint = true
     })
 
-    zoomHandler = reshapeLines
+    zoomHandler = () => {
+      reshapeLines()
+      declutterMarkers()
+    }
     maps.event.addListener(map, 'zoom_changed', zoomHandler)
     if (hasPoint) map.setBounds(bounds)
   }
@@ -288,6 +306,36 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   const clearRouteOverlays = () => {
     clearLines()
     clearItems()
+  }
+
+  // 축소하면 안내 마커와 출발·도착 핀이 겹치므로, 화면에서 앞 마커와 너무 가까운 마커는 숨긴다.
+  // 상세 경로가 접혀 있으면 자동차·도보의 번호 마커는 숨기고, 선택한 마커는 항상 보인다.
+  function declutterMarkers() {
+    const maps = deps.getMaps()
+    const map = deps.getMap()
+    if (!maps || !map) return
+    const projection = map.getProjection()
+    const taken: KakaoPoint[] = endpointPositions.map((position) =>
+      projection.containerPointFromCoords(position),
+    )
+    const isFree = (point: KakaoPoint) =>
+      taken.every((other) => Math.hypot(point.x - other.x, point.y - other.y) >= MARKER_MIN_GAP_PX)
+
+    routeItems.forEach((item, index) => {
+      const marker = itemMarkers[index]
+      if (!marker || !item.point) return
+      let show = item.marker !== 'number' || stepsExpanded
+      if (show) {
+        const point = projection.containerPointFromCoords(
+          new maps.LatLng(item.point.latitude, item.point.longitude),
+        )
+        show = index === activeIndex || isFree(point)
+        if (show) taken.push(point)
+      }
+      if (show === marker.shown) return
+      marker.overlay.setMap(show ? map : null)
+      marker.shown = show
+    })
   }
 
   const setItemActive = (index: number, active: boolean) => {
@@ -329,15 +377,15 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     const nav = document.createElement('div')
     nav.className = 'direction-guide-popup-nav'
     nav.append(
-      createIconButton('‹', '이전 안내', () => selectItem(index - 1), index === 0),
+      createIconButton('prev', '이전 안내', () => selectItem(index - 1), index === 0),
       createIconButton(
-        '›',
+        'next',
         '다음 안내',
         () => selectItem(index + 1),
         index === routeItems.length - 1,
       ),
     )
-    const close = createIconButton('×', '안내 닫기', closePopup)
+    const close = createIconButton('close', '안내 닫기', closePopup)
     close.className = 'direction-guide-popup-close'
 
     root.append(icon, text, nav, close)
@@ -351,6 +399,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     if (activeIndex !== -1) setItemActive(activeIndex, false)
     activeIndex = index
     setItemActive(index, true)
+    declutterMarkers()
     itemEls[index]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
 
     popup?.setMap(null)
@@ -397,11 +446,8 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     stepsToggleEl.setAttribute('aria-expanded', String(stepsExpanded))
     stepsPanelEl.classList.toggle('expanded', stepsExpanded)
     stepsEl.hidden = !stepsExpanded
-    const map = deps.getMap()
-    routeItems.forEach((item, index) => {
-      if (item.marker === 'number') itemMarkers[index]?.overlay.setMap(stepsExpanded ? map : null)
-    })
     if (!stepsExpanded) closePopup()
+    declutterMarkers()
   }
 
   const toggleSteps = () => {
@@ -496,16 +542,13 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
         zIndex: MARKER_Z,
         clickable: true,
       })
-      itemMarkers.push({ overlay, element })
+      itemMarkers.push({ overlay, element, shown: false })
     })
 
     const stepCount = items.filter((item) => item.kind === 'step').length
     stepsCountEl.textContent = `안내 ${stepCount}개`
     stepsPanelEl.hidden = false
-    // 마커를 지도에 올릴지(접힘 여부)는 여기서 한 번에 정한다.
-    items.forEach((item, index) => {
-      if (item.marker !== 'number') itemMarkers[index]?.overlay.setMap(map)
-    })
+    // 마커를 지도에 올릴지(접힘 여부·겹침)는 applyStepsExpanded()에서 한 번에 정한다.
     applyStepsExpanded()
   }
 
@@ -748,7 +791,7 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
   }
 
   const locateOrigin = async () => {
-    originPicker.setLocating(true)
+    searchButton.disabled = true
     try {
       const located = await deps.getOrigin()
       currentOrigin = { ...located, label: null }
@@ -756,13 +799,12 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
     } catch (error) {
       setStatus(`${errorMessage(error)} 출발지를 검색해 주세요.`, true)
     } finally {
-      originPicker.setLocating(false)
+      searchButton.disabled = false
     }
   }
 
   const originPicker = createOriginPicker({
     input: originInput,
-    locateButton: originLocateButton,
     results: originResultsEl,
     getMaps: deps.getMaps,
     onPick: (candidate) => {
@@ -773,7 +815,6 @@ export function createDirectionsController(deps: DirectionsControllerDeps): Dire
       }
       if (currentStore) void loadDirections()
     },
-    onLocate: () => void locateOrigin(),
   })
 
   // 검색 버튼: 입력칸이 비었으면 현재 위치, 지금 출발지 그대로면 선택된 이동수단으로 재검색,

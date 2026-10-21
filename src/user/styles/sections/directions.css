@@ -94,8 +94,8 @@
 }
 
 .ubot-user-app .direction-origin-field:focus-within {
-  border-color: #8dbfff;
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, .09)
+  border-color: rgba(247, 37, 133, .35);
+  box-shadow: 0 0 0 3px rgba(247, 37, 133, .09)
 }
 
 .ubot-user-app .direction-origin-badge {
@@ -103,7 +103,7 @@
   padding: 3px 7px;
   border-radius: 999px;
   color: #fff;
-  background: #1677ff;
+  background: var(--map-gray);
   font-size: 10px;
   font-weight: 900;
   line-height: 1.2
@@ -121,44 +121,7 @@
   font-size: 13px
 }
 
-.ubot-user-app .direction-origin-locate {
-  display: grid;
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  place-items: center;
-  border: 0;
-  border-radius: 8px;
-  color: #383a40;
-  background: #f0f1f4
-}
-
-.ubot-user-app .direction-origin-locate:hover:not(:disabled) {
-  color: #1677ff;
-  background: #eaf3ff
-}
-
-.ubot-user-app .direction-origin-locate:disabled {
-  cursor: default
-}
-
-.ubot-user-app .direction-origin-locate.locating {
-  color: #1677ff
-}
-
-.ubot-user-app .direction-origin-locate.locating svg {
-  animation: direction-spin 1s linear infinite
-}
-
-@keyframes direction-spin {
-  to {
-    transform: rotate(360deg)
-  }
-}
-
-/* 탭·검색·현재 위치 버튼의 아이콘 공통 */
-.ubot-user-app .direction-origin-locate svg,
+/* 탭·검색 버튼의 아이콘 공통 */
 .ubot-user-app .direction-mode-tabs svg,
 .ubot-user-app .direction-search-button svg {
   width: 20px;
@@ -170,7 +133,7 @@
   stroke-linejoin: round
 }
 
-.ubot-user-app .direction-origin-locate svg {
+.ubot-user-app .direction-search-button svg {
   width: 18px;
   height: 18px
 }
@@ -220,7 +183,7 @@
 
 .ubot-user-app .direction-origin-option:hover,
 .ubot-user-app .direction-origin-option.active {
-  background: #f3f8ff
+  background: var(--soft)
 }
 
 .ubot-user-app .direction-origin-option-icon {
@@ -293,9 +256,7 @@
 }
 
 .ubot-user-app .direction-controls {
-  display: grid;
   padding: 10px;
-  gap: 8px;
   border-bottom: 1px solid #ececef
 }
 
@@ -311,38 +272,41 @@
   place-items: center;
   border: 1px solid #d8d9dd;
   border-radius: 10px;
-  color: #1677ff;
+  color: var(--map-gray);
   background: #fff;
   cursor: pointer;
   transition: border-color .15s ease, background .15s ease
 }
 
 .ubot-user-app .direction-mode-tabs button:hover:not(.active) {
-  border-color: #8dbfff;
-  background: #f6faff
+  border-color: rgba(247, 37, 133, .35);
+  background: var(--soft)
 }
 
 .ubot-user-app .direction-mode-tabs button.active {
-  border-color: #1677ff;
-  background: #eaf3ff;
-  box-shadow: inset 0 0 0 1px #1677ff
+  border-color: var(--pink);
+  background: var(--pink-soft);
+  box-shadow: inset 0 0 0 1px var(--pink)
 }
 
+/* 출발지 입력칸 오른쪽의 경로 검색 버튼. 입력칸이 비어 있으면 현재 위치에서 검색한다. */
 .ubot-user-app .direction-search-button {
   display: grid;
-  width: 100%;
-  min-height: 40px;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   place-items: center;
   border: 0;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #fff;
-  background: #1677ff;
+  background: var(--pink);
   cursor: pointer;
   transition: background .15s ease
 }
 
 .ubot-user-app .direction-search-button:hover:not(:disabled) {
-  background: #0968d8
+  background: var(--pink-dark)
 }
 
 .ubot-user-app .direction-search-button:disabled {
@@ -498,7 +462,7 @@
 }
 
 .ubot-user-app .direction-steps-toggle:hover span {
-  color: #1677ff
+  color: var(--pink)
 }
 
 .ubot-user-app .direction-steps-panel.expanded .direction-steps-toggle svg {
@@ -614,7 +578,7 @@
 
 .ubot-user-app .kakao-map-link {
   margin-left: auto;
-  color: #1677ff;
+  color: var(--pink);
   font-size: 12px;
   font-weight: 800;
   text-decoration: none;
@@ -672,13 +636,13 @@
 }
 
 .ubot-user-app .direction-candidate:hover {
-  border-color: #8dbfff;
-  background: #f6faff
+  border-color: rgba(247, 37, 133, .35);
+  background: var(--soft)
 }
 
 .ubot-user-app .direction-candidate.recommended {
-  border-color: #1677ff;
-  box-shadow: inset 0 0 0 1px #1677ff
+  border-color: var(--pink);
+  box-shadow: inset 0 0 0 1px var(--pink)
 }
 
 .ubot-user-app .direction-candidate-head {

@@ -14,6 +14,9 @@ export type RouteIconType =
   | 'locate'
   | 'recent'
   | 'chevron'
+  | 'prev'
+  | 'next'
+  | 'close'
 
 export interface RouteIcon {
   type: RouteIconType
@@ -72,17 +75,13 @@ export const ROUTE_ICON_PATHS: Record<RouteIconType, { paths: string[]; filled?:
     ],
   },
   search: { paths: ['M11 18a7 7 0 1 1 0-14a7 7 0 1 1 0 14z', 'M20 20l-4-4'] },
-  locate: {
-    paths: [
-      'M12 16a4 4 0 1 1 0-8a4 4 0 1 1 0 8z',
-      'M12 2.5v3',
-      'M12 18.5v3',
-      'M2.5 12h3',
-      'M18.5 12h3',
-    ],
-  },
+  // 현재 위치: 내 위치를 가리키는 화살표
+  locate: { paths: ['M20 4 3.5 11.2l7 2.3 2.3 7z'] },
   recent: { paths: ['M12 21a9 9 0 1 1 0-18a9 9 0 1 1 0 18z', 'M12 7.5V12l3 2'] },
   chevron: { paths: ['M6 9l6 6 6-6'] },
+  prev: { paths: ['M15 6l-6 6 6 6'] },
+  next: { paths: ['M9 6l6 6-6 6'] },
+  close: { paths: ['M6 6l12 12', 'M18 6 6 18'] },
 }
 
 // 도보 안내는 지명이 섞인 문장이라 '우체국'의 '우'처럼 한 글자로 판정하면 오탐이 난다.

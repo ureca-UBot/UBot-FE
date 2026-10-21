@@ -1,4 +1,4 @@
-/* 매장 말풍선 — 매장 마커(높이 48px) 위에 뜨도록 올리고, 파란 포인트와 둥근 모서리를 준다 */
+/* 매장 말풍선 — 매장 마커(높이 48px) 위에 뜨도록 올리고, 핑크 포인트와 둥근 모서리를 준다 */
 .ubot-user-app .store-map-info {
   position: relative;
   bottom: 58px;
@@ -6,9 +6,9 @@
   min-width: 230px;
   max-width: 290px;
   padding: 14px 16px 14px 18px;
-  border: 1px solid #cfe1ff;
+  border: 1px solid rgba(247, 37, 133, .22);
   border-radius: 18px;
-  box-shadow: 0 12px 30px rgba(22, 90, 180, .18)
+  box-shadow: 0 12px 30px rgba(217, 19, 112, .18)
 }
 
 .ubot-user-app .store-map-info:before {
@@ -18,7 +18,7 @@
   left: 0;
   width: 3px;
   border-radius: 0 3px 3px 0;
-  background: #1677ff;
+  background: var(--pink);
   content: ""
 }
 
@@ -28,15 +28,15 @@
   left: 50%;
   width: 12px;
   height: 12px;
-  border-right: 1px solid #cfe1ff;
-  border-bottom: 1px solid #cfe1ff;
+  border-right: 1px solid rgba(247, 37, 133, .22);
+  border-bottom: 1px solid rgba(247, 37, 133, .22);
   background: #fff;
   transform: translateX(-50%) rotate(45deg);
   content: ""
 }
 
 .ubot-user-app .store-map-info strong {
-  color: #123a73;
+  color: var(--ink);
   white-space: normal;
   word-break: keep-all
 }
@@ -58,7 +58,6 @@
 .ubot-user-app .store-map-info-reserve {
   min-height: 32px;
   padding: 0 10px;
-  border: 1px solid #1677ff;
   border-radius: 10px;
   font-size: 11px;
   font-weight: 800;
@@ -67,21 +66,22 @@
 }
 
 .ubot-user-app .store-map-info-directions {
+  border: 1px solid var(--ink);
   color: #fff;
-  background: #1677ff
+  background: var(--map-gray)
 }
 
 .ubot-user-app .store-map-info-directions:hover {
-  border-color: #0968d8;
-  background: #0968d8
+  background: #555
 }
 
 .ubot-user-app .store-map-info-reserve {
-  color: #1677ff;
+  border: 1px solid var(--pink);
+  color: var(--pink);
   background: #fff
 }
 
 .ubot-user-app .store-map-info-reserve:hover {
-  background: #eaf3ff
+  background: var(--pink-soft)
 }
 

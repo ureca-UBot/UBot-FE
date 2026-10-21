@@ -25,8 +25,8 @@
 }
 
 .ubot-user-app .store-service-toggle[aria-expanded="true"] {
-  border-color: #8dbfff;
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, .09)
+  border-color: rgba(247, 37, 133, .35);
+  box-shadow: 0 0 0 3px rgba(247, 37, 133, .09)
 }
 
 .ubot-user-app .store-service-toggle[aria-expanded="true"] i {
@@ -66,7 +66,7 @@
 
 .ubot-user-app .store-service-options input:checked+span:after {
   margin-left: auto;
-  color: #1677ff;
+  color: var(--pink);
   content: "✓";
   font-size: 13px;
   font-weight: 900
@@ -120,9 +120,9 @@
 }
 
 .ubot-user-app .store-pagination button:hover:not(:disabled) {
-  border-color: #8dbfff;
-  color: #075fc7;
-  background: #f3f8ff
+  border-color: rgba(247, 37, 133, .35);
+  color: var(--pink-dark);
+  background: var(--soft)
 }
 
 .ubot-user-app .store-pagination button:disabled {

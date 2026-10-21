@@ -146,6 +146,15 @@ export function StoreLocatorView({ idPrefix = '' }: StoreLocatorViewProps) {
             >
               이 지역 검색
             </button>
+            <button
+              className="store-map-locate"
+              id={id('storeMapLocate')}
+              type="button"
+              aria-label="현재 위치로 이동"
+              title="현재 위치"
+            >
+              <DirectionIcon type="locate" />
+            </button>
           </div>
         </div>
         <aside className="stores-list">
@@ -200,7 +209,7 @@ export function StoreLocatorView({ idPrefix = '' }: StoreLocatorViewProps) {
                 <input
                   id={id('directionOriginInput')}
                   type="text"
-                  placeholder="출발지 검색 (주소, 건물명, 지명)"
+                  placeholder="출발지 검색 (비워 두면 현재 위치)"
                   autoComplete="off"
                   aria-label="출발지"
                   role="combobox"
@@ -210,12 +219,12 @@ export function StoreLocatorView({ idPrefix = '' }: StoreLocatorViewProps) {
                 />
                 <button
                   type="button"
-                  id={id('directionOriginLocate')}
-                  className="direction-origin-locate"
-                  aria-label="현재 위치를 출발지로 설정"
-                  title="현재 위치"
+                  id={id('directionSearchButton')}
+                  className="direction-search-button"
+                  aria-label="경로 검색"
+                  title="경로 검색"
                 >
-                  <DirectionIcon type="locate" />
+                  <DirectionIcon type="search" />
                 </button>
               </div>
               <ul
@@ -256,15 +265,6 @@ export function StoreLocatorView({ idPrefix = '' }: StoreLocatorViewProps) {
                   <DirectionIcon type="walk" />
                 </button>
               </div>
-              <button
-                type="button"
-                id={id('directionSearchButton')}
-                className="direction-search-button"
-                aria-label="경로 검색"
-                title="경로 검색"
-              >
-                <DirectionIcon type="search" />
-              </button>
             </div>
             <div className="direction-panel-body">
               <p className="direction-status" id={id('directionStatus')} aria-live="polite"></p>

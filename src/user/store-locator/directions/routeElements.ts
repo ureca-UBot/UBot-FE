@@ -1,5 +1,6 @@
 import type { DirectionsResult } from '../types/directions'
 import { formatDistance, formatDuration, formatTransitFare } from './format'
+import { createRouteIcon, type RouteIconType } from './icons'
 import type { RouteChip } from './routeItems'
 
 export function createChips(chips: RouteChip[]) {
@@ -31,14 +32,14 @@ export function fillRouteHead(head: HTMLElement, result: DirectionsResult) {
 }
 
 export function createIconButton(
-  text: string,
+  icon: RouteIconType,
   ariaLabel: string,
   onClick: () => void,
   disabled = false,
 ) {
   const button = document.createElement('button')
   button.type = 'button'
-  button.textContent = text
+  button.appendChild(createRouteIcon({ type: icon }, 'direction-popup-icon'))
   button.setAttribute('aria-label', ariaLabel)
   button.disabled = disabled
   button.addEventListener('click', onClick)
