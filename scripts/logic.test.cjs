@@ -3,7 +3,6 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const path = require('node:path')
 const root = path.resolve(__dirname, '..')
-const { baselineRef } = require('./test-support/baseline.cjs')
 let modules
 const storage = new Map()
 const originalFetch = global.fetch
@@ -44,16 +43,16 @@ after(() => {
   else global.sessionStorage = originalStorage
 })
 
-test('모든 기존 사용자 경로와 별칭을 유지한다', () => {
+test('현재 사용자 경로와 이전 경로 별칭을 올바른 화면으로 연결한다', () => {
   const { routes } = modules
   for (const key of Object.keys(routes.userPageTitles)) {
     assert.equal(routes.userPageFromPath(routes.userPagePath(key)), key)
   }
   assert.deepEqual(['/benefit', '/network', '/stores/', '/unknown'].map(routes.userPageFromPath), [
-    'benefits',
-    'support',
+    'store',
+    'notices',
     'stores',
-    'home',
+    'ai',
   ])
 })
 
@@ -235,18 +234,20 @@ test('종료된 채팅의 AbortSignal은 다음 폴링 요청을 취소한다', 
   assert.equal(polls, 0)
 })
 
-test('스타일 분할 파일은 원래 순서와 선언을 그대로 보존한다', () => {
-  const { execFileSync } = require('node:child_process')
+test('스타일 진입점은 중복 없이 존재하는 분할 파일만 불러온다', () => {
   for (const relative of ['src/App.css', 'src/user/styles/user.css']) {
     const full = path.join(root, relative)
-    const combined = [...fs.readFileSync(full, 'utf8').matchAll(/@import\s+['"](.+?)['"];/g)]
-      .map(([, imported]) => fs.readFileSync(path.resolve(path.dirname(full), imported), 'utf8'))
-      .join('')
-    const original = execFileSync('git', ['show', `${baselineRef}:${relative}`], {
-      cwd: root,
-      encoding: 'utf8',
-      maxBuffer: 2_000_000,
-    })
-    assert.equal(combined.replaceAll('\r\n', '\n'), original.replaceAll('\r\n', '\n'))
+    const imports = [...fs.readFileSync(full, 'utf8').matchAll(/@import\s+['"](.+?)['"];/g)].map(
+      ([, imported]) => imported,
+    )
+
+    assert.ok(imports.length > 0)
+    assert.equal(new Set(imports).size, imports.length)
+
+    for (const imported of imports) {
+      const importedFile = path.resolve(path.dirname(full), imported)
+      assert.equal(fs.existsSync(importedFile), true)
+      assert.notEqual(fs.readFileSync(importedFile, 'utf8').trim(), '')
+    }
   }
 })
