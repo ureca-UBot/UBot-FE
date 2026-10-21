@@ -24,7 +24,7 @@ export interface ChatApi {
     request: ChatResearchRequest,
     options?: ChatWaitOptions,
   ) => Promise<ChatResponse>
-  getMyConversationList: () => Promise<PageResponse<ConversationSummary>>
+  getMyConversationList: (page?: number) => Promise<PageResponse<ConversationSummary>>
   getConversationMessageList: (conversationId: string) => Promise<ConversationMessage[]>
 }
 
@@ -47,8 +47,8 @@ const realChatApi: ChatApi = {
       }),
       options,
     ),
-  getMyConversationList: () =>
-    apiClient.get<PageResponse<ConversationSummary>>('/api/conversations/me?size=20'),
+  getMyConversationList: (page = 0) =>
+    apiClient.get<PageResponse<ConversationSummary>>(`/api/conversations/me?size=20&page=${page}`),
   getConversationMessageList: (conversationId) =>
     apiClient.get<ConversationMessage[]>(
       `/api/conversations/${encodeURIComponent(conversationId)}/messages`,

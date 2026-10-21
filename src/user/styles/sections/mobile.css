@@ -693,14 +693,6 @@
     padding-top: 20px
   }
 
-  .ubot-user-app .chat-thread {
-    padding: 20px 15px
-  }
-
-  .ubot-user-app .msg-body {
-    max-width: 91%
-  }
-
   .ubot-user-app .product-list-mini,
   .ubot-user-app .bundle-cards {
     grid-template-columns: 1fr
@@ -716,10 +708,6 @@
   .ubot-user-app .mini-product .mini-phone {
     height: 76px;
     margin: 0
-  }
-
-  .ubot-user-app .chat-bottom {
-    padding: 9px 13px 10px
   }
 
   .ubot-user-app .ai-disclaimer {

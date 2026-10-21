@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { HashRouter, Route, Routes } from 'react-router-dom'
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { RequireAdmin } from './admin/routes/RequireAdmin'
 import './App.css'
 import { AuthProvider } from './auth/context/AuthProvider'
@@ -12,6 +12,10 @@ import { NotificationUnreadProvider } from './user/notification/context/Notifica
 const AdminApp = lazy(() => import('./admin/AdminApp'))
 const UserApp = lazy(() => import('./user/UserApp'))
 
+const CounselPage = lazy(() =>
+  import('./counsel/pages/CounselPage').then((module) => ({ default: module.CounselPage })),
+)
+
 function App() {
   return (
     <HashRouter>
@@ -21,6 +25,8 @@ function App() {
             <Routes>
               <Route path="/auth/login" element={<LoginPage />} />
               <Route path="/auth/signup" element={<UserSignupPage />} />
+              <Route path="/counsel" element={<Navigate to="/ai" replace />} />
+              <Route path="/counselor" element={<CounselPage />} />
               <Route element={<RequireAdmin />}>
                 <Route path="/admin/*" element={<AdminApp />} />
               </Route>

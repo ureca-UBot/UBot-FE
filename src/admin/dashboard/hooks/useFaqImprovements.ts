@@ -61,6 +61,9 @@ export function useFaqImprovements() {
   }, [])
   useEffect(() => {
     loadImprovements(improvementPage, selectedImprovementTypes)
+    return () => {
+      improvementRequestId.current += 1
+    }
   }, [loadImprovements, improvementPage, selectedImprovementTypes])
   const improvementItems = improvementResponse?.items ?? []
   const toggleImprovementType = (type: FaqImprovementType) => {
@@ -117,6 +120,9 @@ export function useFaqImprovements() {
                   : '네트워크 오류',
           })
       })
+    return () => {
+      duplicateRequestId.current += 1
+    }
   }, [selectedDuplicateFaqId, duplicateRequestKey])
   const stopDuplicateDrag = () => {
     duplicateDragRef.current = null

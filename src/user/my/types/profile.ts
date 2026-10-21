@@ -8,7 +8,7 @@ export interface UserProfile {
   birthDate: string | null
   gender: Gender | null
   residenceArea: string | null
-  role: 'USER' | 'ADMIN'
+  role: 'USER' | 'ADMIN' | 'COUNSELOR'
   createdAt: string
 }
 

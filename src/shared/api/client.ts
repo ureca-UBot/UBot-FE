@@ -143,4 +143,6 @@ export const apiClient = {
   patch: <T>(path: string, data: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  // 요청 취소·제한 시간 같은 옵션을 그대로 넘겨야 하는 호출에 씀
+  request: <T>(path: string, init?: RequestInit) => request<T>(path, init),
 }

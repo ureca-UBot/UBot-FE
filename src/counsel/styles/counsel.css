@@ -1,0 +1,114 @@
+.counsel-monitor{color:#203044;font:16px/1.6 system-ui,sans-serif}
+.counsel-page.ubot-user-app{max-width:880px;min-height:100vh;margin:0 auto;padding:24px 24px 72px}
+.counsel-header,.counsel-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
+.counsel-header a{color:var(--ink);text-decoration:none;font-weight:600}
+.counsel-heading{margin:32px 0}.counsel-heading h1{font-size:30px;letter-spacing:-1px;margin:8px 0}
+.counsel-page .counsel-heading p,.counsel-muted{color:var(--muted,#686b72)}.counsel-eyebrow{color:var(--pink-dark,#d91370);font-size:13px;font-weight:700}
+.counsel-page button,.counsel-monitor button{border:1px solid #cbd5df;border-radius:10px;background:#fff;padding:10px 16px;color:#203044;font:inherit;cursor:pointer}
+.counsel-page button:disabled,.counsel-monitor button:disabled{opacity:.5;cursor:not-allowed}
+.counsel-monitor button:focus-visible{outline:3px solid #45a9ce;outline-offset:3px}
+.counsel-empty{background:var(--soft,#f6f7f8);border-radius:16px;padding:36px;margin-bottom:24px}
+.counsel-conversation{border:1px solid var(--line,#e5e6e9);border-radius:18px;overflow:hidden;background:#fff}
+.counsel-messages{height:380px;background:#fff}
+.counsel-message,.counsel-history-message{flex-shrink:0}
+.counsel-message p,.counsel-history-message p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.counsel-message small,.counsel-history-message small{font-size:11px;color:var(--muted)}
+.counsel-message.mine small,.counsel-history-message.mine small{color:inherit;opacity:.8}
+.counsel-compose{display:grid;gap:6px}
+.counsel-compose label{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+.ubot-user-app .counsel-compose .counsel-input{grid-template-columns:minmax(0,1fr) 40px}
+.ubot-user-app .counsel-input textarea{width:100%;min-width:0;font-family:inherit}
+.counsel-conversation button:disabled{opacity:.5;cursor:not-allowed}
+.counsel-receipt{padding:8px 20px;background:var(--soft,#f6f7f8);color:var(--muted,#686b72);font-size:12px}
+.counsel-receipt--allowed{background:#fff}
+.counsel-receipt button{margin-left:12px}.counsel-error{background:#fff1f0;border:1px solid #f2c2bd;color:#9d332d;padding:12px 16px;border-radius:8px}
+.counsel-monitor{padding:24px;max-width:1500px}.counsel-filters{display:flex;gap:16px;flex-wrap:wrap;align-items:end;margin:24px 0}
+.counsel-filters label{display:grid;gap:6px;font-size:14px}.counsel-filters input,.counsel-filters select{padding:10px;border:1px solid #cbd5df;border-radius:8px;font:inherit}
+.counsel-counters{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:24px 0}
+.counsel-counters>div{border:1px solid #dbe2e9;border-radius:12px;padding:18px;background:white;display:grid;gap:8px}
+.counsel-counters strong{font-size:26px}.counsel-table-wrap{overflow:auto;margin-bottom:20px}
+.counsel-table-wrap table{width:100%;border-collapse:collapse;font-size:13px}.counsel-table-wrap th,.counsel-table-wrap td{padding:12px;text-align:left;border-bottom:1px solid #dde4ea}
+.counsel-table-wrap th{background:#f1f5f8;white-space:nowrap}.counsel-table-wrap caption{text-align:left;margin-bottom:10px;color:#627084}
+.counsel-session-id{font-family:monospace;overflow-wrap:anywhere;min-width:120px}
+@media(max-width:600px){.counsel-page.ubot-user-app{padding:16px 16px 40px}.counsel-heading h1{font-size:25px}.counsel-toolbar{flex-wrap:wrap}.counsel-monitor{padding:12px}.counsel-counters{grid-template-columns:repeat(2,1fr)}.counsel-filters label{width:100%}.counsel-messages{height:330px}}
+.counsel-handoff-divider{flex-shrink:0;margin:6px 0;text-align:center;color:var(--subtle,#8a8d94);font-size:11px;border-top:1px solid var(--line,#e5e6e9);padding-top:14px}
+
+/* 기존 AI 화면의 말풍선·입력창을 그대로 사용하고 상담 상태만 추가함 */
+.ubot-user-app .ai-counsel-session {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  height: 660px;
+  min-height: 0;
+}
+
+.ubot-user-app .ai-counsel-session .counsel-toolbar {
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  min-height: 60px;
+  margin: 0;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.ubot-user-app .ai-counsel-session > p {
+  margin: 0;
+  padding: 10px 24px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ubot-user-app .ai-counsel-session .counsel-conversation {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.ubot-user-app .ai-counsel-session .counsel-messages {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+.ubot-user-app .ai-counsel-session .counsel-toolbar button,
+.ubot-user-app .ai-counsel-new,
+.ubot-user-app .counsel-error button,
+.ubot-user-app .counsel-receipt button {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 12px;
+}
+
+.ubot-user-app .ai-counsel-session button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.ubot-user-app .ai-counsel-new {
+  align-self: flex-start;
+  margin: 12px 20px 16px;
+}
+
+@media(max-width:767px) {
+  .ubot-user-app .ai-counsel-session {
+    height: calc(100dvh - 224px - env(safe-area-inset-bottom));
+    min-height: 360px;
+  }
+
+  .ubot-user-app .ai-counsel-session .counsel-toolbar {
+    padding: 10px 18px;
+  }
+
+  .ubot-user-app .ai-mobile-history .history-block {
+    margin-top: 0;
+    padding-bottom: 12px;
+  }
+}

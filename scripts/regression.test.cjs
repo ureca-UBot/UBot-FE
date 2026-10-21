@@ -110,9 +110,7 @@ test('FAQ 모달은 포커스를 가두고 Escape로 닫은 뒤 호출 버튼으
     await modal.getByRole('button', { name: '확인', exact: true }).focus()
     await page.keyboard.press('Tab')
     assert.equal(
-      await modal
-        .getByLabel('카테고리', { exact: true })
-        .evaluate((el) => el === document.activeElement),
+      await modal.getByLabel(/카테고리/).evaluate((el) => el === document.activeElement),
       true,
     )
     await page.keyboard.press('Shift+Tab')
@@ -126,7 +124,7 @@ test('FAQ 모달은 포커스를 가두고 Escape로 닫은 뒤 호출 버튼으
     await modal.waitFor({ state: 'detached' })
     assert.equal(await opener.evaluate((el) => el === document.activeElement), true)
     await opener.click()
-    await modal.getByLabel('카테고리', { exact: true }).selectOption('1')
+    await modal.getByLabel(/카테고리/).selectOption('1')
     await modal.getByLabel('질문', { exact: true }).fill('새 FAQ 질문')
     await modal.getByLabel('답변', { exact: true }).fill('새 FAQ 답변')
     await modal.getByRole('button', { name: '확인', exact: true }).click()
@@ -148,7 +146,7 @@ test('FAQ 모달은 포커스를 가두고 Escape로 닫은 뒤 호출 버튼으
 
 test('사용자 문의 등록·수정과 관리자 답변의 기존 요청 형식을 유지한다', async () => {
   await withPage('USER', async ({ page, fixtures, goto }) => {
-    await goto('/my')
+    await goto('/customer-center')
     await page.getByRole('button', { name: '문의하기', exact: true }).click()
     const form = page.locator('.inquiry-form')
     await form.getByLabel('제목').fill('등록 문의')
@@ -189,14 +187,14 @@ test('방문한 상품 페이지는 검색 입력을 보존하며 뒤로·앞으
     await page.getByRole('tab', { name: '요금제', exact: true }).click()
     const input = page.getByRole('textbox', { name: '요금제 검색어' })
     await input.fill('보존할 검색')
-    await page.locator('[data-route="benefits"]:visible').first().click()
-    await page.waitForURL('**/#/benefits')
-    await page.locator('[data-route="store"]:visible').first().click()
+    await page.locator('.desktop-header [data-route="customer"]').click()
+    await page.waitForURL('**/#/customer-center')
+    await page.locator('.desktop-header [data-route="store"]').click()
     await page.waitForURL('**/#/store')
     assert.equal(await input.inputValue(), '보존할 검색')
     await page.goBack()
-    await page.waitForURL('**/#/benefits')
-    assert.equal(await page.locator('body').getAttribute('data-route'), 'benefits')
+    await page.waitForURL('**/#/customer-center')
+    assert.equal(await page.locator('body').getAttribute('data-route'), 'customer')
     await page.goForward()
     await page.waitForURL('**/#/store')
     assert.equal(await input.inputValue(), '보존할 검색')
@@ -208,7 +206,7 @@ test('기존 대화를 열고 새 AI 질문의 최종 응답 이후 폴링을 �
     await goto('/ai')
     await page.getByRole('button', { name: /저장된 대화/ }).click()
     await page.getByText('기존 답변', { exact: true }).waitFor()
-    await page.getByRole('textbox', { name: 'AI 검색어' }).fill('새 질문입니다')
+    await page.getByRole('textbox', { name: 'AI 채팅 입력' }).fill('새 질문입니다')
     await page.getByRole('button', { name: '질문 보내기' }).click()
     await page.getByText('검증용 AI 답변입니다.', { exact: true }).waitFor()
     const polls = () => fixtures.requests.filter((r) => r.path === '/api/chat/jobs/1').length
@@ -280,7 +278,7 @@ test('라우트 별칭·채팅 상태 전이·표시 형식·지도 좌표 계�
         routes: ['/benefit', '/network', '/stores/', '/store/product', '/unknown'].map(
           routes.userPageFromPath,
         ),
-        paths: ['home', 'stores', 'ai'].map(routes.userPagePath),
+        paths: ['store', 'stores', 'ai'].map(routes.userPagePath),
         immutable:
           pending.progress === undefined &&
           updated[1] === complete &&
@@ -304,8 +302,8 @@ test('라우트 별칭·채팅 상태 전이·표시 형식·지도 좌표 계�
         ),
       }
     })
-    assert.deepEqual(result.routes, ['benefits', 'support', 'stores', 'product', 'home'])
-    assert.deepEqual(result.paths, ['/', '/support/store-address', '/ai'])
+    assert.deepEqual(result.routes, ['store', 'notices', 'stores', 'store', 'ai'])
+    assert.deepEqual(result.paths, ['/store', '/stores', '/'])
     assert.equal(result.immutable, true)
     assert.deepEqual(result.valid, [false, false, true, false])
     assert.deepEqual(result.retained, [true, false, false])

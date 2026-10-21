@@ -21,7 +21,11 @@ function getPayload(accessToken: string): JwtPayload | null {
 
 export function getAuthUser(accessToken: string): AuthUser | null {
   const payload = getPayload(accessToken)
-  if (!payload?.sub || (payload.role !== 'USER' && payload.role !== 'ADMIN')) return null
+  if (
+    !payload?.sub ||
+    (payload.role !== 'USER' && payload.role !== 'ADMIN' && payload.role !== 'COUNSELOR')
+  )
+    return null
   return { id: payload.sub, role: payload.role }
 }
 

@@ -74,10 +74,12 @@ export interface ConversationSummary {
   conversationId: string
   title: string
   lastQuestionAt: string
+  hasCounsel?: boolean
+  preview?: string | null
 }
 
 export interface ConversationMessage {
-  id: number
+  id: number | null
   question: string
   answer: string
   createdAt: string

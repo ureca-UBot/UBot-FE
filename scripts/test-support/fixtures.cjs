@@ -222,6 +222,12 @@ async function installFixtures(context, role = null) {
       )
         return ok([])
       if (p.endsWith('/unread-count')) return ok({ unreadCount: 0 })
+      if (
+        method === 'GET' &&
+        (p === '/api/counsel/sessions/current' ||
+          /^\/api\/counsel\/sessions\/conversation\/[^/]+$/.test(p))
+      )
+        return ok(null)
       if (p === '/api/conversations/me')
         return ok(
           pageOf([{ conversationId: 'conversation-1', title: '저장된 대화', lastQuestionAt: at }]),
