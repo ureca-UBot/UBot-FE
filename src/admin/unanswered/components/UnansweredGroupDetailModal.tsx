@@ -107,6 +107,9 @@ export function UnansweredGroupDetailModal({
               {group.questions.map((question) => (
                 <p key={question.id}>
                   <span>{question.question}</span>
+                  {question.searchQuery && question.searchQuery !== question.question && (
+                    <small>검색어: {question.searchQuery}</small>
+                  )}
                   <small>
                     {UNANSWERED_REASON_LABELS[question.reason]}
                     {question.bestSimilarity != null &&
