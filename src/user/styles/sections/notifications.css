@@ -1,0 +1,40 @@
+/* 읽지 않은 알림 개수 배지 (MY 메뉴, 로그인 사용자 버튼, 모바일 인사말) */
+.ubot-user-app .notif-badge {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #c42e53;
+  box-sizing: border-box;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  pointer-events: none
+}
+
+.ubot-user-app .notif-badge--nav {
+  position: absolute;
+  top: 4px;
+  right: -6px
+}
+
+.ubot-user-app .header-action-icon {
+  position: relative
+}
+
+.ubot-user-app .notif-badge--icon {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  box-shadow: 0 0 0 2px #fff
+}
+
+.ubot-user-app .notif-badge--inline {
+  margin-left: 6px;
+  vertical-align: 1px
+}

@@ -3,7 +3,11 @@ import type { ProductFormFieldsProps } from '../types/productKind'
 import { ProductCommonFields } from './ProductCommonFields'
 import { ProductNumberField } from './ProductNumberField'
 
-export function RoamingProductFormFields({ values, isCreate, onChange }: ProductFormFieldsProps<RoamingProductFormValues>) {
+export function RoamingProductFormFields({
+  values,
+  isCreate,
+  onChange,
+}: ProductFormFieldsProps<RoamingProductFormValues>) {
   return (
     <>
       <ProductCommonFields isCreate={isCreate} onChange={onChange} values={values} />
@@ -16,7 +20,9 @@ export function RoamingProductFormFields({ values, isCreate, onChange }: Product
           placeholder="예) 일본"
           value={values.country}
         />
-        <small className="admin-product-form__hint">사용자 화면의 국가 검색은 이 값과 정확히 같아야 찾습니다.</small>
+        <small className="admin-product-form__hint">
+          사용자 화면의 국가 검색은 이 값과 정확히 같아야 찾습니다.
+        </small>
       </label>
 
       <ProductNumberField

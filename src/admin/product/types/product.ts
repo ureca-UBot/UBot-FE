@@ -5,7 +5,7 @@ import type {
   PlanDetail,
   PlanTargetGroup,
   RoamingProduct,
-} from '../../../user/product/types/product'
+} from '../../../shared/product/types'
 
 export type MasterStatus = 'ACTIVE' | 'INACTIVE'
 

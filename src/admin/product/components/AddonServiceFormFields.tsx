@@ -3,7 +3,11 @@ import type { ProductFormFieldsProps } from '../types/productKind'
 import { ProductCommonFields } from './ProductCommonFields'
 import { ProductNumberField } from './ProductNumberField'
 
-export function AddonServiceFormFields({ values, isCreate, onChange }: ProductFormFieldsProps<AddonServiceFormValues>) {
+export function AddonServiceFormFields({
+  values,
+  isCreate,
+  onChange,
+}: ProductFormFieldsProps<AddonServiceFormValues>) {
   return (
     <>
       <ProductCommonFields isCreate={isCreate} onChange={onChange} values={values} />

@@ -20,7 +20,12 @@ export interface ChatResponse {
 export type ChatJobStatus = 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED'
 
 // BE AnswerProgress.Phase: 답변 처리 단계입니다. 금방 지나가거나 생략될 수 있습니다.
-export type ChatJobPhase = 'WAITING' | 'SEARCHING' | 'COLLECTING_CONTEXT' | 'WAITING_FOR_MODEL' | 'GENERATING'
+export type ChatJobPhase =
+  | 'WAITING'
+  | 'SEARCHING'
+  | 'COLLECTING_CONTEXT'
+  | 'WAITING_FOR_MODEL'
+  | 'GENERATING'
 
 // BE ChatJobSubmissionResponseDto: 질문·재시도·재검색 접수(202) 응답입니다. 시간은 UTC ISO-8601 문자열입니다.
 export interface ChatJobSubmission {

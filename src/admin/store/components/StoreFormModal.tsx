@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useModalFocus } from '../../../shared/hooks/useModalFocus'
 import { adminStoreApi } from '../api/storeApi'
 import { coordinatesForAddress, loadDaumPostcode } from '../kakao/addressSearch'
 import type { StoreDetail, StoreFormValues } from '../types/store'
@@ -70,8 +71,15 @@ export function StoreFormModal({
   onClose: () => void
   onSaved: () => void
 }) {
+  const modalFocusRef = useModalFocus<HTMLFormElement>(() => {
+    if (submitting) return
+    onClose()
+  })
+
   const initialBusinessTimes = businessTimesFrom(store?.businessHours)
-  const [values, setValues] = useState<StoreFormValues>(() => store ? valuesFrom(store) : blankValues)
+  const [values, setValues] = useState<StoreFormValues>(() =>
+    store ? valuesFrom(store) : blankValues,
+  )
   const [openTime, setOpenTime] = useState(initialBusinessTimes.openTime)
   const [closeTime, setCloseTime] = useState(initialBusinessTimes.closeTime)
   const [error, setError] = useState<string | null>(null)
@@ -163,7 +171,13 @@ export function StoreFormModal({
         if (event.target === event.currentTarget) onClose()
       }}
     >
-      <form className="faq-modal admin-store-form" onSubmit={submit}>
+      <form
+        ref={modalFocusRef}
+        role="dialog"
+        aria-modal="true"
+        className="faq-modal admin-store-form"
+        onSubmit={submit}
+      >
         <h2>{store ? '매장 수정' : '매장 등록'}</h2>
 
         <div className="admin-store-form__grid">
@@ -187,7 +201,9 @@ export function StoreFormModal({
               placeholder="예) 01012341234"
               value={values.phoneNumber}
             />
-            <small className="admin-store-form__hint">숫자만 입력해도 하이픈이 자동으로 붙습니다.</small>
+            <small className="admin-store-form__hint">
+              숫자만 입력해도 하이픈이 자동으로 붙습니다.
+            </small>
           </label>
 
           <label>
@@ -283,12 +299,14 @@ export function StoreFormModal({
             <label key={code}>
               <input
                 checked={values.serviceCodes.includes(code)}
-                onChange={(event) => set(
-                  'serviceCodes',
-                  event.target.checked
-                    ? [...values.serviceCodes, code]
-                    : values.serviceCodes.filter((value) => value !== code),
-                )}
+                onChange={(event) =>
+                  set(
+                    'serviceCodes',
+                    event.target.checked
+                      ? [...values.serviceCodes, code]
+                      : values.serviceCodes.filter((value) => value !== code),
+                  )
+                }
                 type="checkbox"
               />
               {name}
@@ -299,7 +317,12 @@ export function StoreFormModal({
         {error && <p className="login-error">{error}</p>}
 
         <div className="faq-modal__actions">
-          <button className="secondary-button" disabled={submitting} onClick={onClose} type="button">
+          <button
+            className="secondary-button"
+            disabled={submitting}
+            onClick={onClose}
+            type="button"
+          >
             취소
           </button>
           <button className="primary-button" disabled={submitting} type="submit">

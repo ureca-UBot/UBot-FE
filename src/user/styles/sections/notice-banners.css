@@ -1,0 +1,173 @@
+/* 공지·장애 배너 */
+.ubot-user-app .notice-banners {
+  position: relative;
+  z-index: 90
+}
+
+.ubot-user-app .notice-banner {
+  border-bottom: 1px solid transparent;
+  font-size: 14px
+}
+
+.ubot-user-app .notice-banner--outage {
+  border-bottom-color: #fecdd3;
+  color: #9f1239;
+  background: #fff1f2
+}
+
+.ubot-user-app .notice-banner--notice {
+  border-bottom-color: #e4defa;
+  color: #3f2f9e;
+  background: #f4f1ff
+}
+
+.ubot-user-app .notice-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(calc(100% - 32px), 1280px);
+  min-height: 44px;
+  margin: auto;
+  padding: 6px 0
+}
+
+.ubot-user-app .notice-banner__badge {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #fff;
+  background: currentColor;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner--outage .notice-banner__badge {
+  background: #e11d48
+}
+
+.ubot-user-app .notice-banner--notice .notice-banner__badge {
+  background: var(--purple)
+}
+
+.ubot-user-app .notice-banner__body {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0
+}
+
+.ubot-user-app .notice-banner__title {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner__content {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: .88
+}
+
+.ubot-user-app .notice-banner__content--open {
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .notice-banner__arrow,
+.ubot-user-app .notice-banner__all,
+.ubot-user-app .notice-banner__toggle,
+.ubot-user-app .notice-banner__close {
+  flex: none;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer
+}
+
+.ubot-user-app .notice-banner__arrow {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .7);
+  font-size: 18px;
+  line-height: 1
+}
+
+.ubot-user-app .notice-banner__count {
+  flex: none;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: .8
+}
+
+.ubot-user-app .notice-banner__all,
+.ubot-user-app .notice-banner__toggle {
+  padding: 4px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline
+}
+
+.ubot-user-app .notice-banner__region {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .7);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner__close {
+  width: 26px;
+  height: 26px;
+  font-size: 20px;
+  line-height: 1;
+  opacity: .7
+}
+
+.ubot-user-app .notice-banner__arrow:hover,
+.ubot-user-app .notice-banner__close:hover {
+  opacity: 1
+}
+
+@media (max-width: 767px) {
+
+  /* 모바일 헤더(58px)는 화면 맨 위에 고정이라, 배너는 그 아래에서 시작해 본문을 아래로 밀어냅니다. */
+  .ubot-user-app .notice-banners {
+    z-index: 1;
+    margin-top: 58px
+  }
+
+  /* 배너가 헤더 아래 여백을 대신하므로, 배너가 있는 동안에는 화면 본문의 헤더용 위쪽 여백을 뺍니다. */
+  .ubot-user-app:has(.notice-banners) .route,
+  .ubot-user-app:has(.notice-banners) .page-standard {
+    padding-top: 0
+  }
+
+  .ubot-user-app .notice-banner__inner {
+    flex-wrap: wrap;
+    gap: 6px 8px
+  }
+
+  .ubot-user-app .notice-banner__body {
+    flex-basis: 100%;
+    order: 5;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px
+  }
+
+  .ubot-user-app .notice-banner__title {
+    max-width: 100%
+  }
+}
+
+

@@ -30,7 +30,8 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
         setHasMore(!next.last)
         setError(null)
       } catch (caught) {
-        if (!cancelled) setError(caught instanceof Error ? caught.message : '상품 목록을 불러오지 못했습니다.')
+        if (!cancelled)
+          setError(caught instanceof Error ? caught.message : '상품 목록을 불러오지 못했습니다.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -82,11 +83,17 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
         error ? (
           <div className="product-catalog-status" role="alert">
             <p>{error}</p>
-            <button onClick={retry} type="button">다시 시도</button>
+            <button onClick={retry} type="button">
+              다시 시도
+            </button>
           </div>
         ) : (
           <p className="product-catalog-status" role="status">
-            {loading ? `${kind.label} 목록을 불러오는 중입니다.` : filtered ? '조건에 맞는 상품이 없습니다.' : kind.emptyMessage}
+            {loading
+              ? `${kind.label} 목록을 불러오는 중입니다.`
+              : filtered
+                ? '조건에 맞는 상품이 없습니다.'
+                : kind.emptyMessage}
           </p>
         )
       ) : (
@@ -100,28 +107,43 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
                 {card.summary && <p>{card.summary}</p>}
                 {card.specs.length > 0 && (
                   <ul>
-                    {card.specs.map((spec) => <li key={spec}>{spec}</li>)}
+                    {card.specs.map((spec) => (
+                      <li key={spec}>{spec}</li>
+                    ))}
                   </ul>
                 )}
-                <div className="product-card-price"><span>{card.priceLabel}</span><b>{card.price}</b></div>
-                <button className="product-card-open" onClick={() => setDetailId(card.id)} type="button">자세히 보기</button>
+                <div className="product-card-price">
+                  <span>{card.priceLabel}</span>
+                  <b>{card.price}</b>
+                </div>
+                <button
+                  className="product-card-open"
+                  onClick={() => setDetailId(card.id)}
+                  type="button"
+                >
+                  자세히 보기
+                </button>
               </article>
             ))}
           </div>
           {error ? (
             <div className="product-catalog-more-error" role="alert">
               <p>{error}</p>
-              <button className="product-catalog-more" onClick={retry} type="button">다시 시도</button>
+              <button className="product-catalog-more" onClick={retry} type="button">
+                다시 시도
+              </button>
             </div>
-          ) : hasMore && (
-            <button
-              className="product-catalog-more"
-              disabled={loading}
-              onClick={() => setPage((current) => current + 1)}
-              type="button"
-            >
-              {loading ? '불러오는 중...' : '더 보기'}
-            </button>
+          ) : (
+            hasMore && (
+              <button
+                className="product-catalog-more"
+                disabled={loading}
+                onClick={() => setPage((current) => current + 1)}
+                type="button"
+              >
+                {loading ? '불러오는 중...' : '더 보기'}
+              </button>
+            )
           )}
         </>
       )}

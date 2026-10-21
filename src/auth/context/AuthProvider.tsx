@@ -45,28 +45,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 사용 중 access token 재발급까지 실패하면 apiClient가 토큰을 지우고 알려줍니다.
   useEffect(() => onSessionExpired(() => setUser(null)), [])
 
-  const value = useMemo<AuthContextValue>(() => ({
-    user,
-    isInitializing,
-    login: async (request) => {
-      const tokens = await authApi.login(request)
-      const loggedInUser = getAuthUser(tokens.accessToken)
-      if (!loggedInUser) throw new Error('유효하지 않은 로그인 정보입니다.')
-      tokenStorage.setTokens(tokens)
-      setUser(loggedInUser)
-      return loggedInUser
-    },
-    logout: async () => {
-      try {
-        await authApi.logout()
-      } catch {
-        // 서버에서 refresh token을 지우지 못해도 이 브라우저의 로그인 정보는 지웁니다.
-      } finally {
-        tokenStorage.clear()
-        setUser(null)
-      }
-    },
-  }), [isInitializing, user])
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      isInitializing,
+      login: async (request) => {
+        const tokens = await authApi.login(request)
+        const loggedInUser = getAuthUser(tokens.accessToken)
+        if (!loggedInUser) throw new Error('유효하지 않은 로그인 정보입니다.')
+        tokenStorage.setTokens(tokens)
+        setUser(loggedInUser)
+        return loggedInUser
+      },
+      logout: async () => {
+        try {
+          await authApi.logout()
+        } catch {
+          // 서버에서 refresh token을 지우지 못해도 이 브라우저의 로그인 정보는 지웁니다.
+        } finally {
+          tokenStorage.clear()
+          setUser(null)
+        }
+      },
+    }),
+    [isInitializing, user],
+  )
 
   return <AuthContext value={value}>{children}</AuthContext>
 }

@@ -1,7 +1,11 @@
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import { ApiRequestError } from '../../../shared/api/client'
 import { adminEmbeddingBackfillApi } from '../api/embeddingBackfillApi'
-import type { EmbeddingBackfillRun, EmbeddingBackfillRuns, EmbeddingBackfillTarget } from '../types/embeddingBackfill'
+import type {
+  EmbeddingBackfillRun,
+  EmbeddingBackfillRuns,
+  EmbeddingBackfillTarget,
+} from '../types/embeddingBackfill'
 import { EmbeddingBackfillContext } from './EmbeddingBackfillContext'
 
 const backfill: Record<EmbeddingBackfillTarget, () => Promise<number>> = {
@@ -51,7 +55,11 @@ export function EmbeddingBackfillProvider({ children }: { children: ReactNode })
           const count = await backfill[target]()
           setRun(target, { status: 'done', count, seconds: secondsSince(startedAt) })
         } catch (caught) {
-          setRun(target, { status: 'failed', message: failureMessage(caught), seconds: secondsSince(startedAt) })
+          setRun(target, {
+            status: 'failed',
+            message: failureMessage(caught),
+            seconds: secondsSince(startedAt),
+          })
           // 임베딩 서버 문제라면 뒤의 대상도 같은 이유로 실패하므로 여기서 멈춥니다.
           targets.slice(index + 1).forEach((rest) => setRun(rest, { status: 'idle' }))
           break
@@ -62,7 +70,9 @@ export function EmbeddingBackfillProvider({ children }: { children: ReactNode })
     }
   }, [])
 
-  const busy = Object.values(runs).some((run) => run.status === 'running' || run.status === 'queued')
+  const busy = Object.values(runs).some(
+    (run) => run.status === 'running' || run.status === 'queued',
+  )
   const value = useMemo(() => ({ runs, busy, runBackfill }), [runs, busy, runBackfill])
   return <EmbeddingBackfillContext value={value}>{children}</EmbeddingBackfillContext>
 }

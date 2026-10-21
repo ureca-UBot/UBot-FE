@@ -13,14 +13,14 @@ export type RouteIconType =
   | 'search'
   | 'locate'
   | 'recent'
-  | 'chevron';
+  | 'chevron'
 
 export interface RouteIcon {
-  type: RouteIconType;
-  color?: string;
+  type: RouteIconType
+  color?: string
 }
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
+const SVG_NS = 'http://www.w3.org/2000/svg'
 
 // 모든 아이콘은 24x24 viewBox에서 같은 선 굵기로 그려지도록 stroke 기반으로 정의한다.
 // JS로 그리는 경로 아이콘과 React 마크업의 버튼 아이콘이 같은 정의를 쓴다.
@@ -73,40 +73,46 @@ export const ROUTE_ICON_PATHS: Record<RouteIconType, { paths: string[]; filled?:
   },
   search: { paths: ['M11 18a7 7 0 1 1 0-14a7 7 0 1 1 0 14z', 'M20 20l-4-4'] },
   locate: {
-    paths: ['M12 16a4 4 0 1 1 0-8a4 4 0 1 1 0 8z', 'M12 2.5v3', 'M12 18.5v3', 'M2.5 12h3', 'M18.5 12h3'],
+    paths: [
+      'M12 16a4 4 0 1 1 0-8a4 4 0 1 1 0 8z',
+      'M12 2.5v3',
+      'M12 18.5v3',
+      'M2.5 12h3',
+      'M18.5 12h3',
+    ],
   },
   recent: { paths: ['M12 21a9 9 0 1 1 0-18a9 9 0 1 1 0 18z', 'M12 7.5V12l3 2'] },
   chevron: { paths: ['M6 9l6 6 6-6'] },
-};
+}
 
 // 도보 안내는 지명이 섞인 문장이라 '우체국'의 '우'처럼 한 글자로 판정하면 오탐이 난다.
 export function turnIconType(guidance: string | null | undefined): RouteIconType {
-  const text = guidance ?? '';
-  if (/유턴/.test(text)) return 'uturn';
-  if (/횡단보도/.test(text)) return 'crosswalk';
-  if (/좌회전|왼쪽|좌측/.test(text)) return 'left';
-  if (/우회전|오른쪽|우측/.test(text)) return 'right';
-  return 'straight';
+  const text = guidance ?? ''
+  if (/유턴/.test(text)) return 'uturn'
+  if (/횡단보도/.test(text)) return 'crosswalk'
+  if (/좌회전|왼쪽|좌측/.test(text)) return 'left'
+  if (/우회전|오른쪽|우측/.test(text)) return 'right'
+  return 'straight'
 }
 
 export function createRouteIcon(icon: RouteIcon, className: string) {
-  const wrapper = document.createElement('span');
-  wrapper.className = className;
-  wrapper.setAttribute('aria-hidden', 'true');
+  const wrapper = document.createElement('span')
+  wrapper.className = className
+  wrapper.setAttribute('aria-hidden', 'true')
   if (icon.color) {
-    wrapper.classList.add('tinted');
-    wrapper.style.setProperty('--icon-color', icon.color);
+    wrapper.classList.add('tinted')
+    wrapper.style.setProperty('--icon-color', icon.color)
   }
 
-  const svg = document.createElementNS(SVG_NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  const { paths, filled } = ROUTE_ICON_PATHS[icon.type];
+  const svg = document.createElementNS(SVG_NS, 'svg')
+  svg.setAttribute('viewBox', '0 0 24 24')
+  const { paths, filled } = ROUTE_ICON_PATHS[icon.type]
   paths.forEach((d) => {
-    const path = document.createElementNS(SVG_NS, 'path');
-    path.setAttribute('d', d);
-    svg.appendChild(path);
-  });
-  if (filled) svg.classList.add('filled');
-  wrapper.appendChild(svg);
-  return wrapper;
+    const path = document.createElementNS(SVG_NS, 'path')
+    path.setAttribute('d', d)
+    svg.appendChild(path)
+  })
+  if (filled) svg.classList.add('filled')
+  wrapper.appendChild(svg)
+  return wrapper
 }

@@ -24,7 +24,8 @@ export function formatDataMb(mb: number): string {
 
 // "6.1 / 15GB"처럼 단위가 같으면 한 번만 붙입니다.
 export function formatDataPair(usedMb: number, totalMb: number): string {
-  if (usedMb >= MB_PER_GB && totalMb >= MB_PER_GB) return `${formatGb(usedMb)} / ${formatGb(totalMb)}GB`
+  if (usedMb >= MB_PER_GB && totalMb >= MB_PER_GB)
+    return `${formatGb(usedMb)} / ${formatGb(totalMb)}GB`
   return `${formatDataMb(usedMb)} / ${formatDataMb(totalMb)}`
 }
 
@@ -106,7 +107,11 @@ export function groupByPhone(userData: ChatUserData): UserDataLine[] {
 
   return [...lines.values()].map((line) => ({
     ...line,
-    usages: [...line.usages].sort((a, b) => a.usage.billingMonth.localeCompare(b.usage.billingMonth)),
-    billings: [...line.billings].sort((a, b) => a.billing.billingMonth.localeCompare(b.billing.billingMonth)),
+    usages: [...line.usages].sort((a, b) =>
+      a.usage.billingMonth.localeCompare(b.usage.billingMonth),
+    ),
+    billings: [...line.billings].sort((a, b) =>
+      a.billing.billingMonth.localeCompare(b.billing.billingMonth),
+    ),
   }))
 }

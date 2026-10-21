@@ -1,8 +1,8 @@
 interface PaginationProps {
-  page: number;
-  totalPages: number;
-  onChange: (page: number) => void;
-  showEdgeButtons?: boolean;
+  page: number
+  totalPages: number
+  onChange: (page: number) => void
+  showEdgeButtons?: boolean
 }
 
 export function Pagination({
@@ -11,10 +11,10 @@ export function Pagination({
   onChange,
   showEdgeButtons = false,
 }: PaginationProps) {
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1) return null
 
-  const start = Math.floor(page / 10) * 10;
-  const end = Math.min(start + 10, totalPages);
+  const start = Math.floor(page / 10) * 10
+  const end = Math.min(start + 10, totalPages)
 
   return (
     <div className="pagination">
@@ -30,18 +30,16 @@ export function Pagination({
       >
         이전
       </button>
-      {Array.from({ length: end - start }, (_, index) => start + index).map(
-        (item) => (
-          <button
-            className={page === item ? "pagination__active" : ""}
-            key={item}
-            onClick={() => onChange(item)}
-            type="button"
-          >
-            {item + 1}
-          </button>
-        ),
-      )}
+      {Array.from({ length: end - start }, (_, index) => start + index).map((item) => (
+        <button
+          className={page === item ? 'pagination__active' : ''}
+          key={item}
+          onClick={() => onChange(item)}
+          type="button"
+        >
+          {item + 1}
+        </button>
+      ))}
       <button
         disabled={end === totalPages}
         onClick={() => onChange(Math.min(start + 10, totalPages - 1))}
@@ -59,5 +57,5 @@ export function Pagination({
         </button>
       )}
     </div>
-  );
+  )
 }
