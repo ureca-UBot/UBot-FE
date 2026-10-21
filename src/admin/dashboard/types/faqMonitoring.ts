@@ -91,6 +91,11 @@ export interface FaqDuplicateCandidate {
   pairCount: number
 }
 
+export interface FaqAiReviewResponse {
+  recommendation: string
+  details: string
+}
+
 export interface FaqImprovementItem {
   faqId: number
   question: string
@@ -101,7 +106,7 @@ export interface FaqImprovementItem {
   topKCount: number
   averageSimilarity: number
   top1SampleCount: number
-  recentUsageCount: number
+  reviewableTopKCount: number
   averageTopGap: number
   lowGapRate: number
 }

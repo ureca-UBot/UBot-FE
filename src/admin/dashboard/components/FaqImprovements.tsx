@@ -2,6 +2,7 @@ import { Pagination } from '../../faq/components/Pagination'
 
 import type { useFaqDashboard } from '../hooks/useFaqDashboard'
 import { improvementTypeLabel, improvementTypes } from '../utils/dashboardFormat'
+import { FaqAiReviewModal } from './FaqAiReviewModal'
 
 type Props = Pick<
   ReturnType<typeof useFaqDashboard>,
@@ -35,6 +36,15 @@ type Props = Pick<
   | 'selectFaqFromRanking'
   | 'duplicateError'
   | 'isDuplicateLoading'
+  | 'openAiReviewModal'
+  | 'requestAiReview'
+  | 'aiReviewResults'
+  | 'aiReviewErrors'
+  | 'aiReviewTarget'
+  | 'activeAiReviewType'
+  | 'isAiReviewModalOpen'
+  | 'closeAiReviewModal'
+  | 'canRequestDuplicateAiReview'
 >
 
 export function FaqImprovements({
@@ -68,6 +78,15 @@ export function FaqImprovements({
   selectFaqFromRanking,
   duplicateError,
   isDuplicateLoading,
+  openAiReviewModal,
+  requestAiReview,
+  aiReviewResults,
+  aiReviewErrors,
+  aiReviewTarget,
+  activeAiReviewType,
+  isAiReviewModalOpen,
+  closeAiReviewModal,
+  canRequestDuplicateAiReview,
 }: Props) {
   return (
     <section className="faq-dashboard-section faq-dashboard-section--improvement">
@@ -213,8 +232,17 @@ export function FaqImprovements({
       {selectedImprovementItem && (
         <div className="faq-dashboard-improvement-extra">
           <div className="faq-dashboard-improvement-extra__title">
-            <b>추가 정보</b>
-            <span>선택한 FAQ의 질문과 검색·사용 지표</span>
+            <div>
+              <b>추가 정보</b>
+              <span>선택한 FAQ의 질문과 검색·사용 지표</span>
+            </div>
+            <button
+              className="faq-dashboard-ai-review__button"
+              onClick={openAiReviewModal}
+              type="button"
+            >
+              AI 검토
+            </button>
           </div>
           <div
             className={`faq-dashboard-improvement-extra__content${selectedDuplicateFaqId !== null ? ' has-duplicates' : ''}`}
@@ -238,9 +266,9 @@ export function FaqImprovements({
                   <strong>{selectedImprovementItem.top1SampleCount.toLocaleString('ko-KR')}</strong>
                 </div>
                 <div>
-                  <span>최근 사용량</span>
+                  <span>검토 가능 Top-K 건수</span>
                   <strong>
-                    {selectedImprovementItem.recentUsageCount.toLocaleString('ko-KR')}
+                    {selectedImprovementItem.reviewableTopKCount.toLocaleString('ko-KR')}
                   </strong>
                 </div>
                 <div>
@@ -368,6 +396,18 @@ export function FaqImprovements({
             )}
           </div>
         </div>
+      )}
+      {isAiReviewModalOpen && (
+        <FaqAiReviewModal
+          activeType={activeAiReviewType}
+          canRequestDuplicate={canRequestDuplicateAiReview}
+          errors={aiReviewErrors}
+          improvementTypes={selectedImprovementItem?.improvementTypes ?? []}
+          onClose={closeAiReviewModal}
+          onRequest={requestAiReview}
+          results={aiReviewResults}
+          target={aiReviewTarget}
+        />
       )}
     </section>
   )

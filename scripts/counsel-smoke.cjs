@@ -596,7 +596,7 @@ async function main() {
       topKCount: 20,
       averageSimilarity: 0.9,
       top1SampleCount: 10,
-      recentUsageCount: 5,
+      reviewableTopKCount: 5,
       averageTopGap: 0.01,
       lowGapRate: 0.8,
     })

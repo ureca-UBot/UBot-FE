@@ -1,5 +1,6 @@
 import { apiClient } from '../../../shared/api/client'
 import type {
+  FaqAiReviewResponse,
   FaqDetailResponse,
   FaqDuplicateCandidate,
   FaqImprovementResponse,
@@ -10,6 +11,12 @@ import type {
 export interface MonitoringDateRange {
   startDate: string
   endDate: string
+}
+
+const aiReviewPaths: Record<FaqImprovementType, string> = {
+  DUPLICATE_SUSPECTED: 'duplicate-suspected',
+  LOW_RAG_QUALITY: 'low-rag-quality',
+  LOW_USAGE: 'low-usage',
 }
 
 export const faqMonitoringApi = {
@@ -37,5 +44,10 @@ export const faqMonitoringApi = {
   getDuplicateCandidates: (faqId: number) =>
     apiClient.get<FaqDuplicateCandidate[]>(
       `/api/admin/faq-monitoring/improvements/${faqId}/duplicates`,
+    ),
+  requestAiReview: (faqId: number, type: FaqImprovementType, candidateFaqIds: number[] = []) =>
+    apiClient.post<FaqAiReviewResponse>(
+      `/api/admin/faq-monitoring/improvements/${faqId}/ai-review/${aiReviewPaths[type]}`,
+      type === 'DUPLICATE_SUSPECTED' ? { candidateFaqIds } : undefined,
     ),
 }

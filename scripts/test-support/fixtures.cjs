@@ -88,7 +88,7 @@ const improvement = {
   topKCount: 10,
   averageSimilarity: 0.85,
   top1SampleCount: 12,
-  recentUsageCount: 5,
+  reviewableTopKCount: 5,
   averageTopGap: 0.03,
   lowGapRate: 0.1,
 }
