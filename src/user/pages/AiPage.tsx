@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { chatApi } from '../ai/api/chatApi'
 import { useCustomerCounsel, counselStates } from '../../counsel/hooks/useCustomerCounsel'
 import { CounselConversation } from '../../counsel/components/CounselConversation'
 import { ConversationTimeline } from '../../counsel/components/ConversationTimeline'
@@ -48,9 +49,15 @@ export function AiPage({
 }: PageProps) {
   const [inputVersion, setInputVersion] = useState(0)
   const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [openingHistory, setOpeningHistory] = useState(false)
+  const [historyVersion, setHistoryVersion] = useState(0)
+  const historyBusy = useRef(false)
   const counsel = useCustomerCounsel(chat)
   const hasConversation = chat ? chat.turns.length > 0 : chatActive
-  const inputDisabled = chat ? isInitializing || chat.isPending || counsel.blocking : false
+  const inputDisabled = chat
+    ? isInitializing || chat.isPending || counsel.blocking || deletingId !== null || openingHistory
+    : false
   const isGenerating = chat ? chat.turns.some((turn) => turn.isPending) : false
   const startNewChat = chat
     ? () => {
@@ -60,19 +67,48 @@ export function AiPage({
         setInputVersion((current) => current + 1)
       }
     : undefined
-  const historyRefreshKey = `${chat?.turns.filter((turn) => turn.response?.status === 'SUCCESS').length ?? 0}:${counsel.session?.sessionId ?? ''}:${counsel.session?.status ?? ''}:${counsel.session?.lastDeliveredSeq ?? 0}`
+  const historyRefreshKey = `${historyVersion}:${chat?.turns.filter((turn) => turn.response?.status === 'SUCCESS').length ?? 0}:${counsel.session?.sessionId ?? ''}:${counsel.session?.status ?? ''}:${counsel.session?.lastDeliveredSeq ?? 0}`
   const openConversation = (conversationId: string) => {
-    if (!chat) return
+    if (!chat || inputDisabled || historyBusy.current) return
     if (conversationId === chat.conversationId) {
       setMobileHistoryOpen(false)
       return
     }
-    void chat.openConversation(conversationId).then((opened) => {
-      if (opened) {
+    historyBusy.current = true
+    setOpeningHistory(true)
+    void chat
+      .openConversation(conversationId)
+      .then((opened) => {
+        if (opened) {
+          setInputVersion((current) => current + 1)
+          setMobileHistoryOpen(false)
+        }
+      })
+      .finally(() => {
+        historyBusy.current = false
+        setOpeningHistory(false)
+      })
+  }
+
+  const deleteConversation = async (conversationId: string) => {
+    if (!chat || inputDisabled || historyBusy.current) return
+    historyBusy.current = true
+    setDeletingId(conversationId)
+    chat.setConversationLocked(true)
+    try {
+      await chatApi.deleteConversation(conversationId)
+      chat.setConversationLocked(false)
+      if (conversationId === chat.conversationId) {
+        counsel.clear()
+        chat.resetConversation()
         setInputVersion((current) => current + 1)
-        setMobileHistoryOpen(false)
       }
-    })
+      setHistoryVersion((current) => current + 1)
+    } finally {
+      chat.setConversationLocked(false)
+      historyBusy.current = false
+      setDeletingId(null)
+    }
   }
 
   const turns = chat?.turns
@@ -122,6 +158,8 @@ export function AiPage({
               disabled={
                 !counsel.enabled ||
                 isInitializing ||
+                deletingId !== null ||
+                openingHistory ||
                 chat?.isPending ||
                 counsel.loading ||
                 counsel.busy ||
@@ -156,6 +194,8 @@ export function AiPage({
                     refreshKey={historyRefreshKey}
                     disabled={inputDisabled}
                     onSelect={openConversation}
+                    onDelete={deleteConversation}
+                    deletingId={deletingId}
                   />
                 )}
               </details>
@@ -176,6 +216,8 @@ export function AiPage({
                   refreshKey={historyRefreshKey}
                   disabled={inputDisabled}
                   onSelect={openConversation}
+                  onDelete={deleteConversation}
+                  deletingId={deletingId}
                 />
               )}
               {!chat && (
