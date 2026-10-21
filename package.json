@@ -9,10 +9,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "node --test scripts/logic.test.cjs",
-    "test:browser": "node --test scripts/regression.test.cjs",
+    "test:browser": "node --test scripts/regression.test.cjs scripts/chat-retry.test.cjs scripts/chat-cancellation.test.cjs",
     "test:visual": "node scripts/visual-regression.cjs",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\"",
+    "test:chat": "node --test scripts/chat-retry.test.cjs scripts/chat-cancellation.test.cjs"
   },
   "dependencies": {
     "react": "^19.2.8",

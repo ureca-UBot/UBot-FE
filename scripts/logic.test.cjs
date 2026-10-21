@@ -251,3 +251,23 @@ test('스타일 진입점은 중복 없이 존재하는 분할 파일만 불러�
     }
   }
 })
+
+test('개발용 채팅 mock도 접수된 요청의 중단을 실제 완료와 구분한다', async () => {
+  const controller = new AbortController()
+  let cancelledJobId
+  const pending = modules.chatMockApi.createQuestion(
+    { question: '내 청구서를 알려주세요' },
+    {
+      signal: controller.signal,
+      onSubmitted: async (submission) => {
+        const cancelled = await modules.chatMockApi.cancelJob(submission.jobId)
+        cancelledJobId = cancelled.jobId
+        assert.equal(cancelled.cancelled, true)
+        controller.abort(new Error('사용자 중단'))
+      },
+    },
+  )
+  await assert.rejects(pending, /사용자 중단/)
+  assert.equal(typeof cancelledJobId, 'number')
+  assert.ok(cancelledJobId > 0)
+})
