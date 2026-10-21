@@ -136,7 +136,12 @@ function RankingSection({
         <ol>
           {items.map((faq) => (
             <li key={faq.faqId}>
-              <button disabled={disabled} onClick={() => onSelect(faq)} title={faq.question} type="button">
+              <button
+                disabled={disabled}
+                onClick={() => onSelect(faq)}
+                title={faq.question}
+                type="button"
+              >
                 <strong>{faq.rank}</strong>
                 <span>{faq.question}</span>
                 <em>{getMetric(faq)}</em>

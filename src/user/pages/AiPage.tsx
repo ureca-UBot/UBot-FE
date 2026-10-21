@@ -254,7 +254,6 @@ export function AiPage({
                 residenceArea={residenceArea}
               />
             </aside>
-
           </div>
         </div>
       </section>

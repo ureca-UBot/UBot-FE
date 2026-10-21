@@ -20,7 +20,13 @@ const mainNav = [
   { page: 'customer', label: '고객센터' },
 ] as const
 
-export function DesktopHeader({ canLogout, loggedIn, memberName, scrolled, page }: DesktopHeaderProps) {
+export function DesktopHeader({
+  canLogout,
+  loggedIn,
+  memberName,
+  scrolled,
+  page,
+}: DesktopHeaderProps) {
   const { unreadCount } = useNotificationUnread()
   const isLoggedIn = loggedIn || Boolean(memberName)
 
@@ -54,7 +60,12 @@ export function DesktopHeader({ canLogout, loggedIn, memberName, scrolled, page 
                   strokeWidth="2"
                   strokeLinejoin="round"
                 />
-                <path d="M15 17H25 L24 14H16 L15 17Z" stroke="#222" strokeWidth="1.7" strokeLinejoin="round" />
+                <path
+                  d="M15 17H25 L24 14H16 L15 17Z"
+                  stroke="#222"
+                  strokeWidth="1.7"
+                  strokeLinejoin="round"
+                />
                 <path d="M16 17V23H24V17" stroke="#222" strokeWidth="1.7" strokeLinejoin="round" />
                 <path d="M19 23V20H21V23" stroke="#222" strokeWidth="1.7" strokeLinejoin="round" />
               </svg>
@@ -77,16 +88,32 @@ export function DesktopHeader({ canLogout, loggedIn, memberName, scrolled, page 
                   strokeLinecap="round"
                 />
               </svg>
-              {isLoggedIn && <NotificationBadge className="notif-badge--icon" count={unreadCount} />}
+              {isLoggedIn && (
+                <NotificationBadge className="notif-badge--icon" count={unreadCount} />
+              )}
             </span>
-            <span className="header-action-label">{memberName ? `${memberName}님` : isLoggedIn ? '내 정보' : '로그인'}</span>
+            <span className="header-action-label">
+              {memberName ? `${memberName}님` : isLoggedIn ? '내 정보' : '로그인'}
+            </span>
           </button>
           {canLogout && (
             <LogoutButton className="header-action" redirectTo={null}>
               <span className="header-action-icon" aria-hidden="true">
                 <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                  <path d="M18 11H12V29H18" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M22 15L27 20L22 25" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M18 11H12V29H18"
+                    stroke="#222"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M22 15L27 20L22 25"
+                    stroke="#222"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                   <path d="M17 20H27" stroke="#222" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </span>

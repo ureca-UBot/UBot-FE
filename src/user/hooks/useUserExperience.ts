@@ -160,14 +160,7 @@ export function useUserExperience() {
         navigate('store')
       }
     },
-    [
-      navigate,
-      resetConversation,
-      routerNavigate,
-      runDemo,
-      sendAi,
-      sendQuestion,
-    ],
+    [navigate, resetConversation, routerNavigate, runDemo, sendAi, sendQuestion],
   )
 
   const handleKeyDown = useCallback(

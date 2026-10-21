@@ -1,10 +1,4 @@
-export type UserPage =
-  | 'store'
-  | 'my'
-  | 'stores'
-  | 'notices'
-  | 'ai'
-  | 'customer'
+export type UserPage = 'store' | 'my' | 'stores' | 'notices' | 'ai' | 'customer'
 
 export const userPageTitles: Record<UserPage, string> = {
   store: '상품 정보',
