@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiRequestError } from '../../../shared/api/client'
+import { adminFaqApi } from '../../faq/api/faqApi'
 import { faqMonitoringApi } from '../api/faqMonitoringApi'
 import type {
+  FaqAiReviewResponse,
   FaqDuplicateCandidate,
   FaqImprovementResponse,
   FaqImprovementType,
@@ -26,6 +28,29 @@ export function useFaqImprovements() {
     message: string
   } | null>(null)
   const duplicateRequestId = useRef(0)
+  const aiReviewRequestId = useRef(0)
+  const aiReviewTargetRequestId = useRef(0)
+  const aiReviewInFlightRef = useRef<FaqImprovementType | null>(null)
+  const [aiReviewResults, setAiReviewResults] = useState<{
+    key: string
+    values: Partial<Record<FaqImprovementType, FaqAiReviewResponse>>
+  } | null>(null)
+  const [aiReviewRequestErrors, setAiReviewRequestErrors] = useState<{
+    key: string
+    values: Partial<Record<FaqImprovementType, string>>
+  } | null>(null)
+  const [activeAiReview, setActiveAiReview] = useState<{
+    key: string
+    type: FaqImprovementType
+  } | null>(null)
+  const [isAiReviewModalOpen, setIsAiReviewModalOpen] = useState(false)
+  const [aiReviewTarget, setAiReviewTarget] = useState<{
+    key: string
+    faqId: number
+    question: string
+    answer: string | null
+    error: string | null
+  } | null>(null)
   const duplicateScrollRef = useRef<HTMLDivElement>(null)
   const duplicateDragRef = useRef<{
     pointerId: number
@@ -98,6 +123,16 @@ export function useFaqImprovements() {
     duplicateRequestError?.key === duplicateRequestKey ? duplicateRequestError.message : null
   const isDuplicateLoading =
     duplicateRequestKey !== null && selectedDuplicateCandidates === null && duplicateError === null
+  const aiReviewCandidateIds = selectedDuplicateCandidates?.slice(0, 5).map(({ faqId }) => faqId)
+  const aiReviewContextKey = selectedImprovementItem
+    ? `${selectedImprovementItem.faqId}:${improvementResponse?.evaluatedAt ?? ''}`
+    : null
+  const selectedAiReviewResults =
+    aiReviewResults?.key === aiReviewContextKey ? aiReviewResults.values : {}
+  const selectedAiReviewErrors =
+    aiReviewRequestErrors?.key === aiReviewContextKey ? aiReviewRequestErrors.values : {}
+  const selectedAiReviewTarget = aiReviewTarget?.key === aiReviewContextKey ? aiReviewTarget : null
+  const activeAiReviewType = activeAiReview?.key === aiReviewContextKey ? activeAiReview.type : null
   useEffect(() => {
     const requestId = ++duplicateRequestId.current
     if (selectedDuplicateFaqId === null || duplicateRequestKey === null) return
@@ -124,6 +159,118 @@ export function useFaqImprovements() {
       duplicateRequestId.current += 1
     }
   }, [selectedDuplicateFaqId, duplicateRequestKey])
+  useEffect(
+    () => () => {
+      aiReviewRequestId.current += 1
+      aiReviewTargetRequestId.current += 1
+    },
+    [],
+  )
+  const openAiReviewModal = () => {
+    if (selectedImprovementItem === null || aiReviewContextKey === null) return
+    setIsAiReviewModalOpen(true)
+    if (aiReviewTarget?.key === aiReviewContextKey) return
+
+    const requestId = ++aiReviewTargetRequestId.current
+    setAiReviewTarget({
+      key: aiReviewContextKey,
+      faqId: selectedImprovementItem.faqId,
+      question: selectedImprovementItem.question,
+      answer: null,
+      error: null,
+    })
+    void adminFaqApi
+      .getFaq(String(selectedImprovementItem.faqId))
+      .then((faq) => {
+        if (requestId === aiReviewTargetRequestId.current)
+          setAiReviewTarget({
+            key: aiReviewContextKey,
+            faqId: faq.id,
+            question: faq.question,
+            answer: faq.answer,
+            error: null,
+          })
+      })
+      .catch((error) => {
+        console.error('AI 검토 대상 FAQ를 불러오지 못했습니다.', error)
+        if (requestId === aiReviewTargetRequestId.current)
+          setAiReviewTarget((current) =>
+            current?.key === aiReviewContextKey
+              ? {
+                  ...current,
+                  error:
+                    error instanceof ApiRequestError
+                      ? `${error.message} (HTTP ${error.status})`
+                      : error instanceof Error
+                        ? error.message
+                        : '네트워크 오류',
+                }
+              : current,
+          )
+      })
+  }
+  const requestAiReview = (type: FaqImprovementType) => {
+    if (
+      selectedImprovementItem === null ||
+      aiReviewContextKey === null ||
+      !selectedImprovementItem.improvementTypes.includes(type) ||
+      aiReviewInFlightRef.current !== null ||
+      (type === 'DUPLICATE_SUSPECTED' && aiReviewCandidateIds === undefined)
+    )
+      return
+
+    const requestId = ++aiReviewRequestId.current
+    aiReviewInFlightRef.current = type
+    setActiveAiReview({ key: aiReviewContextKey, type })
+    setAiReviewResults((current) => ({
+      key: aiReviewContextKey,
+      values: {
+        ...(current?.key === aiReviewContextKey ? current.values : {}),
+        [type]: undefined,
+      },
+    }))
+    setAiReviewRequestErrors((current) => ({
+      key: aiReviewContextKey,
+      values: {
+        ...(current?.key === aiReviewContextKey ? current.values : {}),
+        [type]: undefined,
+      },
+    }))
+    void faqMonitoringApi
+      .requestAiReview(selectedImprovementItem.faqId, type, aiReviewCandidateIds)
+      .then((response) => {
+        if (requestId === aiReviewRequestId.current)
+          setAiReviewResults((current) => ({
+            key: aiReviewContextKey,
+            values: {
+              ...(current?.key === aiReviewContextKey ? current.values : {}),
+              [type]: response,
+            },
+          }))
+      })
+      .catch((error) => {
+        console.error('AI 검토를 요청하지 못했습니다.', error)
+        if (requestId === aiReviewRequestId.current)
+          setAiReviewRequestErrors((current) => ({
+            key: aiReviewContextKey,
+            values: {
+              ...(current?.key === aiReviewContextKey ? current.values : {}),
+              [type]:
+                error instanceof ApiRequestError
+                  ? `${error.message} (HTTP ${error.status})`
+                  : error instanceof Error
+                    ? error.message
+                    : '네트워크 오류',
+            },
+          }))
+      })
+      .finally(() => {
+        if (requestId === aiReviewRequestId.current) {
+          aiReviewInFlightRef.current = null
+          setActiveAiReview(null)
+        }
+      })
+  }
   const stopDuplicateDrag = () => {
     duplicateDragRef.current = null
     setIsDuplicateDragging(false)
@@ -157,5 +304,14 @@ export function useFaqImprovements() {
     selectedDuplicateCandidates,
     duplicateError,
     isDuplicateLoading,
+    openAiReviewModal,
+    requestAiReview,
+    aiReviewResults: selectedAiReviewResults,
+    aiReviewErrors: selectedAiReviewErrors,
+    aiReviewTarget: selectedAiReviewTarget,
+    activeAiReviewType,
+    isAiReviewModalOpen,
+    closeAiReviewModal: () => setIsAiReviewModalOpen(false),
+    canRequestDuplicateAiReview: aiReviewCandidateIds !== undefined,
   }
 }
