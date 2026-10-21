@@ -26,6 +26,7 @@ export interface ChatApi {
   ) => Promise<ChatResponse>
   getMyConversationList: (page?: number) => Promise<PageResponse<ConversationSummary>>
   getConversationMessageList: (conversationId: string) => Promise<ConversationMessage[]>
+  deleteConversation: (conversationId: string) => Promise<void>
 }
 
 const realChatApi: ChatApi = {
@@ -53,6 +54,8 @@ const realChatApi: ChatApi = {
     apiClient.get<ConversationMessage[]>(
       `/api/conversations/${encodeURIComponent(conversationId)}/messages`,
     ),
+  deleteConversation: (conversationId) =>
+    apiClient.delete<void>(`/api/conversations/${encodeURIComponent(conversationId)}`),
 }
 
 // 개발 서버(DEV)에서 VITE_CHAT_MOCK=true일 때만 mock을 씁니다.

@@ -319,4 +319,5 @@ export const chatMockApi: ChatApi = {
   }),
 
   getConversationMessageList: async () => [],
+  deleteConversation: async () => {},
 }
