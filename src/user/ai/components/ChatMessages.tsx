@@ -10,6 +10,7 @@ import {
   type ChatTurn,
 } from '../types/chat'
 import { storeMapKey } from '../utils/storeMaps'
+import { AnswerFeedback } from './AnswerFeedback'
 import { ChatStoreCards } from './ChatStoreCards'
 import { ChatUserDataCards } from './ChatUserDataCards'
 import { ResearchIntentButtons } from './ResearchIntentButtons'
@@ -78,9 +79,11 @@ function ProgressLine({
 // 원래 답변 아래에 의도별로 다시 검색한 결과를 보여줍니다.
 function ResearchResult({
   research,
+  question,
   onOpenMap,
 }: {
   research: ChatResearch
+  question: string
   onOpenMap?: (storeId: number) => void
 }) {
   const label = CHAT_INTENT_LABELS[research.intent]
@@ -109,6 +112,15 @@ function ResearchResult({
           </div>
           <ChatStoreCards store={research.response?.store} onOpenMap={onOpenMap} />
           <ChatUserDataCards userData={research.response?.userData} />
+          {research.response?.status === 'SUCCESS' && (
+            <AnswerFeedback
+              question={question}
+              answer={getAnswerText(research.response.answer)}
+              requestKey={research.response.idempotencyKey}
+              conversationId={research.response.conversationId}
+              intent={research.intent}
+            />
+          )}
         </>
       )}
     </div>
@@ -192,6 +204,14 @@ export function ChatMessages({
                     onOpenMap={onOpenMap && ((storeId) => onOpenMap(storeMapKey(turn.id), storeId))}
                   />
                   <ChatUserDataCards userData={turn.response?.userData} />
+                  {turn.response?.status === 'SUCCESS' && (
+                    <AnswerFeedback
+                      question={turn.question}
+                      answer={getAnswerText(turn.response.answer)}
+                      requestKey={turn.response.idempotencyKey}
+                      conversationId={turn.response.conversationId}
+                    />
+                  )}
                   {canResearch &&
                     turn.response?.status === 'SUCCESS' &&
                     turn.response.idempotencyKey && (
@@ -205,6 +225,7 @@ export function ChatMessages({
                     <ResearchResult
                       key={research.intent}
                       research={research}
+                      question={turn.question}
                       onOpenMap={
                         onOpenMap &&
                         ((storeId) => onOpenMap(storeMapKey(turn.id, research.intent), storeId))

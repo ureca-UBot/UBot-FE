@@ -159,7 +159,10 @@ async function main() {
   try {
     const { page, context, state } = await fixture(browser)
     await page.goto(`${origin}/#/ai`)
-    await page.getByRole('button', { name: /상담으로 시작한 문의/ }).click()
+    await page
+      .getByRole('button')
+      .and(page.getByTitle('상담으로 시작한 문의', { exact: true }))
+      .click()
     const transcript = page.getByRole('region', { name: '전체 대화 기록' })
     await transcript.getByText('보존된 상담 메시지 129', { exact: true }).waitFor()
     assert.equal(await transcript.locator('article').count(), 132)
@@ -174,12 +177,18 @@ async function main() {
       'ended archive must not poll',
     )
 
-    await page.getByRole('button', { name: /AI 전용 대화/ }).click()
+    await page
+      .getByRole('button')
+      .and(page.getByTitle('AI 전용 대화', { exact: true }))
+      .click()
     await page.getByText('기존 AI 답변', { exact: true }).waitFor()
     assert.equal(await transcript.count(), 0)
     // 취소된 StrictMode 요청이 실패를 먼저 소모하지 않도록 복구 시점을 직접 제어함
     state.failTimeline = true
-    await page.getByRole('button', { name: /상담으로 시작한 문의/ }).click()
+    await page
+      .getByRole('button')
+      .and(page.getByTitle('상담으로 시작한 문의', { exact: true }))
+      .click()
     await page.getByRole('alert').filter({ hasText: '일시적인 기록 조회 실패' }).waitFor()
     state.failTimeline = false
     await page.getByRole('button', { name: '기록 다시 불러오기' }).click()
@@ -189,7 +198,10 @@ async function main() {
     await page.screenshot({ path: 'test-results/counsel/history-desktop.png', fullPage: true })
 
     await page.getByRole('button', { name: '이전 대화 더 보기' }).click()
-    await page.getByRole('button', { name: /오래된 상담/ }).click()
+    await page
+      .getByRole('button')
+      .and(page.getByTitle('오래된 상담', { exact: true }))
+      .click()
     await transcript.getByText('보존된 상담 메시지 129', { exact: true }).waitFor()
     await page.getByRole('button', { name: '새 AI 대화 시작' }).click()
     assert.equal(await transcript.count(), 0)
@@ -197,9 +209,15 @@ async function main() {
     state.hold = new Promise((resolve) => {
       release = resolve
     })
-    await page.getByRole('button', { name: /상담으로 시작한 문의/ }).click()
+    await page
+      .getByRole('button')
+      .and(page.getByTitle('상담으로 시작한 문의', { exact: true }))
+      .click()
     await page.getByText('대화 기록을 불러오고 있어요.', { exact: true }).waitFor()
-    await page.getByRole('button', { name: /AI 전용 대화/ }).click()
+    await page
+      .getByRole('button')
+      .and(page.getByTitle('AI 전용 대화', { exact: true }))
+      .click()
     await page.getByText('기존 AI 답변', { exact: true }).waitFor()
     release()
     state.hold = null
@@ -217,7 +235,10 @@ async function main() {
     await fresh.page.goto(`${origin}/#/ai`)
     assert.equal(await fresh.page.evaluate(() => sessionStorage.getItem('counsel:session:1')), null)
     await fresh.page.getByText('최근 대화 · 상담 내역', { exact: true }).click()
-    await fresh.page.getByRole('button', { name: /상담으로 시작한 문의/ }).click()
+    await fresh.page
+      .getByRole('button')
+      .and(fresh.page.getByTitle('상담으로 시작한 문의', { exact: true }))
+      .click()
     await fresh.page
       .getByRole('region', { name: '전체 대화 기록' })
       .getByText('보존된 상담 메시지 129', { exact: true })

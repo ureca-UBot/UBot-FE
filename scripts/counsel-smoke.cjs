@@ -277,7 +277,7 @@ async function main() {
     const customer = await contextFor(browser, 'USER')
     const p = customer.page
     await p.goto(`${origin}/#/counsel`)
-    await p.getByRole('button', { name: /기존 요금제 문의/ }).click()
+    await p.getByTitle('기존 요금제 문의', { exact: true }).click()
     await p.screenshot({ path: 'test-results/counsel/ai-existing-design.png', fullPage: true })
     const originalHeader = await p.locator('.ai-app-head').boundingBox()
     await p.getByText('AI의 추가 안내입니다.', { exact: true }).waitFor()
@@ -305,7 +305,7 @@ async function main() {
       .filter({ hasText: 'AI의 추가 안내입니다.' })
       .waitFor()
     assert.equal(await p.locator('.counsel-history-message').count(), 4)
-    assert.equal(await p.getByRole('button', { name: /기존 요금제 문의/ }).isDisabled(), true)
+    assert.equal(await p.getByTitle('기존 요금제 문의', { exact: true }).isDisabled(), true)
     const input = p.getByRole('textbox', { name: /메시지/ })
     await input.fill('차단 문장')
     await input.dispatchEvent('keydown', { key: 'Enter', code: 'Enter', isComposing: true })

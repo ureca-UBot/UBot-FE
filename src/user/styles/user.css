@@ -22,3 +22,5 @@
 @import './sections/notice-banners.css';
 @import './sections/notices.css';
 @import './sections/notifications.css';
+
+@import './sections/chat-feedback.css';

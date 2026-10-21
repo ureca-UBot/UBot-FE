@@ -8,3 +8,5 @@ export * as routeItems from '../../src/user/store-locator/directions/routeItems'
 export * as api from '../../src/shared/api/client'
 export { tokenStorage } from '../../src/auth/utils/tokenStorage'
 export { chatMockApi } from '../../src/user/ai/api/chatApi.mock'
+
+export * as feedback from '../../src/user/ai/utils/answerFeedback'

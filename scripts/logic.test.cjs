@@ -271,3 +271,71 @@ test('개발용 채팅 mock도 접수된 요청의 중단을 실제 완료와 �
   assert.equal(typeof cancelledJobId, 'number')
   assert.ok(cancelledJobId > 0)
 })
+
+test('답변 의견은 기존 고객문의 형식에 선택한 질문과 답변만 포함한다', () => {
+  const payload = modules.feedback.buildFeedbackInquiry({
+    rating: 'negative',
+    reasons: ['답변이 정확하지 않아요'],
+    comment: '조건이 달라요.',
+    question: '요금제 변경은 어떻게 하나요?',
+    answer: '선택한 답변입니다.',
+    requestKey: 'selected-request',
+    intent: 'GENERAL',
+  })
+  assert.match(payload.title, /^\[AI 답변 의견 · 별로예요\]/)
+  for (const value of [
+    '요금제 변경은 어떻게 하나요?',
+    '선택한 답변입니다.',
+    '조건이 달라요.',
+    'selected-request',
+    '일반 문의 재검색 답변',
+  ])
+    assert.ok(payload.content.includes(value))
+  assert.equal(payload.truncated, false)
+})
+
+test('긴 질문·답변은 의견을 보존하면서 문의 제한과 유니코드 경계를 지킨다', () => {
+  const comment = '상세'.repeat(150)
+  const payload = modules.feedback.buildFeedbackInquiry({
+    rating: 'positive',
+    reasons: [...modules.feedback.FEEDBACK_REASONS.positive],
+    comment,
+    question: '질문😀'.repeat(1000),
+    answer: '답변😀'.repeat(3000),
+    requestKey: 'k'.repeat(200),
+    conversationId: 'c'.repeat(200),
+  })
+  assert.ok(payload.title.length <= 200)
+  assert.ok(payload.content.length <= 1000)
+  assert.ok(payload.content.includes(comment))
+  assert.ok(payload.content.includes('질문:\n질문'))
+  assert.ok(payload.content.includes('답변:\n답변'))
+  assert.ok(payload.content.includes('일부만 첨부'))
+  assert.equal(payload.title.isWellFormed(), true)
+  assert.equal(payload.content.isWellFormed(), true)
+  assert.equal(payload.truncated, true)
+})
+
+test('긴 질문 때문에 짧은 정상 답변이나 세부 의견을 누락하지 않는다', () => {
+  const payload = modules.feedback.buildFeedbackInquiry({
+    rating: 'negative',
+    reasons: [],
+    comment: '짧은 의견',
+    question: '긴 질문'.repeat(1000),
+    answer: '반드시 보존할 답변',
+  })
+  assert.ok(payload.content.includes('반드시 보존할 답변'))
+  assert.ok(payload.content.includes('짧은 의견'))
+  assert.ok(payload.content.length <= 1000)
+  assert.throws(
+    () =>
+      modules.feedback.buildFeedbackInquiry({
+        rating: 'positive',
+        reasons: [],
+        comment: 'a'.repeat(301),
+        question: '질문',
+        answer: '답변',
+      }),
+    /300자/,
+  )
+})

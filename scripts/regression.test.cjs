@@ -201,10 +201,151 @@ test('방문한 상품 페이지는 검색 입력을 보존하며 뒤로·앞으
   })
 })
 
+test('상품 검색 조건은 유지하고 더 보기·실패한 페이지 재시도·상세 조회를 보존한다', async () => {
+  await withPage(null, async ({ page, context, goto }) => {
+    const plan = (id) => ({
+      planId: id,
+      planCode: `PLAN_${id}`,
+      name: `검색 결과 요금제 ${id}`,
+      networkType: 'FIVE_G',
+      targetGroup: 'GENERAL',
+      monthlyFee: 33000,
+      dataAmountMb: 1024,
+      dataUnlimited: false,
+      exhaustedSpeedKbps: null,
+      voiceMinutes: 100,
+      voiceUnlimited: false,
+      smsCount: 100,
+      smsUnlimited: false,
+    })
+    const calls = []
+    let failNextPage = true
+    await context.route('**/api/plans?**', (route) => {
+      const query = new URL(route.request().url()).searchParams
+      const requestedPage = Number(query.get('page'))
+      calls.push({ page: requestedPage, keyword: query.get('keyword') })
+      if (requestedPage === 1 && failNextPage) {
+        failNextPage = false
+        return fail(route, '다음 페이지 조회 실패')
+      }
+      return ok(route, {
+        ...pageOf([plan(requestedPage + 1)]),
+        number: requestedPage,
+        totalElements: 2,
+        totalPages: 2,
+        last: requestedPage === 1,
+      })
+    })
+    await context.route('**/api/plans/1', (route) =>
+      ok(route, {
+        summary: plan(1),
+        description: '샘플 요금제 상세',
+        tetheringAmountMb: 1024,
+        minAge: null,
+        maxAge: null,
+      }),
+    )
+    await goto('/store')
+    const catalog = page.locator('.product-catalog')
+    const input = page.getByRole('textbox', { name: '요금제 검색어', exact: true })
+    await catalog.getByRole('heading', { name: '검색 결과 요금제 1', exact: true }).waitFor()
+    await input.fill('적용한 검색')
+    const searched = page.waitForResponse(
+      (response) => new URL(response.url()).searchParams.get('keyword') === '적용한 검색',
+    )
+    await catalog.getByRole('button', { name: '검색', exact: true }).click()
+    await searched
+    await catalog.getByRole('button', { name: '더 보기', exact: true }).click()
+    await catalog.getByText('다음 페이지 조회 실패', { exact: true }).waitFor()
+    await catalog.getByRole('button', { name: '다시 시도', exact: true }).click()
+    await catalog.getByRole('heading', { name: '검색 결과 요금제 2', exact: true }).waitFor()
+    assert.equal(await catalog.locator('.product-card').count(), 2)
+    assert.deepEqual(
+      calls.filter((call) => call.keyword === '적용한 검색').map((call) => call.page),
+      [0, 1, 1],
+    )
+    await input.fill('아직 제출하지 않은 검색')
+    const beforeLeaving = calls.length
+    const menu = page.getByRole('navigation', { name: '주요 메뉴', exact: true })
+    await menu.getByRole('button', { name: '공지/장애 안내', exact: true }).click()
+    await page.waitForURL('**/#/notices')
+    assert.equal(calls.length, beforeLeaving)
+    await menu.getByRole('button', { name: '상품 정보', exact: true }).click()
+    await catalog.getByRole('heading', { name: '검색 결과 요금제 1', exact: true }).waitFor()
+    assert.equal(await input.inputValue(), '아직 제출하지 않은 검색')
+    assert.deepEqual(calls.at(-1), { page: 1, keyword: '적용한 검색' })
+    assert.equal(calls.length, beforeLeaving)
+    assert.equal(await catalog.locator('.product-card').count(), 2)
+    await catalog
+      .locator('.product-card')
+      .filter({ hasText: '검색 결과 요금제 1' })
+      .getByRole('button', { name: '자세히 보기', exact: true })
+      .click()
+    const detail = page.getByRole('dialog')
+    await detail.getByText('샘플 요금제 상세', { exact: true }).waitFor()
+    await detail.getByRole('button', { name: '닫기', exact: true }).click()
+    await detail.waitFor({ state: 'detached' })
+  })
+})
+
+test('로밍 검색어·국가 조건은 메뉴 이동 후 유지하고 상품 종류 변경 시 초기화한다', async () => {
+  await withPage(null, async ({ page, context, goto }) => {
+    const calls = []
+    await context.route('**/api/roaming-products?**', (route) => {
+      const query = new URL(route.request().url()).searchParams
+      const country = query.get('country')
+      calls.push({ keyword: query.get('keyword'), country })
+      return ok(
+        route,
+        pageOf([
+          {
+            roamingProductId: 1,
+            code: 'ROAMING_1',
+            name: country ? '일본 로밍 검색 결과' : '전체 로밍 상품',
+            description: '샘플 로밍 상품',
+            dailyFee: 10000,
+            dataAmountMb: 1024,
+            country: '일본',
+          },
+        ]),
+      )
+    })
+    await goto('/store')
+    await page.getByRole('tab', { name: '로밍', exact: true }).click()
+    const input = page.getByRole('textbox', { name: '로밍 검색어', exact: true })
+    const country = page.getByRole('textbox', { name: '이용 국가', exact: true })
+    await input.fill('하루 로밍')
+    await country.fill('일본')
+    await page
+      .locator('.product-catalog')
+      .getByRole('button', { name: '검색', exact: true })
+      .click()
+    await page.getByRole('heading', { name: '일본 로밍 검색 결과', exact: true }).waitFor()
+    const beforeLeaving = calls.length
+    const menu = page.getByRole('navigation', { name: '주요 메뉴', exact: true })
+    await menu.getByRole('button', { name: '공지/장애 안내', exact: true }).click()
+    await page.waitForURL('**/#/notices')
+    assert.equal(calls.length, beforeLeaving)
+    await menu.getByRole('button', { name: '상품 정보', exact: true }).click()
+    await page.getByRole('heading', { name: '일본 로밍 검색 결과', exact: true }).waitFor()
+    assert.equal(await input.inputValue(), '하루 로밍')
+    assert.equal(await country.inputValue(), '일본')
+    assert.deepEqual(calls.at(-1), { keyword: '하루 로밍', country: '일본' })
+    await page.getByRole('tab', { name: '로밍', exact: true }).click()
+    assert.equal(await input.inputValue(), '하루 로밍')
+    await page.getByRole('tab', { name: '요금제', exact: true }).click()
+    await page.getByRole('tab', { name: '로밍', exact: true }).click()
+    await page.getByRole('heading', { name: '전체 로밍 상품', exact: true }).waitFor()
+    assert.equal(await input.inputValue(), '')
+    assert.equal(await country.inputValue(), '')
+    assert.deepEqual(calls.at(-1), { keyword: null, country: null })
+  })
+})
+
 test('기존 대화를 열고 새 AI 질문의 최종 응답 이후 폴링을 중단한다', async () => {
   await withPage('USER', async ({ page, fixtures, goto }) => {
     await goto('/ai')
-    await page.getByRole('button', { name: /저장된 대화/ }).click()
+    await page.getByTitle('저장된 대화', { exact: true }).click()
     await page.getByText('기존 답변', { exact: true }).waitFor()
     await page.getByRole('textbox', { name: 'AI 채팅 입력' }).fill('새 질문입니다')
     await page.getByRole('button', { name: '질문 보내기' }).click()
@@ -223,7 +364,7 @@ test('기존 대화를 열고 새 AI 질문의 최종 응답 이후 폴링을 �
 test('동시 토큰 만료는 한 번만 재발급하고 거절된 토큰은 제거한다', async () => {
   await withPage('USER', async ({ page, context, goto }) => {
     await goto('/ai')
-    await page.getByRole('button', { name: /저장된 대화/ }).waitFor()
+    await page.getByTitle('저장된 대화', { exact: true }).waitFor()
     let refreshes = 0
     await context.route('**/api/auth/refresh', async (route) => {
       refreshes++
