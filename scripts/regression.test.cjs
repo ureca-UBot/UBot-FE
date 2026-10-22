@@ -38,6 +38,106 @@ const ok = (route, data) => route.fulfill({ json: { success: true, data } })
 const fail = (route, message, code = 'TEST-500', status = 500) =>
   route.fulfill({ status, json: { success: false, message, code } })
 
+for (const width of [1440, 768, 390, 320]) {
+  test(`관리자가 로그인 상태를 유지하며 홈과 관리자 화면을 왕복한다 (${width}px)`, async () => {
+    await withPage('ADMIN', async ({ page, fixtures, goto }) => {
+      await page.setViewportSize({ width, height: 960 })
+      await goto('/admin/faqs')
+      const accessToken = await page.evaluate(() => sessionStorage.getItem('accessToken'))
+      await page.getByRole('link', { name: '홈 화면', exact: true }).click()
+      await page.waitForURL('**/#/ai')
+      const back = page
+        .getByRole('link', { name: '관리자 화면', exact: true })
+        .filter({ visible: true })
+      await back.waitFor()
+      const bounds = await back.boundingBox()
+      assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width)
+      await page.screenshot({
+        path: path.join(__dirname, `../test-results/admin-home-${width}.png`),
+      })
+      await back.click()
+      await page.waitForURL('**/#/admin/dashboard')
+      await page.locator('.admin-main').waitFor()
+      assert.equal(await page.evaluate(() => sessionStorage.getItem('accessToken')), accessToken)
+      assert.equal(
+        fixtures.requests.some(({ path }) => path === '/api/auth/logout'),
+        false,
+      )
+    })
+  })
+}
+
+for (const role of ['USER', null]) {
+  test(`관리자 외 계정에는 관리자 이동 버튼이 표시되지 않는다 (${role ?? '비회원'})`, async () => {
+    await withPage(role, async ({ page, goto }) => {
+      await goto('/ai')
+      await page.locator('.ubot-user-app').waitFor()
+      assert.equal(await page.getByRole('link', { name: '관리자 화면', exact: true }).count(), 0)
+    })
+  })
+}
+
+test('예약 시간 조회 실패를 로딩과 구분하고 다시 불러온 뒤 예약을 한 번만 접수한다', async () => {
+  await withPage('USER', async ({ page, context, goto }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    let failed = true
+    let submitted = 0
+    let release
+    const pending = new Promise((resolve) => {
+      release = resolve
+    })
+    await context.route('**/api/stores/1/reservation-slots?**', (route) =>
+      failed ? fail(route, '시간 조회 실패') : ok(route, [{ time: '10:00:00', available: true }]),
+    )
+    await context.route('**/api/reservations', async (route) => {
+      submitted += 1
+      await pending
+      return ok(route, { reservationId: 1, storeName: '강남점' })
+    })
+    await goto('/my')
+    await page.locator('.my-member:not(.hidden)').waitFor()
+    await page.evaluate(() => {
+      document.dispatchEvent(
+        new CustomEvent('ubot:reserve-store', {
+          detail: { id: 1, name: '강남점' },
+        }),
+      )
+    })
+    try {
+      await page.getByRole('alert').filter({ hasText: '시간 조회 실패' }).waitFor()
+      const bounds = await page.locator('dialog[open]').boundingBox()
+      assert.ok(
+        bounds.x >= 0 && bounds.x + bounds.width <= 390,
+        '작은 화면 안에 예약 창이 표시된다',
+      )
+      await page.screenshot({ path: path.join(__dirname, '../test-results/reservation-error.png') })
+      assert.equal(await page.getByRole('option', { name: '불러오는 중...' }).count(), 0)
+      assert.equal(
+        await page.getByRole('button', { name: '예약 완료', exact: true }).isDisabled(),
+        true,
+      )
+      failed = false
+      await page.getByRole('button', { name: '예약 시간 다시 불러오기' }).click()
+      await page.waitForFunction(
+        () => document.querySelector('select[required]')?.value === '10:00:00',
+      )
+      await page.getByRole('button', { name: '예약 완료', exact: true }).evaluate((button) => {
+        button.click()
+        button.click()
+      })
+      await page.waitForFunction(() =>
+        document.querySelector('button[type="submit"]')?.textContent?.includes('예약 중'),
+      )
+      release()
+      await page.getByRole('status').filter({ hasText: '방문 예약이 완료' }).waitFor()
+      assert.equal(submitted, 1)
+      assert.equal(await page.getByRole('alert').count(), 0)
+    } finally {
+      release()
+    }
+  })
+})
+
 test('FAQ 검색: 늦게 도착한 이전 응답은 최신 검색을 덮지 않는다', async () => {
   await withPage('ADMIN', async ({ page, context, goto }) => {
     let release, started

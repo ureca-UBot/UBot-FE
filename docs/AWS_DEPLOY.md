@@ -40,7 +40,7 @@ sudo cp ubot-fe.conf /etc/nginx/sites-available/ubot-fe && sudo nginx -t && sudo
 
 - `vite.config.ts`의 운영 빌드 경로는 GitHub Pages용 `/UBot-FE/`입니다. AWS 빌드는 루트에서 서비스하므로 `npm run build -- --base /`로 빌드합니다. 코드는 바꾸지 않습니다.
 - `/home/ssm-user/ubot-fe/.env.local`에 `VITE_KAKAO_JAVASCRIPT_KEY`가 있습니다. CD가 빌드할 때 이 파일을 `.env.production.local`로 복사해 씁니다.
-- `VITE_API_BASE_URL`은 항상 빈 값(같은 origin의 `/api`), `VITE_COUNSEL_ENABLED`는 GitHub 변수 `AWS_FE_COUNSEL_ENABLED`(기본 `false`)를 씁니다. 빌드 명령의 환경변수가 `.env.local` 값보다 우선합니다.
+- `VITE_API_BASE_URL`은 항상 빈 값(같은 origin의 `/api`), `VITE_COUNSEL_ENABLED`는 GitHub 변수 `AWS_FE_COUNSEL_ENABLED`(기본 `true`)를 씁니다. 빌드 명령의 환경변수가 `.env.local` 값보다 우선합니다.
 
 ## CD (`.github/workflows/aws-fe-deploy.yml`)
 
@@ -60,7 +60,7 @@ GitHub 설정:
 | Secret | `AWS_FE_ROLE_ARN` | `arn:aws:iam::<계정 ID>:role/ubot-fe-cd` |
 | Secret | `AWS_FE_INSTANCE_ID` | FE 인스턴스 ID (`i-…`) |
 | Variable | `AWS_FE_DEPLOY_ENABLED` | `true`면 배포, `false`면 서버 고정 |
-| Variable | `AWS_FE_COUNSEL_ENABLED` | 선택. 기본 `false`. BE `COUNSEL_ENABLED`와 맞춥니다 |
+| Variable | `AWS_FE_COUNSEL_ENABLED` | 선택. 기본 `true`. BE `COUNSEL_ENABLED`와 맞춥니다 |
 
 AWS 역할 `ubot-fe-cd`는 GitHub OIDC로만 쓸 수 있고(`repo:ureca-UBot@326730402/UBot-FE@1362033936:ref:refs/heads/develop`), FE 인스턴스 하나에만 `AWS-RunShellScript` 명령을 보낼 수 있습니다. 이 저장소의 OIDC `sub`에는 조직·저장소 ID가 붙습니다.
 
