@@ -14,12 +14,11 @@ name: AWS FE CD
 # on the FE EC2; the release script copies it into the build.
 # Variables:
 #   AWS_FE_DEPLOY_ENABLED      'true' turns deployment on; 'false' freezes the server
-#   AWS_FE_COUNSEL_ENABLED     counseling screens (default false; follow the BE COUNSEL_ENABLED)
+#   AWS_FE_COUNSEL_ENABLED     counseling screens (default true; follow the BE COUNSEL_ENABLED)
 
 on:
   push:
-    # chore/aws-fe-cicd is the test branch for this workflow. Remove it before merging.
-    branches: [develop, chore/aws-fe-cicd]
+    branches: [develop]
   workflow_dispatch:
 
 permissions:
@@ -31,11 +30,12 @@ concurrency:
 
 env:
   AWS_REGION: ap-northeast-2
-  COUNSEL_ENABLED: ${{ vars.AWS_FE_COUNSEL_ENABLED || 'false' }}
+  COUNSEL_ENABLED: ${{ vars.AWS_FE_COUNSEL_ENABLED || 'true' }}
 
 jobs:
   verify:
-    if: github.ref_name == 'develop' || github.ref_name == 'chore/aws-fe-cicd'
+    # Manual runs deploy develop only.
+    if: github.ref_name == 'develop'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

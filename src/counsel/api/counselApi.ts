@@ -12,8 +12,7 @@ import type {
 
 const base = '/api/counsel'
 function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  if (!counselConfig.enabled)
-    return Promise.reject(new Error('현재 사람 상담을 이용할 수 없습니다.'))
+  if (!counselConfig.enabled) return Promise.reject(new Error('상담자 기능은 준비 중입니다.'))
   const timeout = AbortSignal.timeout(counselConfig.requestTimeoutMs)
   return apiClient.request<T>(path, {
     ...init,

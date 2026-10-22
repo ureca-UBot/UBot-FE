@@ -40,7 +40,12 @@ export function UserDialogs({ activeDialog, reserveStore, onClose, onReserved }:
     <>
       <dialog className="modal" ref={reserveRef}>
         {activeDialog === 'reserve' && (
-          <ReservationForm onClose={onClose} onReserved={onReserved} store={reserveStore} />
+          <ReservationForm
+            key={reserveStore?.id ?? 'unselected'}
+            onClose={onClose}
+            onReserved={onReserved}
+            store={reserveStore}
+          />
         )}
       </dialog>
 

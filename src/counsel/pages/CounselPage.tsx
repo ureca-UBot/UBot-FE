@@ -20,8 +20,8 @@ export function CounselPage() {
   if (!counselConfig.enabled)
     return (
       <main className="counsel-page ubot-user-app">
-        <h1>사람 상담</h1>
-        <p>현재 사람 상담을 이용할 수 없습니다.</p>
+        <h1>상담자</h1>
+        <p>상담자 기능은 준비 중입니다.</p>
         <Link to="/">홈으로</Link>
       </main>
     )

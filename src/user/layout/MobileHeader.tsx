@@ -1,10 +1,12 @@
+import { Link } from 'react-router-dom'
 import logo from '../assets/ubot-logo.png'
 
 interface MobileHeaderProps {
+  isAdmin: boolean
   title: string
 }
 
-export function MobileHeader({ title }: MobileHeaderProps) {
+export function MobileHeader({ isAdmin, title }: MobileHeaderProps) {
   return (
     <>
       <header className="mobile-header">
@@ -16,6 +18,11 @@ export function MobileHeader({ title }: MobileHeaderProps) {
           </span>
         </div>
         <div className="mobile-actions">
+          {isAdmin && (
+            <Link className="admin-screen-link" to="/admin/dashboard">
+              관리자 화면
+            </Link>
+          )}
           <button className="mobile-icon-btn" data-route="my" aria-label="내 정보" type="button">
             <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
               <circle cx="20" cy="13" r="5.5" stroke="currentColor" strokeWidth="2" />

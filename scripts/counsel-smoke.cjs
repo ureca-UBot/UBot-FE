@@ -570,11 +570,17 @@ async function main() {
     const admin = await contextFor(browser, 'ADMIN')
     await admin.page.goto(`${origin}/#/admin/counsel-safety`)
     await admin.page.getByRole('heading', { name: '상담 안전성 모니터링' }).waitFor()
-    await admin.page.getByRole('cell', { name: 'BLOCKED', exact: true }).waitFor()
+    await admin.page.getByRole('cell', { name: '차단', exact: true }).waitFor()
     assert.equal(await admin.page.getByRole('cell', { name: '0.9700', exact: true }).count(), 1)
     await admin.page.getByRole('combobox').selectOption('BLOCKED')
-    await admin.page.getByRole('button', { name: '조회', exact: true }).click()
-    await admin.page.getByRole('cell', { name: 'BLOCKED', exact: true }).waitFor()
+    await Promise.all([
+      admin.page.waitForRequest((request) => {
+        const url = new URL(request.url())
+        return url.pathname.endsWith('/events') && url.searchParams.get('decision') === 'BLOCKED'
+      }),
+      admin.page.getByRole('button', { name: '조회', exact: true }).click(),
+    ])
+    await admin.page.getByRole('cell', { name: '차단', exact: true }).waitFor()
     await admin.page.screenshot({ path: 'test-results/counsel/admin.png', fullPage: true })
     assert.equal(await admin.page.getByText('차단 문장', { exact: true }).count(), 0)
     await admin.context.close()
