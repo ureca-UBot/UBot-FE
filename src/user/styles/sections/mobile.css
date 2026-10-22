@@ -31,20 +31,15 @@
   }
 
   .ubot-user-app .mobile-title-wrap {
-    min-width: 0;
-    gap: 8px
+    min-width: 0
   }
 
   .ubot-user-app .mobile-brand-logo {
-    width: 29px;
-    height: 28px;
+    display: block;
+    width: 108px;
+    height: 54px;
+    margin-left: -12px;
     object-fit: contain
-  }
-
-  .ubot-user-app .mobile-brand-name {
-    font-size: 18px;
-    font-weight: 900;
-    letter-spacing: -.05em
   }
 
   .ubot-user-app .mobile-actions {
@@ -763,24 +758,30 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     border: 0;
-    color: #777a81;
+    color: var(--muted);
     background: transparent
   }
 
-  .ubot-user-app .bottom-nav span {
-    font-size: 18px;
-    line-height: 1
+  .ubot-user-app .bottom-nav-icon {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    place-items: center
   }
 
   .ubot-user-app .bottom-nav b {
-    font-size: 10px;
+    font-size: 11px;
     white-space: nowrap
   }
 
   .ubot-user-app .bottom-nav button.active {
     color: var(--ink)
+  }
+
+  .ubot-user-app .bottom-nav button.active .bottom-nav-icon {
+    color: var(--pink-dark)
   }
 
   .ubot-user-app .bottom-nav button.active:before {
