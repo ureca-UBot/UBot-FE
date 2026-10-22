@@ -260,7 +260,8 @@ function mockUserData(question: string): ChatUserData | null {
 }
 
 // 상품 카드 확인용: 상품 질문 키워드가 있으면 가입 정보 카드 대신 상품 카드를 돌려줍니다.
-// "로밍" → 로밍(요금 없는 상품 포함) / "부가" → 부가서비스 / "결합" → 결합 할인 / "추천"·"상품" → 종류별 하나씩
+// "로밍" → 로밍(요금 없는 상품 포함) / "부가" → 부가서비스 / "결합" → 결합 할인
+// "요금제 추천" → 요금제 5개(긴 이름, 요금·설명 없는 상품 포함) / "추천"·"상품" → 종류별 하나씩
 const mockProduct = (
   type: ChatProductCard['type'],
   name: string,
@@ -308,6 +309,27 @@ function mockProductData(question: string): ChatProductData | null {
           5_500,
           '가족 회선을 묶으면 회선마다 매달 할인합니다.',
         ),
+      ],
+    }
+  }
+  if (question.includes('요금제') && question.includes('추천')) {
+    return {
+      products: [
+        mockProduct('PLAN', '5G 라이트', 55_000, '데이터 12GB, 소진 후 1Mbps로 계속 씁니다.'),
+        mockProduct(
+          'PLAN',
+          '5G 스탠다드',
+          75_000,
+          '데이터 150GB, 소진 후 5Mbps로 계속 씁니다. 통화·문자는 기본 제공입니다.',
+        ),
+        mockProduct('PLAN', '5G 프리미어 에센셜', 85_000, '데이터 무제한입니다.'),
+        mockProduct(
+          'PLAN',
+          '5G 시그니처 무제한 가족 공유 요금제',
+          130_000,
+          '데이터·통화·문자 모두 무제한이며 가족 회선과 데이터를 나눠 씁니다.',
+        ),
+        mockProduct('PLAN', '청소년 5G', null, null),
       ],
     }
   }
