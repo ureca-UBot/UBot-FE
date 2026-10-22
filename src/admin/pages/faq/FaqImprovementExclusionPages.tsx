@@ -62,7 +62,11 @@ function ImprovementExclusionTable({
                 <td>{item.excludedBy ?? '-'}</td>
                 <td>{formatDateTime(item.excludedAt)}</td>
                 {history && <td>{releasedItem?.releasedBy ?? '-'}</td>}
-                {history && <td>{releasedItem?.releasedAt ? formatDateTime(releasedItem.releasedAt) : '-'}</td>}
+                {history && (
+                  <td>
+                    {releasedItem?.releasedAt ? formatDateTime(releasedItem.releasedAt) : '-'}
+                  </td>
+                )}
                 <td>{item.outdated ? '변경됨' : '-'}</td>
                 <td>
                   {!history && !item.outdated && (
@@ -101,9 +105,9 @@ function ImprovementExclusionTable({
 }
 
 function FaqImprovementExclusionPage({ history }: { history: boolean }) {
-  const [result, setResult] = useState<
-    PageResponse<FaqImprovementExclusion | FaqImprovementExclusionHistory> | null
-  >(null)
+  const [result, setResult] = useState<PageResponse<
+    FaqImprovementExclusion | FaqImprovementExclusionHistory
+  > | null>(null)
   const [page, setPage] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [isReleasing, setIsReleasing] = useState<number | null>(null)
@@ -173,12 +177,21 @@ function FaqImprovementExclusionPage({ history }: { history: boolean }) {
               : '현재 개선 대상에서 제외된 유형을 확인하고 다시 노출할 수 있습니다.'}
           </p>
         </div>
-        <button className="secondary-button" onClick={load} type="button">새로고침</button>
+        <button className="secondary-button" onClick={load} type="button">
+          새로고침
+        </button>
       </div>
-      {success && <p className="login-success" role="status">{success}</p>}
+      {success && (
+        <p className="login-success" role="status">
+          {success}
+        </p>
+      )}
       {error && (
         <p className="page-message page-message--error" role="alert">
-          {error} <button className="secondary-button" onClick={load} type="button">다시 시도</button>
+          {error}{' '}
+          <button className="secondary-button" onClick={load} type="button">
+            다시 시도
+          </button>
         </p>
       )}
       <ImprovementExclusionTable

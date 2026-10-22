@@ -11,7 +11,13 @@ interface Props {
   target: { faqId: number; question: string; improvementTypes: FaqImprovementType[] }
 }
 
-export function FaqImprovementExclusionModal({ error, isSubmitting, onClose, onSubmit, target }: Props) {
+export function FaqImprovementExclusionModal({
+  error,
+  isSubmitting,
+  onClose,
+  onSubmit,
+  target,
+}: Props) {
   const [selectedTypes, setSelectedTypes] = useState<FaqImprovementType[]>(target.improvementTypes)
   const [memo, setMemo] = useState('')
   const modalFocusRef = useModalFocus<HTMLElement>(onClose)
@@ -24,7 +30,10 @@ export function FaqImprovementExclusionModal({ error, isSubmitting, onClose, onS
   }
 
   return (
-    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div
+      className="modal-backdrop"
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+    >
       <section
         ref={modalFocusRef}
         aria-busy={isSubmitting}
@@ -38,15 +47,24 @@ export function FaqImprovementExclusionModal({ error, isSubmitting, onClose, onS
             <span>IMPROVEMENT EXCLUSION</span>
             <h2 id="faq-improvement-exclusion-title">개선 대상 제외</h2>
           </div>
-          <button aria-label="개선 대상 제외 창 닫기" disabled={isSubmitting} onClick={onClose} type="button">
+          <button
+            aria-label="개선 대상 제외 창 닫기"
+            disabled={isSubmitting}
+            onClick={onClose}
+            type="button"
+          >
             ×
           </button>
         </div>
         <p className="faq-improvement-exclusion-modal__question">
           <b>#{target.faqId}</b> {target.question}
         </p>
-        <fieldset className="faq-improvement-exclusion-modal__types">
-          <legend>제외할 개선 유형</legend>
+        <div
+          aria-label="제외할 개선 유형"
+          className="faq-improvement-exclusion-modal__types"
+          role="group"
+        >
+          <p className="faq-improvement-exclusion-modal__types-title">제외할 개선 유형</p>
           {target.improvementTypes.map((type) => (
             <label data-type={type} key={type}>
               <input
@@ -58,7 +76,7 @@ export function FaqImprovementExclusionModal({ error, isSubmitting, onClose, onS
               {improvementTypeLabel[type]}
             </label>
           ))}
-        </fieldset>
+        </div>
         <label className="faq-improvement-exclusion-modal__memo">
           제외 사유 메모 <span>선택 · 최대 500자</span>
           <textarea
@@ -69,9 +87,20 @@ export function FaqImprovementExclusionModal({ error, isSubmitting, onClose, onS
             value={memo}
           />
         </label>
-        {error && <p className="faq-improvement-exclusion-modal__error" role="alert">{error}</p>}
+        {error && (
+          <p className="faq-improvement-exclusion-modal__error" role="alert">
+            {error}
+          </p>
+        )}
         <div className="faq-modal__actions">
-          <button className="secondary-button" disabled={isSubmitting} onClick={onClose} type="button">취소</button>
+          <button
+            className="secondary-button"
+            disabled={isSubmitting}
+            onClick={onClose}
+            type="button"
+          >
+            취소
+          </button>
           <button
             className="danger-button"
             disabled={isSubmitting || selectedTypes.length === 0}

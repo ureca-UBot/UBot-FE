@@ -44,8 +44,10 @@ export const faqMonitoringApi = {
       `/api/admin/faq-monitoring/improvements?${query.toString()}`,
     )
   },
-  excludeFaqImprovement: (faqId: number, body: { improvementType: FaqImprovementType; memo?: string }) =>
-    apiClient.post<void>(`/api/admin/faq-monitoring/improvements/${faqId}/exclusions`, body),
+  excludeFaqImprovement: (
+    faqId: number,
+    body: { improvementType: FaqImprovementType; memo?: string },
+  ) => apiClient.post<void>(`/api/admin/faq-monitoring/improvements/${faqId}/exclusions`, body),
   getFaqImprovementExclusions: (page: number, size: number) =>
     apiClient.get<PageResponse<FaqImprovementExclusion>>(
       `/api/admin/faq-monitoring/improvement-exclusions?page=${page}&size=${size}`,
