@@ -11,8 +11,7 @@ export function MobileHeader({ isAdmin, title }: MobileHeaderProps) {
     <>
       <header className="mobile-header">
         <div className="mobile-title-wrap">
-          <img className="mobile-brand-logo" src={logo} alt="" />
-          <strong className="mobile-brand-name">U봇</strong>
+          <img className="mobile-brand-logo" src={logo} alt="U봇" />
           <span id="mobileTitle" className="sr-only-title">
             {title}
           </span>
