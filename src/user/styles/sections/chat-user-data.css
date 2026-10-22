@@ -369,3 +369,24 @@
   color: var(--ink);
   font-weight: 800
 }
+
+/* 채팅 상품 카드: ChatProductCards가 위 카드 스타일을 그대로 쓰고 요금 줄만 더합니다. */
+.ubot-user-app .chat-user-data .pd-fee {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 10px 0 0;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums
+}
+
+.ubot-user-app .chat-user-data .pd-fee-label {
+  color: var(--muted);
+  font-size: 13px
+}
+
+.ubot-user-app .chat-user-data .pd-fee strong {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -.02em
+}

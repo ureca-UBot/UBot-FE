@@ -1,7 +1,7 @@
 import type { FaqImprovementType } from '../types/faqMonitoring'
 
 export type RankingType = 'top' | 'low'
-export type RankingIntent = 'all' | 'userData' | 'storeData'
+export type RankingIntent = 'all' | 'userData' | 'storeData' | 'productData'
 
 export const improvementTypeLabel = {
   LOW_RAG_QUALITY: '검색품질',

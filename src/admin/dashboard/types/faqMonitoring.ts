@@ -1,4 +1,4 @@
-export type FaqIntent = 'GENERAL' | 'USER_DATA' | 'STORE_DATA'
+export type FaqIntent = 'GENERAL' | 'USER_DATA' | 'STORE_DATA' | 'PRODUCT_DATA'
 
 export interface UnansweredQuestionSummary {
   totalQuestionCount: number
@@ -24,6 +24,7 @@ export interface FaqUsageRanking {
   general: FaqUsageByIntent
   userData: FaqUsageByIntent
   storeData: FaqUsageByIntent
+  productData: FaqUsageByIntent
 }
 
 export interface FaqSimilarityItem {
@@ -44,6 +45,7 @@ export interface FaqSimilarityRanking {
   general: FaqSimilarityByIntent
   userData: FaqSimilarityByIntent
   storeData: FaqSimilarityByIntent
+  productData: FaqSimilarityByIntent
 }
 
 export interface FaqMonitoringResponse {
