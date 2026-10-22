@@ -102,6 +102,7 @@ export async function waitForAnswer(
         retryable: false,
         store: state.store ?? null,
         userData: state.userData ?? null,
+        productData: state.productData ?? null,
         conversationId,
       }
     }

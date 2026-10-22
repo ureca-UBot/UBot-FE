@@ -11,6 +11,7 @@ import {
 } from '../types/chat'
 import { storeMapKey } from '../utils/storeMaps'
 import { AnswerFeedback } from './AnswerFeedback'
+import { ChatProductCards } from './ChatProductCards'
 import { ChatStoreCards } from './ChatStoreCards'
 import { ChatUserDataCards } from './ChatUserDataCards'
 import { ResearchIntentButtons } from './ResearchIntentButtons'
@@ -112,6 +113,7 @@ function ResearchResult({
           </div>
           <ChatStoreCards store={research.response?.store} onOpenMap={onOpenMap} />
           <ChatUserDataCards userData={research.response?.userData} />
+          <ChatProductCards productData={research.response?.productData} />
           {research.response?.status === 'SUCCESS' && (
             <AnswerFeedback
               question={question}
@@ -204,6 +206,7 @@ export function ChatMessages({
                     onOpenMap={onOpenMap && ((storeId) => onOpenMap(storeMapKey(turn.id), storeId))}
                   />
                   <ChatUserDataCards userData={turn.response?.userData} />
+                  <ChatProductCards productData={turn.response?.productData} />
                   {turn.response?.status === 'SUCCESS' && (
                     <AnswerFeedback
                       question={turn.question}

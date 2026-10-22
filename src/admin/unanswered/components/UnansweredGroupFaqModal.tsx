@@ -9,6 +9,7 @@ const intentOptions: Array<{ value: FaqIntent; label: string }> = [
   { value: 'GENERAL', label: '일반' },
   { value: 'STORE_DATA', label: '매장 데이터' },
   { value: 'USER_DATA', label: '사용자 데이터' },
+  { value: 'PRODUCT_DATA', label: '상품 정보' },
 ]
 
 interface UnansweredGroupFaqModalProps {
