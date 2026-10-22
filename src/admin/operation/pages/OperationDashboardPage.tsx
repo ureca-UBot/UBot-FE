@@ -59,7 +59,9 @@ function toChartData(series: Record<string, MetricPoint[]>) {
       }),
     ),
   )
-  return [...data.values()]
+  return [...data.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, point]) => point)
 }
 
 function TrendChart({
@@ -78,18 +80,21 @@ function TrendChart({
       <h3>{title}</h3>
       <div className="operation-chart">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={dataset} margin={{ top: 8, right: 10, left: -14, bottom: 0 }}>
+          <LineChart data={dataset} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid vertical={false} stroke="#e8edf5" strokeDasharray="3 3" />
             <XAxis
               dataKey="time"
+              padding={{ left: 8, right: 24 }}
               minTickGap={28}
               tick={{ fontSize: 11, fill: '#77839a' }}
               tickLine={false}
             />
             <YAxis
+              width={88}
               tick={{ fontSize: 11, fill: '#77839a' }}
               tickFormatter={(value) => (format ? format(value) : number(value, 1))}
               tickLine={false}
+              tickMargin={8}
             />
             <Tooltip
               formatter={(value, name) => [
@@ -281,13 +286,20 @@ export function OperationDashboardPage() {
               data={{
                 CPU: overview.series.backend.cpuUsageRate,
                 Heap: overview.series.backend.jvmHeapUsageRate,
-                GC: overview.series.backend.gcPauseSecondsPerSecond,
-                Threads: overview.series.backend.liveThreads,
               }}
-              title="백엔드 JVM"
+              format={percent}
+              title="백엔드 CPU·Heap 사용률"
             />
-          </section>
-          <section className="operation-charts">
+            <TrendChart
+              data={{ GC: overview.series.backend.gcPauseSecondsPerSecond }}
+              format={(value) => `${number(value * 1000, 2)} ms/s`}
+              title="JVM GC 중지 시간"
+            />
+            <TrendChart
+              data={{ Threads: overview.series.backend.liveThreads }}
+              format={(value) => `${number(value, 0)}개`}
+              title="JVM 스레드 수"
+            />
             <TrendChart
               data={{
                 활성: overview.series.databasePool.active,

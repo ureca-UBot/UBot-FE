@@ -288,7 +288,7 @@ export function FaqImprovements({
                 <div>
                   <span>검토 가능 Top-K 건수</span>
                   <strong>
-                    {selectedImprovementItem.reviewableTopKCount.toLocaleString('ko-KR')}
+                    {selectedImprovementItem.reviewableTopKCount?.toLocaleString('ko-KR') ?? '-'}
                   </strong>
                 </div>
                 <div>

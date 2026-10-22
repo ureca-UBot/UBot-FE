@@ -145,7 +145,12 @@ function SafetyMonitor() {
               </div>
             ))}
           </div>
-          <div className="faq-table-wrapper counsel-table-wrap">
+          <div
+            className="faq-table-wrapper counsel-table-wrap"
+            role="region"
+            aria-label="상담 판정 이력"
+            tabIndex={0}
+          >
             <table className="faq-table">
               <caption>상담 가드 판정 이력</caption>
               <thead>
@@ -161,7 +166,9 @@ function SafetyMonitor() {
                     '모델 / 버전',
                     '오류',
                   ].map((label) => (
-                    <th key={label}>{label}</th>
+                    <th className={label === '오류' ? 'counsel-error-cell' : undefined} key={label}>
+                      {label}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -202,12 +209,14 @@ function SafetyMonitor() {
                       <br />
                       {event.profileVersion} / {event.ruleVersion}
                     </td>
-                    <td>{event.errorCode ?? '—'}</td>
+                    <td className="counsel-error-cell" title={event.errorCode ?? undefined}>
+                      <code>{event.errorCode ?? '—'}</code>
+                    </td>
                   </tr>
                 ))}
                 {result.events.items.length === 0 && (
                   <tr>
-                    <td colSpan={9}>해당 조건의 판정 기록이 없습니다.</td>
+                    <td colSpan={10}>해당 조건의 판정 기록이 없습니다.</td>
                   </tr>
                 )}
               </tbody>

@@ -106,7 +106,7 @@ export interface FaqImprovementItem {
   topKCount: number
   averageSimilarity: number
   top1SampleCount: number
-  reviewableTopKCount: number
+  reviewableTopKCount?: number | null
   averageTopGap: number
   lowGapRate: number
 }

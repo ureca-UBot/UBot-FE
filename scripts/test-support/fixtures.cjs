@@ -355,4 +355,4 @@ async function installFixtures(context, role = null) {
   return { requests, unknown, state }
 }
 
-module.exports = { installFixtures, token, pageOf, faq }
+module.exports = { installFixtures, token, pageOf, faq, improvement, overview }
