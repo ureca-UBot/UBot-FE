@@ -6,6 +6,7 @@ const menuItems = [
   { label: '상담 안전성 모니터링', to: '/admin/counsel-safety' },
   { label: '상담 금지 문장', to: '/admin/counsel-sentences' },
   { label: 'FAQ 관리', to: '/admin/faqs' },
+  { label: '통신 지도', to: '/admin/telemap' },
   { label: '상품 관리', to: '/admin/products' },
   { label: '매장 관리', to: '/admin/stores' },
   { label: '매장 예약 관리', to: '/admin/reservations' },
