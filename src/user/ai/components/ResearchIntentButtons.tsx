@@ -15,7 +15,7 @@ interface ResearchIntentButtonsProps {
   onResearch: (intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
 }
 
-const INTENTS: ChatIntent[] = ['GENERAL', 'STORE_DATA', 'USER_DATA']
+const INTENTS: ChatIntent[] = ['GENERAL', 'STORE_DATA', 'USER_DATA', 'PRODUCT_DATA']
 
 // 요청 중이거나 서버가 처리한 결과가 있으면 그 의도는 사용한 것입니다.
 // 서버에 닿지 못한 실패(응답과 오류 코드가 모두 없음)만 다시 누를 수 있으며,

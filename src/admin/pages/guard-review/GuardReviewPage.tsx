@@ -1,4 +1,5 @@
 import { GuardReviewEditModal } from '../../guard-review/components/GuardReviewEditModal'
+import { ReviewValidationCases } from '../../guard-review/components/ReviewValidationCases'
 import { ApiRequestError } from '../../../shared/api/client'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -77,8 +78,16 @@ export function GuardReviewPage() {
   const [testExpired, setTestExpired] = useState(false)
   const [editing, setEditing] = useState<Candidate | null>(null)
   const [findings, setFindings] = useState<Finding[] | null>(null)
-  const [casePage, setCasePage] = useState(0)
   const loadedRun = useRef<number | null>(null)
+  const expireValidation = useCallback(
+    (id: number) => {
+      if (id !== testRun) return
+      setValidation(null)
+      setTestExpired(true)
+      loadedRun.current = id
+    },
+    [testRun],
+  )
   const load = useCallback(async () => {
     const [next, alerts, nextWords, nextWarnings] = await Promise.all([
       api.overview(),
@@ -93,7 +102,10 @@ export function GuardReviewPage() {
   }, [wordPage, warningPage, pageSize])
   useEffect(() => {
     let active = true
+    let refreshing = false
     const refresh = async () => {
+      if (refreshing) return
+      refreshing = true
       try {
         const [next, alerts, nextWords, nextWarnings] = await Promise.all([
           api.overview(),
@@ -108,22 +120,44 @@ export function GuardReviewPage() {
           setWarnings(nextWarnings)
         }
         // 최근 실행 목록에서 빠진 검사도 ID로 결과를 확인합니다.
-        const current = testRun === null ? null : await api.run(testRun)
-        if (active && current && !next.runs.some((r) => r.id === current.id))
-          setData({ ...next, runs: [current, ...next.runs] })
+        const current =
+          testRun === null
+            ? null
+            : await api.run(testRun).catch((caught: unknown) => {
+                if (
+                  active &&
+                  caught instanceof ApiRequestError &&
+                  [404, 410].includes(caught.status)
+                ) {
+                  expireValidation(testRun)
+                  return null
+                }
+                throw caught
+              })
+        if (active && current)
+          setData({
+            ...next,
+            runs: next.runs.some((run) => run.id === current.id)
+              ? next.runs.map((run) => (run.id === current.id ? current : run))
+              : [current, ...next.runs],
+          })
         if (current?.detailsRetained === false && active) {
           setValidation(null)
           setTestExpired(true)
           loadedRun.current = current.id
         } else if (current?.status === 'COMPLETED' && loadedRun.current !== current.id) {
           if (active) {
-            setValidation(parseValidation(current.result))
+            const summary = parseValidation(current.result)
+            setValidation(summary)
             setTestExpired(false)
             loadedRun.current = current.id
+            if (summary === null) setError('검사 결과 요약을 읽지 못했습니다. 다시 검사해 주세요.')
           }
         }
-        if (current?.status === 'FAILED' && active)
+        if (current?.status === 'FAILED' && active) {
+          setValidation(null)
           setError('오차단 검사에 실패했습니다. 다시 실행해 주세요.')
+        }
       } catch (caught) {
         if (active)
           setError(
@@ -133,6 +167,8 @@ export function GuardReviewPage() {
                 ? caught.message
                 : '목록을 불러오지 못했습니다.',
           )
+      } finally {
+        refreshing = false
       }
     }
     void refresh()
@@ -141,7 +177,7 @@ export function GuardReviewPage() {
       active = false
       window.clearInterval(timer)
     }
-  }, [testRun, wordPage, warningPage, pageSize])
+  }, [testRun, wordPage, warningPage, pageSize, expireValidation])
   async function action(task: () => Promise<unknown>) {
     setBusy(true)
     setError('')
@@ -164,7 +200,14 @@ export function GuardReviewPage() {
     })
     return success ? saved : null
   }
-  const approveEnabled = !!words && canApprove(validation, tested, selected, words.content)
+  const currentTest = data?.runs.find((run) => run.id === testRun)
+  const approveEnabled =
+    !testExpired &&
+    currentTest?.kind === 'VALIDATION' &&
+    currentTest.status === 'COMPLETED' &&
+    currentTest.detailsRetained !== false &&
+    !!words &&
+    canApprove(validation, tested, selected, words.content)
   function changeWordPage(page: number) {
     setWordPage(page)
     setSelected([])
@@ -176,8 +219,6 @@ export function GuardReviewPage() {
     changeWordPage(0)
     setWarningPage(0)
   }
-  const changes =
-    validation?.cases.filter((c) => c.falsePositive || c.regression || c.newDetection) ?? []
   return (
     <section className="guard-review">
       <div className="page-heading">
@@ -345,7 +386,6 @@ export function GuardReviewPage() {
                       setTestExpired(false)
                       loadedRun.current = null
                       setTestRun(null)
-                      setCasePage(0)
                       setTested([...selected])
                       setTestRun(await api.validate(selected))
                     })
@@ -374,7 +414,7 @@ export function GuardReviewPage() {
                   {label(data.runs.find((r) => r.id === testRun)?.status ?? 'QUEUED')}
                 </p>
               )}
-              {testExpired && (
+              {testRun !== null && testExpired && (
                 <p role="status">검사 상세의 보관기간이 만료됐습니다. 다시 검사해 주세요.</p>
               )}
               <div className="guard-review-table">
@@ -456,44 +496,21 @@ export function GuardReviewPage() {
                 <div aria-label="오차단 검사 결과">
                   <h2>검사 결과</h2>
                   <p>
-                    전체 {validation.cases.length}건 · 새 정상 오차단 {validation.falsePositives}건
-                    · 기존 차단 누락 {validation.regressions}건 · 추가 탐지{' '}
-                    {validation.newDetections}건
+                    전체 {validation.caseCount}건 · 새 정상 오차단 {validation.falsePositives}건 ·
+                    기존 차단 누락 {validation.regressions}건 · 추가 탐지 {validation.newDetections}
+                    건
                   </p>
                   <p>
                     기존 기준 미충족 {validation.baselineFailures}건은 새 오차단과 구분합니다. 이
                     검사는 FAQ 사실성 평가를 포함하지 않습니다.
                   </p>
-                  {changes.slice(casePage * 20, (casePage + 1) * 20).map((c) => (
-                    <details key={`${c.stage}-${c.id}`}>
-                      <summary>
-                        {c.id} · {c.stage} ·{' '}
-                        {c.falsePositive
-                          ? '정상 오차단'
-                          : c.regression
-                            ? '기존 차단 누락'
-                            : '추가 탐지'}
-                      </summary>
-                      <h3>적용 전</h3>
-                      <pre>{c.before || '(제거됨)'}</pre>
-                      <h3>후보 적용 후</h3>
-                      <pre>{c.after || '(제거됨)'}</pre>
-                    </details>
-                  ))}
-                  <button
-                    type="button"
-                    disabled={casePage === 0}
-                    onClick={() => setCasePage((p) => p - 1)}
-                  >
-                    이전 결과
-                  </button>
-                  <button
-                    type="button"
-                    disabled={(casePage + 1) * 20 >= changes.length}
-                    onClick={() => setCasePage((p) => p + 1)}
-                  >
-                    다음 결과
-                  </button>
+                  {testRun !== null && (
+                    <ReviewValidationCases
+                      key={testRun}
+                      runId={testRun}
+                      onExpired={expireValidation}
+                    />
+                  )}
                 </div>
               )}
             </>

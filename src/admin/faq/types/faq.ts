@@ -1,4 +1,4 @@
-export type FaqIntent = 'GENERAL' | 'STORE_DATA' | 'USER_DATA'
+export type FaqIntent = 'GENERAL' | 'STORE_DATA' | 'USER_DATA' | 'PRODUCT_DATA'
 
 export interface FaqResponse {
   id: number

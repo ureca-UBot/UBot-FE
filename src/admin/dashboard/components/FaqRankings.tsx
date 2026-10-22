@@ -77,6 +77,13 @@ export function FaqRankings({
             >
               매장 데이터 필요
             </button>
+            <button
+              className={usageIntent === 'productData' ? 'is-active' : ''}
+              onClick={() => setUsageIntent('productData')}
+              type="button"
+            >
+              상품 정보 필요
+            </button>
           </div>
         </div>
         <div className="faq-dashboard-monitoring-content">
@@ -138,6 +145,13 @@ export function FaqRankings({
               type="button"
             >
               매장 데이터 필요
+            </button>
+            <button
+              className={similarityIntent === 'productData' ? 'is-active' : ''}
+              onClick={() => setSimilarityIntent('productData')}
+              type="button"
+            >
+              상품 정보 필요
             </button>
           </div>
         </div>

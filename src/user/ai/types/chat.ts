@@ -18,6 +18,7 @@ export interface ChatResponse {
   retryable: boolean
   store?: ChatStore | null
   userData?: ChatUserData | null
+  productData?: ChatProductData | null
   conversationId?: string | null
 }
 
@@ -51,6 +52,7 @@ export interface ChatJobState {
   answer: string | null
   store?: ChatStore | null
   userData?: ChatUserData | null
+  productData?: ChatProductData | null
   errorCode: string | null
   errorMessage: string | null
   retryable: boolean
@@ -211,6 +213,24 @@ export interface ChatUserData {
   billings: ChatBillingCard[]
 }
 
+// BE ProductType
+export type ChatProductType = 'PLAN' | 'ADDON' | 'BUNDLE' | 'ROAMING'
+
+// BE ProductDataCards.ProductCard: type은 요금 앞말을 고르는 데만 씁니다.
+// fee는 요금제·부가서비스는 월 요금, 로밍은 일 요금, 결합은 할인액이며 없으면 null입니다.
+export interface ChatProductCard {
+  type: ChatProductType
+  name: string
+  fee: number | null
+  description: string | null
+}
+
+// BE ProductDataCards: 상품 정보 질문의 답변에 쓰인 상품입니다. 카드가 없으면 productData 자체가 null이고,
+// null이 아니면 products는 항상 배열입니다.
+export interface ChatProductData {
+  products: ChatProductCard[]
+}
+
 export interface FaqAnswerSelection {
   faqId: number
   question: string
@@ -218,7 +238,7 @@ export interface FaqAnswerSelection {
 }
 
 // BE Intent enum: 재검색에서 사용자가 고를 수 있는 질문 의도입니다.
-export type ChatIntent = 'GENERAL' | 'STORE_DATA' | 'USER_DATA'
+export type ChatIntent = 'GENERAL' | 'STORE_DATA' | 'USER_DATA' | 'PRODUCT_DATA'
 
 // 재검색 요청 본문입니다. 위도·경도는 매장 의도에서만 보내며, 둘이 함께 있어야 합니다.
 export interface ChatResearchRequest {
@@ -266,4 +286,5 @@ export const CHAT_INTENT_LABELS: Record<ChatIntent, string> = {
   GENERAL: '일반 문의',
   STORE_DATA: '매장 찾기',
   USER_DATA: '내 정보 확인',
+  PRODUCT_DATA: '상품 정보',
 }

@@ -12,7 +12,7 @@ export function canApprove(
 ): boolean {
   return (
     result !== null &&
-    result.cases.length > 0 &&
+    result.caseCount > 0 &&
     result.falsePositives === 0 &&
     result.regressions === 0 &&
     selected.length > 0 &&
@@ -29,18 +29,41 @@ export function canApprove(
   )
 }
 
-export function parseValidation(result: string): Validation | null {
-  try {
-    const value: unknown = JSON.parse(result)
-    if (
-      typeof value !== 'object' ||
-      value === null ||
-      !('cases' in value) ||
-      !Array.isArray(value.cases)
-    )
-      return null
-    return value as Validation
-  } catch {
+function count(value: unknown): number | null {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null
+}
+
+export function parseValidation(result: unknown): Validation | null {
+  if (typeof result !== 'object' || result === null || Array.isArray(result)) return null
+  const value = result as Record<string, unknown>
+  const caseCount = count(value.caseCount)
+  const falsePositives = count(value.falsePositives)
+  const regressions = count(value.regressions)
+  const baselineFailures = count(value.baselineFailures)
+  const newDetections = count(value.newDetections)
+  if (
+    typeof value.baseVersion !== 'string' ||
+    value.baseVersion.trim() === '' ||
+    typeof value.datasetVersion !== 'string' ||
+    value.datasetVersion.trim() === '' ||
+    caseCount === null ||
+    falsePositives === null ||
+    regressions === null ||
+    baselineFailures === null ||
+    newDetections === null ||
+    falsePositives > caseCount ||
+    regressions > caseCount ||
+    baselineFailures > caseCount ||
+    newDetections > caseCount
+  )
     return null
+  return {
+    baseVersion: value.baseVersion,
+    datasetVersion: value.datasetVersion,
+    caseCount,
+    falsePositives,
+    regressions,
+    baselineFailures,
+    newDetections,
   }
 }
