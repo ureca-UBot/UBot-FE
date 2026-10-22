@@ -24,6 +24,7 @@ import { StoreListPage } from './pages/store/StoreListPage'
 import { UnansweredGroupListPage } from './pages/unanswered/UnansweredGroupListPage'
 import { addonServiceKind } from './product/kinds/addonServiceKind'
 import { bundleProductKind } from './product/kinds/bundleProductKind'
+import { homeProductKind } from './product/kinds/homeProductKind'
 import { planKind } from './product/kinds/planKind'
 import { roamingProductKind } from './product/kinds/roamingProductKind'
 
@@ -81,7 +82,7 @@ export default function AdminApp() {
           <Route path=":faqId" element={<FaqDetailPage />} />
         </Route>
         <Route path="telemap" element={<TelemapPage />} />
-        {/* 4종이 같은 화면을 쓰므로 key를 달리해, 탭을 옮길 때 검색 조건과 목록을 새로 시작합니다. */}
+        {/* 모든 상품 종류가 같은 화면을 쓰므로 key를 달리해, 탭을 옮길 때 검색 조건과 목록을 새로 시작합니다. */}
         <Route path="products" element={<ProductLayout />}>
           <Route index element={<Navigate replace to="plans" />} />
           <Route path="plans" element={<ProductListPage key="plans" kind={planKind} />} />
@@ -96,6 +97,10 @@ export default function AdminApp() {
           <Route
             path="roaming-products"
             element={<ProductListPage key="roaming-products" kind={roamingProductKind} />}
+          />
+          <Route
+            path="home-products"
+            element={<ProductListPage key="home-products" kind={homeProductKind} />}
           />
         </Route>
         <Route path="stores" element={<StoreListPage />} />

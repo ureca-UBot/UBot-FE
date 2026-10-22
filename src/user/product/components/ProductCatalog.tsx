@@ -6,7 +6,8 @@ import { ProductDetailDialog } from './ProductDetailDialog'
 export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
   const [keywordInput, setKeywordInput] = useState('')
   const [countryInput, setCountryInput] = useState('')
-  const [filter, setFilter] = useState({ keyword: '', country: '' })
+  const [optionInput, setOptionInput] = useState('')
+  const [filter, setFilter] = useState({ keyword: '', country: '', option: '' })
   const [page, setPage] = useState(0)
   const [cards, setCards] = useState<ProductCard[]>([])
   const [totalElements, setTotalElements] = useState(0)
@@ -45,7 +46,14 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
 
   function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setFilter({ keyword: keywordInput.trim(), country: countryInput.trim() })
+    setFilter({ keyword: keywordInput.trim(), country: countryInput.trim(), option: optionInput })
+    setPage(0)
+  }
+
+  // 분류는 고르는 즉시 적용합니다. 검색어는 입력 중인 값이 아니라 마지막으로 검색한 값을 유지합니다.
+  function changeOption(option: string) {
+    setOptionInput(option)
+    setFilter((current) => ({ ...current, option }))
     setPage(0)
   }
 
@@ -54,7 +62,7 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
     setRevision((current) => current + 1)
   }
 
-  const filtered = Boolean(filter.keyword || filter.country)
+  const filtered = Boolean(filter.keyword || filter.country || filter.option)
 
   return (
     <div className="product-catalog">
@@ -75,6 +83,21 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
             placeholder="국가 (예: 일본)"
             value={countryInput}
           />
+        )}
+        {kind.filter && (
+          <select
+            aria-label={kind.filter.label}
+            className="product-catalog-option"
+            onChange={(event) => changeOption(event.target.value)}
+            value={optionInput}
+          >
+            <option value="">{kind.filter.allLabel}</option>
+            {kind.filter.options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         )}
         <button type="submit">검색</button>
       </form>

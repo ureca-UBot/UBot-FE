@@ -27,12 +27,28 @@ export interface PlanDetail {
   maxAge: number | null
 }
 
+export type BundleType = 'FAMILY' | 'HOME' | 'DUO' | 'ETC'
+export type AddonCategory =
+  | 'DATA_CHARGE'
+  | 'VOICE_CHARGE'
+  | 'CONTENT'
+  | 'SAFETY'
+  | 'CALL'
+  | 'BLOCKING'
+  | 'ETC'
+export type HomeProductType = 'INTERNET' | 'IPTV'
+
+// lineCount가 null이면 회선 수 제한이 없습니다(2회선 이상이면 할인).
+// homeProductId는 홈 결합(HOME)에 연결된 인터넷 상품이며, 다른 결합은 null입니다.
 export interface BundleProduct {
   bundleProductId: number
   code: string
   name: string
   description: string | null
   discountAmount: number
+  bundleType: BundleType
+  lineCount: number | null
+  homeProductId: number | null
 }
 
 export interface AddonService {
@@ -40,6 +56,18 @@ export interface AddonService {
   code: string
   name: string
   description: string | null
+  monthlyFee: number
+  category: AddonCategory
+}
+
+// 인터넷만 속도(speedMbps)가 있고 IPTV는 null입니다.
+export interface HomeProduct {
+  homeProductId: number
+  code: string
+  name: string
+  description: string | null
+  productType: HomeProductType
+  speedMbps: number | null
   monthlyFee: number
 }
 

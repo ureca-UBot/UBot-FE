@@ -19,9 +19,22 @@ export interface ProductKindDisplay<TDetail> {
   columns: { header: string; text: (detail: TDetail) => string }[]
 }
 
-// 상품 종류 하나의 정의입니다. 목록·표·모달은 4종이 같이 쓰고, 종류마다 다른 부분만 여기에 모읍니다.
+export interface ProductRowActionModalProps {
+  productId: number
+  productName: string
+  onClose: () => void
+}
+
+// 수정·상태 변경·삭제 외에 그 종류에만 있는 관리 동작입니다. 예: 요금제의 포함 부가서비스
+export interface ProductRowAction {
+  label: string
+  Modal: ComponentType<ProductRowActionModalProps>
+}
+
+// 상품 종류 하나의 정의입니다. 목록·표·모달은 모든 종류가 같이 쓰고, 종류마다 다른 부분만 여기에 모읍니다.
 export interface ProductKind<TDetail, TValues, TCreate, TUpdate>
   extends ProductKindDisplay<TDetail> {
+  rowAction?: ProductRowAction
   api: AdminProductApi<TDetail, TCreate, TUpdate>
   blankValues: TValues
   valuesFrom: (detail: TDetail) => TValues

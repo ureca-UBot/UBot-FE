@@ -1,15 +1,27 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { ApiRequestError } from '../../../shared/api/client'
-import { formatWon } from '../../product/utils/format'
-import { subscriptionApi, subscriptionDetailLoaders } from '../api/subscriptionApi'
+import { HOME_PRODUCT_TYPE_LABELS, formatWon } from '../../product/utils/format'
+import {
+  homeSubscriptionApi,
+  subscriptionApi,
+  subscriptionDetailLoaders,
+} from '../api/subscriptionApi'
 import type {
+  HomeSubscription,
   PartResult,
   Subscription,
   SubscriptionDetail,
   SubscriptionDetailKey,
   SubscriptionDetailParts,
 } from '../types/subscription'
-import { SUBSCRIPTION_STATUS_LABELS, dataUsagePercent, formatShortMonth } from '../utils/format'
+import {
+  HOME_SUBSCRIPTION_STATUS_LABELS,
+  SUBSCRIPTION_STATUS_LABELS,
+  dataUsagePercent,
+  formatDate,
+  formatShortMonth,
+} from '../utils/format'
+import { SubscriptionActions, type SubscriptionAction } from './SubscriptionActions'
 import { SubscriptionDetailSections } from './SubscriptionDetailSections'
 
 const DETAIL_KEYS = Object.keys(subscriptionDetailLoaders) as SubscriptionDetailKey[]
@@ -52,6 +64,23 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
   // 회선별·항목별 조회 결과입니다. 결과가 없는 항목은 불러오는 중으로 봅니다.
   const [details, setDetails] = useState<Record<number, SubscriptionDetailParts>>({})
   const [listError, setListError] = useState<string | null>(null)
+  const [homes, setHomes] = useState<HomeSubscription[] | null>(null)
+  const [homeError, setHomeError] = useState<string | null>(null)
+  // 열려 있는 신청 창과, 마지막 신청 결과 안내입니다.
+  const [action, setAction] = useState<SubscriptionAction | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  const loadHomes = useCallback(() => {
+    homeSubscriptionApi
+      .getMyHomeSubscriptionList()
+      .then((next) => {
+        setHomes(next)
+        setHomeError(null)
+      })
+      .catch((caught: unknown) => {
+        setHomeError(errorMessage(caught, '인터넷·IPTV 가입 정보를 불러오지 못했습니다.'))
+      })
+  }, [])
 
   const loadSubscriptions = useCallback(() => {
     subscriptionApi
@@ -97,8 +126,10 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
 
   // 모든 사용자 화면이 함께 렌더링되므로 MY 화면이 열렸을 때 최신 정보로 다시 조회합니다.
   useEffect(() => {
-    if (active) loadSubscriptions()
-  }, [active, loadSubscriptions])
+    if (!active) return
+    loadSubscriptions()
+    loadHomes()
+  }, [active, loadSubscriptions, loadHomes])
 
   useEffect(() => {
     if (!active || selectedId === null) return
@@ -108,11 +139,30 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
   // 회선 목록과 보고 있는 회선의 모든 항목을 다시 조회합니다. 실패한 항목이 있을 때도 이 버튼으로 다시 시도합니다.
   function refresh() {
     loadSubscriptions()
+    loadHomes()
     if (selectedId === null) return
     // 이전 결과를 지워 불러오는 중으로 되돌립니다.
     setDetails((current) => ({ ...current, [selectedId]: {} }))
     DETAIL_KEYS.forEach((key) => loadPart(selectedId, key))
   }
+
+  // 신청이 끝나면 결과를 알리고 가입 정보를 모두 다시 조회합니다.
+  // 결합·해지는 다른 회선의 정보도 바꾸므로, 다른 회선의 이전 조회 결과는 지워 다시 받게 합니다.
+  function finishAction(message: string) {
+    setAction(null)
+    setNotice(message)
+    setDetails({})
+    refresh()
+  }
+
+  function openAction(next: SubscriptionAction) {
+    setNotice(null)
+    setAction(next)
+  }
+
+  const activeHomeTypes = (homes ?? [])
+    .filter((home) => home.status === 'ACTIVE')
+    .map((home) => home.productType)
 
   const selected =
     subscriptions?.find((subscription) => subscription.subscriptionId === selectedId) ?? null
@@ -160,14 +210,35 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
         )}
       </article>
 
-      {subscriptions && subscriptions.length > 0 && (
+      {subscriptions && (
         <section className="my-profile" aria-labelledby="mySubscriptionTitle">
           <div className="my-profile-head">
             <h3 id="mySubscriptionTitle">가입 정보</h3>
-            <button className="my-profile-ghost" onClick={refresh} type="button">
-              새로고침
-            </button>
+            <div className="my-sub-actions">
+              <button
+                className="my-profile-ghost"
+                onClick={() => openAction({ type: 'open' })}
+                type="button"
+              >
+                회선 개통
+              </button>
+              <button className="my-profile-ghost" onClick={refresh} type="button">
+                새로고침
+              </button>
+            </div>
           </div>
+
+          {notice && (
+            <p className="my-profile-message my-sub-notice" role="status">
+              {notice}
+            </p>
+          )}
+
+          {subscriptions.length === 0 && (
+            <p className="my-profile-message">
+              개통한 회선이 없습니다. 회선 개통으로 새 회선을 만들 수 있어요.
+            </p>
+          )}
 
           {subscriptions.length > 1 && (
             <div aria-label="회선 선택" className="my-line-tabs" role="tablist">
@@ -186,13 +257,86 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
             </div>
           )}
 
-          {selected && <SubscriptionDetailSections parts={parts} subscription={selected} />}
+          {selected && (
+            <SubscriptionDetailSections
+              onAction={openAction}
+              parts={parts}
+              subscription={selected}
+            />
+          )}
           {listError && (
             <p className="my-profile-message error" role="alert">
               {listError}
             </p>
           )}
         </section>
+      )}
+
+      {(homes || homeError) && (
+        <section className="my-profile" aria-labelledby="myHomeSubscriptionTitle">
+          <div className="my-profile-head">
+            <h3 id="myHomeSubscriptionTitle">인터넷·IPTV</h3>
+            {homes && activeHomeTypes.length < Object.keys(HOME_PRODUCT_TYPE_LABELS).length && (
+              <button
+                className="my-profile-ghost"
+                onClick={() => openAction({ type: 'subscribeHome', activeTypes: activeHomeTypes })}
+                type="button"
+              >
+                인터넷·IPTV 가입
+              </button>
+            )}
+          </div>
+          {homeError && (
+            <p className="my-profile-message error" role="alert">
+              {homeError}
+            </p>
+          )}
+          {homes?.length === 0 && (
+            <p className="my-profile-message">가입한 인터넷·IPTV 상품이 없습니다.</p>
+          )}
+          {homes && homes.length > 0 && (
+            <ul className="my-item-list">
+              {homes.map((home) => (
+                <li key={home.homeSubscriptionId}>
+                  <div>
+                    <b>
+                      {HOME_PRODUCT_TYPE_LABELS[home.productType]} · {home.name}
+                    </b>
+                    <span>월 {formatWon(home.monthlyFee)}</span>
+                    <small>
+                      {formatDate(home.joinedAt)} 가입
+                      {home.endedAt && ` · ${formatDate(home.endedAt)} 해지`}
+                    </small>
+                  </div>
+                  <div className="my-item-side">
+                    <span
+                      className={`my-status my-status--${home.status === 'ACTIVE' ? 'on' : 'off'}`}
+                    >
+                      {HOME_SUBSCRIPTION_STATUS_LABELS[home.status]}
+                    </span>
+                    {home.status === 'ACTIVE' && (
+                      <button
+                        className="my-profile-ghost"
+                        onClick={() => openAction({ type: 'endHome', home })}
+                        type="button"
+                      >
+                        해지
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {action && (
+        <SubscriptionActions
+          action={action}
+          onClose={() => setAction(null)}
+          onDone={finishAction}
+        />
       )}
     </>
   )

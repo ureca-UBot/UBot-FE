@@ -1,17 +1,26 @@
 import type { PageResponse } from '../../shared/types/api'
 import { productApi } from './api/productApi'
 import type {
+  AddonCategory,
   AddonService,
   BundleProduct,
+  BundleType,
+  HomeProduct,
+  HomeProductType,
   PlanDetail,
   PlanSummary,
   RoamingProduct,
 } from './types/product'
 import {
+  ADDON_CATEGORY_LABELS,
+  BUNDLE_TYPE_LABELS,
+  HOME_PRODUCT_TYPE_LABELS,
   NETWORK_TYPE_LABELS,
   PLAN_TARGET_GROUP_LABELS,
   formatAgeRange,
   formatDataAmount,
+  formatLineCount,
+  formatMbps,
   formatPlanData,
   formatPlanSms,
   formatPlanVoice,
@@ -43,10 +52,19 @@ export interface ProductDetailView {
 export interface ProductCatalogQuery {
   keyword: string
   country: string
+  // 종류별 분류 필터(결합 종류·부가서비스 분류·인터넷/IPTV)에서 고른 값입니다. 빈 문자열이면 전체입니다.
+  option: string
   page: number
 }
 
-export type ProductCatalogKey = 'plans' | 'bundles' | 'addons' | 'roaming'
+// 검색창 옆에 두는 분류 선택입니다.
+export interface ProductCatalogFilter {
+  label: string
+  allLabel: string
+  options: { value: string; label: string }[]
+}
+
+export type ProductCatalogKey = 'plans' | 'bundles' | 'addons' | 'roaming' | 'home'
 
 export interface ProductCatalogKind {
   key: ProductCatalogKey
@@ -55,6 +73,7 @@ export interface ProductCatalogKind {
   emptyMessage: string
   // 로밍만 국가로 좁혀 볼 수 있습니다.
   filtersByCountry: boolean
+  filter?: ProductCatalogFilter
   getCards: (query: ProductCatalogQuery) => Promise<PageResponse<ProductCard>>
   getDetail: (id: number) => Promise<ProductDetailView>
 }
@@ -66,6 +85,15 @@ function mapPage<TItem>(
   toCard: (item: TItem) => ProductCard,
 ): PageResponse<ProductCard> {
   return { ...page, content: page.content.map(toCard) }
+}
+
+function filterOptions<TValue extends string>(labels: Record<TValue, string>) {
+  return (Object.keys(labels) as TValue[]).map((value) => ({ value, label: labels[value] }))
+}
+
+// 고를 수 있는 값만 넘깁니다. 빈 문자열(전체)은 조건 없이 조회합니다.
+function optionOrUndefined<TValue extends string>(option: string, labels: Record<TValue, string>) {
+  return option in labels ? (option as TValue) : undefined
 }
 
 function planBadge(plan: PlanSummary) {
@@ -88,13 +116,10 @@ function planCard(plan: PlanSummary): ProductCard {
   }
 }
 
-function planDetailView({
-  summary: plan,
-  description,
-  tetheringAmountMb,
-  minAge,
-  maxAge,
-}: PlanDetail): ProductDetailView {
+function planDetailView(
+  { summary: plan, description, tetheringAmountMb, minAge, maxAge }: PlanDetail,
+  includedAddons: AddonService[],
+): ProductDetailView {
   const data =
     plan.exhaustedSpeedKbps === null
       ? formatPlanData(plan)
@@ -110,6 +135,11 @@ function planDetailView({
   ]
   const ageRange = formatAgeRange(minAge, maxAge)
   if (ageRange) rows.push({ label: '가입 연령', value: ageRange })
+  if (includedAddons.length > 0)
+    rows.push({
+      label: '기본 제공',
+      value: includedAddons.map((addon) => addon.name).join(', '),
+    })
 
   return {
     badge: planBadge(plan),
@@ -121,20 +151,26 @@ function planDetailView({
   }
 }
 
-function bundleView(product: BundleProduct): ProductDetailView {
+// 홈 결합의 인터넷 상품은 상세에서만 따로 조회해 붙입니다. 목록에서는 회선 수만 보여 줍니다.
+function bundleView(
+  product: BundleProduct,
+  homeProduct: HomeProduct | null = null,
+): ProductDetailView {
+  const rows = [{ label: '회선 수', value: formatLineCount(product.lineCount) }]
+  if (homeProduct) rows.push({ label: '필요 인터넷', value: homeProductName(homeProduct) })
   return {
-    badge: '결합상품',
+    badge: BUNDLE_TYPE_LABELS[product.bundleType],
     name: product.name,
     description: product.description,
     priceLabel: '할인 금액',
     price: formatWon(product.discountAmount),
-    rows: [],
+    rows,
   }
 }
 
 function addonView(service: AddonService): ProductDetailView {
   return {
-    badge: '부가서비스',
+    badge: ADDON_CATEGORY_LABELS[service.category],
     name: service.name,
     description: service.description,
     priceLabel: '월 이용료',
@@ -157,7 +193,27 @@ function roamingView(product: RoamingProduct): ProductDetailView {
   }
 }
 
-// 결합·부가·로밍은 목록과 단건의 모양이 같아서 상세 모양에서 카드를 만듭니다.
+function homeProductName(product: HomeProduct) {
+  return product.speedMbps === null
+    ? product.name
+    : `${product.name} (최대 ${formatMbps(product.speedMbps)})`
+}
+
+function homeView(product: HomeProduct): ProductDetailView {
+  return {
+    badge: HOME_PRODUCT_TYPE_LABELS[product.productType],
+    name: product.name,
+    description: product.description,
+    priceLabel: '월 요금',
+    price: formatWon(product.monthlyFee),
+    rows:
+      product.speedMbps === null
+        ? []
+        : [{ label: '최대 속도', value: formatMbps(product.speedMbps) }],
+  }
+}
+
+// 결합·부가·로밍·인터넷은 목록과 단건의 모양이 같아서 상세 모양에서 카드를 만듭니다.
 function cardFrom(id: number, view: ProductDetailView): ProductCard {
   return {
     id,
@@ -181,7 +237,14 @@ export const productCatalogKinds: ProductCatalogKind[] = [
     filtersByCountry: false,
     getCards: async ({ keyword, page }) =>
       mapPage(await productApi.getPlanList({ keyword, page, size: PAGE_SIZE }), planCard),
-    getDetail: async (id) => planDetailView(await productApi.getPlan(id)),
+    // 포함 부가서비스를 못 받아도 요금제 상세는 보여 줍니다.
+    getDetail: async (id) => {
+      const [plan, includedAddons] = await Promise.all([
+        productApi.getPlan(id),
+        productApi.getPlanIncludedAddonList(id).catch(() => []),
+      ])
+      return planDetailView(plan, includedAddons)
+    },
   },
   {
     key: 'bundles',
@@ -189,12 +252,30 @@ export const productCatalogKinds: ProductCatalogKind[] = [
     searchPlaceholder: '결합상품 이름으로 검색',
     emptyMessage: '판매 중인 결합상품이 없습니다.',
     filtersByCountry: false,
-    getCards: async ({ keyword, page }) =>
+    filter: {
+      label: '결합 종류',
+      allLabel: '전체 결합',
+      options: filterOptions(BUNDLE_TYPE_LABELS),
+    },
+    getCards: async ({ keyword, option, page }) =>
       mapPage(
-        await productApi.getBundleProductList({ keyword, page, size: PAGE_SIZE }),
+        await productApi.getBundleProductList({
+          keyword,
+          bundleType: optionOrUndefined<BundleType>(option, BUNDLE_TYPE_LABELS),
+          page,
+          size: PAGE_SIZE,
+        }),
         (product) => cardFrom(product.bundleProductId, bundleView(product)),
       ),
-    getDetail: async (id) => bundleView(await productApi.getBundleProduct(id)),
+    getDetail: async (id) => {
+      const product = await productApi.getBundleProduct(id)
+      // 연결된 인터넷이 판매 중지되었으면 조회가 실패하므로 그 줄만 뺍니다.
+      const homeProduct =
+        product.homeProductId === null
+          ? null
+          : await productApi.getHomeProduct(product.homeProductId).catch(() => null)
+      return bundleView(product, homeProduct)
+    },
   },
   {
     key: 'addons',
@@ -202,9 +283,20 @@ export const productCatalogKinds: ProductCatalogKind[] = [
     searchPlaceholder: '부가서비스 이름으로 검색',
     emptyMessage: '판매 중인 부가서비스가 없습니다.',
     filtersByCountry: false,
-    getCards: async ({ keyword, page }) =>
-      mapPage(await productApi.getAddonServiceList({ keyword, page, size: PAGE_SIZE }), (service) =>
-        cardFrom(service.addonServiceId, addonView(service)),
+    filter: {
+      label: '부가서비스 분류',
+      allLabel: '전체 분류',
+      options: filterOptions(ADDON_CATEGORY_LABELS),
+    },
+    getCards: async ({ keyword, option, page }) =>
+      mapPage(
+        await productApi.getAddonServiceList({
+          keyword,
+          category: optionOrUndefined<AddonCategory>(option, ADDON_CATEGORY_LABELS),
+          page,
+          size: PAGE_SIZE,
+        }),
+        (service) => cardFrom(service.addonServiceId, addonView(service)),
       ),
     getDetail: async (id) => addonView(await productApi.getAddonService(id)),
   },
@@ -220,5 +312,28 @@ export const productCatalogKinds: ProductCatalogKind[] = [
         (product) => cardFrom(product.roamingProductId, roamingView(product)),
       ),
     getDetail: async (id) => roamingView(await productApi.getRoamingProduct(id)),
+  },
+  {
+    key: 'home',
+    label: '인터넷/IPTV',
+    searchPlaceholder: '인터넷·IPTV 상품 이름으로 검색',
+    emptyMessage: '판매 중인 인터넷·IPTV 상품이 없습니다.',
+    filtersByCountry: false,
+    filter: {
+      label: '상품 종류',
+      allLabel: '인터넷·IPTV 전체',
+      options: filterOptions(HOME_PRODUCT_TYPE_LABELS),
+    },
+    getCards: async ({ keyword, option, page }) =>
+      mapPage(
+        await productApi.getHomeProductList({
+          keyword,
+          productType: optionOrUndefined<HomeProductType>(option, HOME_PRODUCT_TYPE_LABELS),
+          page,
+          size: PAGE_SIZE,
+        }),
+        (product) => cardFrom(product.homeProductId, homeView(product)),
+      ),
+    getDetail: async (id) => homeView(await productApi.getHomeProduct(id)),
   },
 ]

@@ -1,7 +1,7 @@
 import type { ProductCommonValues } from '../types/product'
 import type { ProductFormFieldsProps } from '../types/productKind'
 
-// 4종이 모두 갖는 칸입니다: 상품 코드, 상품명, 설명.
+// 모든 상품 종류가 갖는 칸입니다: 상품 코드, 상품명, 설명.
 export function ProductCommonFields({
   values,
   isCreate,

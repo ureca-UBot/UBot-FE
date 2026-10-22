@@ -1,4 +1,11 @@
-import type { NetworkType, PlanSummary, PlanTargetGroup } from './types'
+import type {
+  AddonCategory,
+  BundleType,
+  HomeProductType,
+  NetworkType,
+  PlanSummary,
+  PlanTargetGroup,
+} from './types'
 
 export const NETWORK_TYPE_LABELS: Record<NetworkType, string> = {
   FIVE_G: '5G',
@@ -12,6 +19,40 @@ export const PLAN_TARGET_GROUP_LABELS: Record<PlanTargetGroup, string> = {
   KIDS: '키즈',
   WATCH: '워치',
   TABLET: '태블릿',
+}
+
+export const BUNDLE_TYPE_LABELS: Record<BundleType, string> = {
+  FAMILY: '가족 결합',
+  HOME: '홈 결합',
+  DUO: '2인 결합',
+  ETC: '기타 결합',
+}
+
+export const ADDON_CATEGORY_LABELS: Record<AddonCategory, string> = {
+  DATA_CHARGE: '데이터 충전',
+  VOICE_CHARGE: '음성 충전',
+  CONTENT: '콘텐츠',
+  SAFETY: '안심·보호',
+  CALL: '통화 편의',
+  BLOCKING: '차단',
+  ETC: '기타',
+}
+
+export const HOME_PRODUCT_TYPE_LABELS: Record<HomeProductType, string> = {
+  INTERNET: '인터넷',
+  IPTV: 'IPTV',
+}
+
+// 결합 상품의 회선 수입니다. null이면 회선 수 제한 없이 2회선부터 할인됩니다.
+export function formatLineCount(lineCount: number | null) {
+  return lineCount === null ? '2회선 이상' : `${lineCount}회선`
+}
+
+// 1000Mbps 이상은 Gbps로 보여 줍니다.
+export function formatMbps(mbps: number) {
+  if (mbps < 1000) return `${mbps}Mbps`
+  const gbps = mbps / 1000
+  return `${Number.isInteger(gbps) ? gbps : gbps.toFixed(1)}Gbps`
 }
 
 export function formatWon(amount: number) {
