@@ -152,11 +152,13 @@ export function TelemapPage() {
   const [revision, setRevision] = useState(0)
   const [selectedAlertId, setSelectedAlertId] = useState<number | null>(null)
 
-  const load = useCallback(() => setRevision((current) => current + 1), [])
+  const load = useCallback(() => {
+    setLoading(true)
+    setRevision((current) => current + 1)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     void telemapApi
       .getAlerts({ status, region, page, size: PAGE_SIZE })
       .then((response) => {
@@ -181,9 +183,15 @@ export function TelemapPage() {
     nextStatus: SurgingAlertStatus | null,
     nextRegion: TelemapRegion | null,
   ) => {
+    setLoading(true)
     setStatus(nextStatus)
     setRegion(nextRegion)
     setPage(0)
+  }
+
+  const changePage = (nextPage: number) => {
+    setLoading(true)
+    setPage(nextPage)
   }
 
   return (
@@ -278,7 +286,7 @@ export function TelemapPage() {
           </tbody>
         </table>
       </div>
-      {result && <Pagination onChange={setPage} page={page} totalPages={result.totalPages} />}
+      {result && <Pagination onChange={changePage} page={page} totalPages={result.totalPages} />}
       {selectedAlertId !== null && (
         <TelemapDetailModal
           alertId={selectedAlertId}
