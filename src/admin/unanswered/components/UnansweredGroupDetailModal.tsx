@@ -86,7 +86,12 @@ export function UnansweredGroupDetailModal({
         {group && (
           <>
             <dl>
-              {group.topicName && <><dt>주제</dt><dd>{group.topicName}</dd></>}
+              {group.topicName && (
+                <>
+                  <dt>주제</dt>
+                  <dd>{group.topicName}</dd>
+                </>
+              )}
               <dt>대표 질문</dt>
               <dd>{group.representativeQuestion}</dd>
               <dt>상태</dt>

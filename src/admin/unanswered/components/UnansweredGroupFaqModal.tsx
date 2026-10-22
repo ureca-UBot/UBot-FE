@@ -28,7 +28,9 @@ export function UnansweredGroupFaqModal({
   })
 
   const { categories } = useFaqCategories()
-  const [categoryId, setCategoryId] = useState(group.suggestedCategoryId ? String(group.suggestedCategoryId) : '')
+  const [categoryId, setCategoryId] = useState(
+    group.suggestedCategoryId ? String(group.suggestedCategoryId) : '',
+  )
   const [intent, setIntent] = useState<FaqIntent>('GENERAL')
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState('')
