@@ -2,6 +2,7 @@ import { apiClient } from '../../../shared/api/client'
 import type { PageResponse } from '../../../shared/types/api'
 import type {
   Candidate,
+  CaseResult,
   Finding,
   Overview,
   ReviewNotification,
@@ -27,6 +28,10 @@ export const guardReviewApi = {
   analyze: () => apiClient.post<number>(`${BASE}/analysis`, {}),
   resume: (id: number) => apiClient.post<void>(`${BASE}/runs/${id}/resume`, {}),
   run: (id: number) => apiClient.get<ReviewRun>(`${BASE}/runs/${id}`),
+  cases: (id: number, page: number, size: number, signal?: AbortSignal) =>
+    apiClient.get<PageResponse<CaseResult>>(`${BASE}/runs/${id}/cases?page=${page}&size=${size}`, {
+      signal,
+    }),
   edit: (candidate: Candidate, expression: string, reason: string) =>
     apiClient.patch<Candidate>(`${BASE}/candidates/${candidate.id}`, {
       revision: candidate.revision,

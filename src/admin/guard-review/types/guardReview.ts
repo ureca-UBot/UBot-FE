@@ -29,7 +29,7 @@ export interface ReviewRun {
   status: string
   processed: number
   total: number
-  result: string
+  result: Record<string, unknown>
   createdAt: string
   analysisMode?: 'INCREMENTAL' | 'FULL' | null
   detailsRetained?: boolean
@@ -48,7 +48,7 @@ export interface CaseResult {
 export interface Validation {
   baseVersion: string
   datasetVersion: string
-  cases: CaseResult[]
+  caseCount: number
   falsePositives: number
   regressions: number
   baselineFailures: number

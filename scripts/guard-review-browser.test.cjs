@@ -74,6 +74,24 @@ async function pageFixture(mobile = false, options = {}) {
       original,
     ]
   }
+  const cases = Array.from({ length: options.caseCount ?? 1 }, (_, index) => ({
+    id: `case-${index + 1}`,
+    category: 'NORMAL',
+    stage: 'INPUT',
+    before: options.unsafeCase
+      ? '<script>window.caseScriptRan=true</script>'
+      : `정상 질문 ${index + 1}`,
+    after: `정상 질문 ${index + 1}`,
+    falsePositive: false,
+    regression: false,
+    baselineFailure: false,
+    newDetection: false,
+  }))
+  // 전체 집계의 문제 사례는 첫 페이지 바깥에 둡니다.
+  if (cases.length > 0) {
+    if (options.summary?.falsePositives === 1) cases.at(-1).falsePositive = true
+    if (options.summary?.regressions === 1) cases.at(-1).regression = true
+  }
   const alerts = [{ id: 8, candidateId: 2, message: 'FRAUD · 신규 3건 · 누적 12건', read: false }]
   await context.route('**/api/admin/guard-review**', async (route) => {
     const req = route.request(),
@@ -81,7 +99,7 @@ async function pageFixture(mobile = false, options = {}) {
       p = url.pathname,
       method = req.method()
     const body = method === 'GET' ? null : req.postDataJSON()
-    requests.push({ p, query: url.search, method, body })
+    requests.push({ p, query: url.search, method, body, headers: req.headers() })
     const ok = (data) => route.fulfill({ json: { success: true, code: 'SUCCESS', data } })
     if (options.apiUnavailable)
       return route.fulfill({ status: 404, json: { success: false, message: 'Not Found' } })
@@ -126,7 +144,7 @@ async function pageFixture(mobile = false, options = {}) {
         status: 'QUEUED',
         processed: 0,
         total: 120,
-        result: '{}',
+        result: {},
         createdAt: '2026-10-22',
       })
       return ok(10)
@@ -137,31 +155,56 @@ async function pageFixture(mobile = false, options = {}) {
           id: 11,
           kind: 'VALIDATION',
           status: 'COMPLETED',
-          processed: 2,
-          total: 2,
-          result: '{}',
+          processed: cases.length,
+          total: cases.length,
+          result: {},
           createdAt: '2026-10-22',
         })
       return ok(11)
+    }
+    if (p.endsWith('/runs/11/cases')) {
+      if (options.expiredCasePage || state.validationExpired)
+        return route.fulfill({
+          status: 409,
+          json: { success: false, code: 'GUARD-REVIEW-004', message: '다시 검사해 주세요.' },
+        })
+      if (options.casePageUnavailable && !state.casePageRecovered) {
+        return route.fulfill({
+          status: 503,
+          json: { success: false, message: '검사 사례 조회 일시 실패' },
+        })
+      }
+      const page = Number(url.searchParams.get('page') ?? 0)
+      const size = Number(url.searchParams.get('size') ?? 20)
+      return ok({
+        content: cases.slice(page * size, (page + 1) * size),
+        page,
+        size,
+        totalElements: cases.length,
+        totalPages: Math.ceil(cases.length / size),
+        first: page === 0,
+        last: (page + 1) * size >= cases.length,
+      })
     }
     if (p.endsWith('/runs/11'))
       return ok({
         id: 11,
         kind: 'VALIDATION',
         status: 'COMPLETED',
-        processed: 2,
-        total: 2,
-        detailsRetained: !options.expiredValidation && !state.validationExpired,
+        processed: cases.length,
+        total: cases.length,
         ...state.runs.find((r) => r.id === 11),
-        result: JSON.stringify({
+        detailsRetained: !options.expiredValidation && !state.validationExpired,
+        result: {
           baseVersion: 'base',
           datasetVersion: 'gold',
-          cases: [{ id: 'normal', stage: 'INPUT', before: '정상 질문', after: '정상 질문' }],
+          caseCount: cases.length,
           falsePositives: 0,
           regressions: 0,
           baselineFailures: 0,
           newDetections: 0,
-        }),
+          ...options.summary,
+        },
       })
     const editMatch = p.match(/\/candidates\/(\d+)$/)
     if (editMatch && method === 'PATCH') {
@@ -284,7 +327,7 @@ test('주기 분석 범위를 표시하고 만료된 실패 실행의 재개는 
       detailsRetained: false,
       processed: 2,
       total: 3,
-      result: '{}',
+      result: {},
     })
     await page.getByText('대화 분석 · 신규·변경분', { exact: true }).waitFor()
     await page.getByText('상세 보관 만료 · 재검사 필요').waitFor()
@@ -300,9 +343,10 @@ test('보관기간이 지난 발견 사례를 현재 원문인 것처럼 보여�
   try {
     await page.getByRole('link', { name: '위험 문장 경고', exact: true }).click()
     await page.getByRole('button', { name: '전체 사례 보기', exact: true }).click()
-    const expiredNotices = page.getByText('상세 자료 보관기간이 만료됐습니다.', { exact: true })
-    await expiredNotices.nth(1).waitFor()
-    assert.equal(await expiredNotices.count(), 2)
+    assert.equal(
+      await page.getByText('상세 자료 보관기간이 만료됐습니다.', { exact: true }).count(),
+      2,
+    )
     assert.equal(await page.getByText('신고 방법을 알려주세요', { exact: true }).count(), 0)
     assert.deepEqual(failures, [])
   } finally {
@@ -575,6 +619,298 @@ test('설정 저장 실패는 성공으로 표시하지 않고 변경 취소로 
     )
     assert.deepEqual(failures, [])
   } finally {
+    await context.close()
+  }
+})
+
+test('검사 요약 5168건과 요청한 사례 페이지만 읽고 페이지 크기 변경은 처음으로 이동한다', async () => {
+  const { context, page, requests, failures } = await pageFixture(false, { caseCount: 5168 })
+  try {
+    await page.getByLabel('검토 표현 선택').check()
+    await page.getByRole('button', { name: '선택 후보 오차단 테스트' }).click()
+    const cases = page.getByRole('region', { name: '검사 사례 페이지', exact: true })
+    await cases.getByText('검사 사례 1~20 / 5168건', { exact: true }).waitFor()
+    assert.equal(await cases.locator('details').count(), 20)
+    assert.equal(
+      await page.getByRole('button', { name: '검사한 후보 승인 적용' }).isEnabled(),
+      true,
+    )
+    await cases
+      .getByRole('navigation', { name: '검사 사례 페이지 이동' })
+      .getByRole('button', { name: '2', exact: true })
+      .click()
+    await cases.getByText('검사 사례 21~40 / 5168건', { exact: true }).waitFor()
+    assert.equal(await cases.locator('details').count(), 20)
+    await cases.getByLabel('페이지당 검사 사례 수').selectOption('50')
+    await cases.getByText('검사 사례 1~50 / 5168건', { exact: true }).waitFor()
+    assert.equal(await cases.locator('details').count(), 50)
+    const pages = requests.filter((request) => request.p.endsWith('/cases'))
+    assert.equal(
+      pages.some((request) => request.query === '?page=0&size=20'),
+      true,
+    )
+    assert.equal(
+      pages.some((request) => request.query === '?page=1&size=20'),
+      true,
+    )
+    assert.equal(
+      pages.some((request) => request.query === '?page=0&size=50'),
+      true,
+    )
+    assert.equal(
+      pages.every((request) =>
+        [0, 1].includes(Number(new URLSearchParams(request.query).get('page'))),
+      ),
+      true,
+    )
+    assert.equal(
+      pages.every((request) => request.method === 'GET'),
+      true,
+    )
+    assert.equal(
+      pages.every((request) => request.headers.authorization?.startsWith('Bearer fixture.')),
+      true,
+    )
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('사례 페이지의 일시 오류는 요약을 폐기하지 않고 같은 페이지만 다시 조회한다', async () => {
+  const { context, page, state, requests, failures } = await pageFixture(false, {
+    casePageUnavailable: true,
+  })
+  try {
+    await page.getByLabel('검토 표현 선택').check()
+    await page.getByRole('button', { name: '선택 후보 오차단 테스트' }).click()
+    const cases = page.getByRole('region', { name: '검사 사례 페이지', exact: true })
+    await cases.getByRole('alert').filter({ hasText: '검사 사례 조회 일시 실패' }).waitFor()
+    assert.equal(
+      await page.getByRole('button', { name: '검사한 후보 승인 적용' }).isEnabled(),
+      true,
+    )
+    // 개발 모드의 취소된 초기 요청 수와 무관하게, 복구 뒤 명시적 재조회 한 번을 확인합니다.
+    const attemptsBeforeRetry = requests.filter((request) => request.p.endsWith('/cases')).length
+    state.casePageRecovered = true
+    await cases.getByRole('button', { name: '검사 사례 다시 불러오기' }).click()
+    await cases.getByText('검사 사례 1~1 / 1건', { exact: true }).waitFor()
+    assert.equal(
+      requests.filter((request) => request.p.endsWith('/cases')).length,
+      attemptsBeforeRetry + 1,
+    )
+    assert.equal(requests.filter((request) => request.p.endsWith('/validation')).length, 1)
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('사례 조회에서 만료되면 저장된 요약으로 승인하지 않는다', async () => {
+  const { context, page, requests, failures } = await pageFixture(false, { expiredCasePage: true })
+  try {
+    await page.getByLabel('검토 표현 선택').check()
+    await page.getByRole('button', { name: '선택 후보 오차단 테스트' }).click()
+    await page.getByText('검사 상세의 보관기간이 만료됐습니다. 다시 검사해 주세요.').waitFor()
+    assert.equal(
+      await page.getByRole('button', { name: '검사한 후보 승인 적용' }).isDisabled(),
+      true,
+    )
+    assert.equal(
+      await page.getByRole('region', { name: '검사 사례 페이지', exact: true }).count(),
+      0,
+    )
+    assert.equal(
+      requests.some((request) => request.p.endsWith('/approval')),
+      false,
+    )
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('새 사례 페이지의 원문 HTML도 텍스트로 표시한다', async () => {
+  const { context, page, failures } = await pageFixture(false, { unsafeCase: true })
+  try {
+    await page.getByLabel('검토 표현 선택').check()
+    await page.getByRole('button', { name: '선택 후보 오차단 테스트' }).click()
+    const cases = page.getByRole('region', { name: '검사 사례 페이지', exact: true })
+    await cases.locator('details summary').first().click()
+    await cases.getByText('<script>window.caseScriptRan=true</script>', { exact: true }).waitFor()
+    assert.equal(await cases.locator('script').count(), 0)
+    assert.equal(await page.evaluate(() => window.caseScriptRan), undefined)
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('마지막 일부 사례와 10개 페이지 크기도 서버가 반환한 전체 건수로 표시한다', async () => {
+  const { context, page, requests, failures } = await pageFixture(false, { caseCount: 21 })
+  try {
+    await page.getByLabel('검토 표현 선택').check()
+    await page.getByRole('button', { name: '선택 후보 오차단 테스트' }).click()
+    const cases = page.getByRole('region', { name: '검사 사례 페이지', exact: true })
+    await cases.getByText('검사 사례 1~20 / 21건', { exact: true }).waitFor()
+    await cases.getByRole('button', { name: '2', exact: true }).click()
+    await cases.getByText('검사 사례 21~21 / 21건', { exact: true }).waitFor()
+    assert.equal(await cases.locator('details').count(), 1)
+    await cases.getByLabel('페이지당 검사 사례 수').selectOption('10')
+    await cases.getByText('검사 사례 1~10 / 21건', { exact: true }).waitFor()
+    await cases.getByRole('button', { name: '3', exact: true }).click()
+    await cases.getByText('검사 사례 21~21 / 21건', { exact: true }).waitFor()
+    assert.equal(
+      requests.some((request) => request.query === '?page=2&size=10'),
+      true,
+    )
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+for (const field of ['falsePositives', 'regressions']) {
+  test(`현재 사례 페이지에 문제가 없어도 전체 요약의 ${field}가 있으면 승인하지 않는다`, async () => {
+    const { context, page, requests, failures } = await pageFixture(false, {
+      caseCount: 21,
+      summary: { [field]: 1 },
+    })
+    try {
+      await page.getByLabel('검토 표현 선택').check()
+      await page.getByRole('button', { name: '선택 후보 오차단 테스트' }).click()
+      const cases = page.getByRole('region', { name: '검사 사례 페이지', exact: true })
+      await cases.getByText('검사 사례 1~20 / 21건', { exact: true }).waitFor()
+      assert.equal(await cases.getByText('변화 없음', { exact: false }).count(), 20)
+      assert.equal(
+        await page.getByRole('button', { name: '검사한 후보 승인 적용' }).isDisabled(),
+        true,
+      )
+      assert.equal(
+        requests.some((request) => request.p.endsWith('/approval')),
+        false,
+      )
+      assert.deepEqual(failures, [])
+    } finally {
+      await context.close()
+    }
+  })
+}
+
+test('잘못된 result 객체는 사례를 읽거나 승인하지 않고 재검사를 안내한다', async () => {
+  const { context, page, requests, failures } = await pageFixture(false, {
+    summary: { caseCount: '5168' },
+  })
+  try {
+    await page.getByLabel('검토 표현 선택').check()
+    await page.getByRole('button', { name: '선택 후보 오차단 테스트' }).click()
+    await page.getByText('검사 결과 요약을 읽지 못했습니다. 다시 검사해 주세요.').waitFor()
+    assert.equal(
+      await page.getByRole('button', { name: '검사한 후보 승인 적용' }).isDisabled(),
+      true,
+    )
+    assert.equal(
+      requests.some((request) => request.p.endsWith('/cases')),
+      false,
+    )
+    assert.equal(
+      requests.some((request) => request.p.endsWith('/approval')),
+      false,
+    )
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('검사 사례가 0건이면 빈 결과를 표시하고 승인하지 않는다', async () => {
+  const { context, page, requests, failures } = await pageFixture(false, { caseCount: 0 })
+  try {
+    await page.getByLabel('검토 표현 선택').check()
+    await page.getByRole('button', { name: '선택 후보 오차단 테스트' }).click()
+    const cases = page.getByRole('region', { name: '검사 사례 페이지', exact: true })
+    await cases.getByText('표시할 검사 사례가 없습니다.', { exact: true }).waitFor()
+    assert.equal(
+      await page.getByRole('button', { name: '검사한 후보 승인 적용' }).isDisabled(),
+      true,
+    )
+    assert.equal(
+      requests.some((request) => request.p.endsWith('/approval')),
+      false,
+    )
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('후보 수정 뒤 늦게 도착한 이전 사례 응답으로 결과 화면을 복구하지 않는다', async () => {
+  const { context, page, requests, failures } = await pageFixture()
+  let releaseResponse, notifyStarted, notifyFinished
+  const released = new Promise((resolve) => {
+    releaseResponse = resolve
+  })
+  const started = new Promise((resolve) => {
+    notifyStarted = resolve
+  })
+  const finished = new Promise((resolve) => {
+    notifyFinished = resolve
+  })
+  await page.route('**/api/admin/guard-review/runs/11/cases?*', async (route) => {
+    notifyStarted()
+    await released
+    try {
+      await route.fulfill({
+        json: {
+          success: true,
+          data: {
+            content: [
+              {
+                id: 'old-delayed-case',
+                stage: 'INPUT',
+                before: '이전 검사 원문',
+                after: '이전 검사 원문',
+              },
+            ],
+            page: 0,
+            size: 20,
+            totalElements: 1,
+            totalPages: 1,
+            first: true,
+            last: true,
+          },
+        },
+      })
+    } finally {
+      notifyFinished()
+    }
+  })
+  try {
+    await page.getByLabel('검토 표현 선택').check()
+    await page.getByRole('button', { name: '선택 후보 오차단 테스트' }).click()
+    await started
+    await page.getByRole('button', { name: '후보 수정', exact: true }).click()
+    await page.getByLabel('후보 표현').fill('새로운 후보 표현')
+    await page.getByRole('button', { name: '후보 저장' }).click()
+    await page.getByLabel('새로운 후보 표현 선택').waitFor()
+    releaseResponse()
+    await finished
+    assert.equal(
+      await page.getByRole('region', { name: '검사 사례 페이지', exact: true }).count(),
+      0,
+    )
+    assert.equal(await page.getByText('old-delayed-case', { exact: false }).count(), 0)
+    assert.equal(
+      await page.getByRole('button', { name: '검사한 후보 승인 적용' }).isDisabled(),
+      true,
+    )
+    assert.equal(
+      requests.some((request) => request.p.endsWith('/approval')),
+      false,
+    )
+    assert.deepEqual(failures, [])
+  } finally {
+    releaseResponse()
     await context.close()
   }
 })
