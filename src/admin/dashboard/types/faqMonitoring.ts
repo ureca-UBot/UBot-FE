@@ -121,3 +121,19 @@ export interface FaqImprovementResponse {
   first: boolean
   last: boolean
 }
+
+export interface FaqImprovementExclusion {
+  exclusionId: number
+  faqId: number
+  faqQuestion: string
+  improvementType: FaqImprovementType
+  memo: string | null
+  excludedBy: number | null
+  excludedAt: string
+  outdated: boolean
+}
+
+export interface FaqImprovementExclusionHistory extends FaqImprovementExclusion {
+  releasedBy: number | null
+  releasedAt: string
+}

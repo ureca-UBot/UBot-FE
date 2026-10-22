@@ -4,9 +4,12 @@ import type {
   FaqDetailResponse,
   FaqDuplicateCandidate,
   FaqImprovementResponse,
+  FaqImprovementExclusion,
+  FaqImprovementExclusionHistory,
   FaqImprovementType,
   FaqMonitoringResponse,
 } from '../types/faqMonitoring'
+import type { PageResponse } from '../../../shared/types/api'
 
 export interface MonitoringDateRange {
   startDate: string
@@ -41,6 +44,23 @@ export const faqMonitoringApi = {
       `/api/admin/faq-monitoring/improvements?${query.toString()}`,
     )
   },
+  excludeFaqImprovement: (faqId: number, body: { improvementType: FaqImprovementType; memo?: string }) =>
+    apiClient.post<void>(`/api/admin/faq-monitoring/improvements/${faqId}/exclusions`, body),
+  getFaqImprovementExclusions: (page: number, size: number) =>
+    apiClient.get<PageResponse<FaqImprovementExclusion>>(
+      `/api/admin/faq-monitoring/improvement-exclusions?page=${page}&size=${size}`,
+    ),
+  getFaqImprovementExclusionHistory: (page: number, size: number) =>
+    apiClient.get<PageResponse<FaqImprovementExclusionHistory>>(
+      `/api/admin/faq-monitoring/improvement-exclusions/history?page=${page}&size=${size}`,
+    ),
+  deleteFaqImprovementExclusion: (exclusionId: number) =>
+    apiClient.delete<void>(`/api/admin/faq-monitoring/improvement-exclusions/${exclusionId}`),
+  releaseFaqImprovementExclusion: (exclusionId: number) =>
+    apiClient.patch<void>(
+      `/api/admin/faq-monitoring/improvement-exclusions/${exclusionId}/release`,
+      {},
+    ),
   getDuplicateCandidates: (faqId: number) =>
     apiClient.get<FaqDuplicateCandidate[]>(
       `/api/admin/faq-monitoring/improvements/${faqId}/duplicates`,

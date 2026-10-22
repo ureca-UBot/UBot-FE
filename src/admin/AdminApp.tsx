@@ -8,6 +8,10 @@ import { FaqCategoryListPage } from './pages/faq/FaqCategoryListPage'
 import { FaqDetailPage } from './pages/faq/FaqDetailPage'
 import { FaqLayout } from './pages/faq/FaqLayout'
 import { FaqListPage } from './pages/faq/FaqListPage'
+import {
+  FaqImprovementExclusionHistoryPage,
+  FaqImprovementExclusionListPage,
+} from './pages/faq/FaqImprovementExclusionPages'
 import { ForbiddenWordListPage } from './pages/forbidden-word/ForbiddenWordListPage'
 import { GuestChatSettingsPage } from './pages/guest-chat/GuestChatSettingsPage'
 import { InquiryListPage } from './pages/inquiry/InquiryListPage'
@@ -62,6 +66,11 @@ export default function AdminApp() {
           <Route index element={<FaqListPage />} />
           <Route path="deleted" element={<DeletedFaqListPage />} />
           <Route path="categories" element={<FaqCategoryListPage />} />
+          <Route path="improvement-exclusions" element={<FaqImprovementExclusionListPage />} />
+          <Route
+            path="improvement-exclusions/history"
+            element={<FaqImprovementExclusionHistoryPage />}
+          />
           <Route path=":faqId" element={<FaqDetailPage />} />
         </Route>
         {/* 4종이 같은 화면을 쓰므로 key를 달리해, 탭을 옮길 때 검색 조건과 목록을 새로 시작합니다. */}

@@ -3,6 +3,7 @@ import { Pagination } from '../../faq/components/Pagination'
 import type { useFaqDashboard } from '../hooks/useFaqDashboard'
 import { improvementTypeLabel, improvementTypes } from '../utils/dashboardFormat'
 import { FaqAiReviewModal } from './FaqAiReviewModal'
+import { FaqImprovementExclusionModal } from './FaqImprovementExclusionModal'
 
 type Props = Pick<
   ReturnType<typeof useFaqDashboard>,
@@ -45,6 +46,12 @@ type Props = Pick<
   | 'isAiReviewModalOpen'
   | 'closeAiReviewModal'
   | 'canRequestDuplicateAiReview'
+  | 'isExclusionModalOpen'
+  | 'isExcluding'
+  | 'exclusionError'
+  | 'openExclusionModal'
+  | 'closeExclusionModal'
+  | 'excludeFaqImprovements'
 >
 
 export function FaqImprovements({
@@ -87,6 +94,12 @@ export function FaqImprovements({
   isAiReviewModalOpen,
   closeAiReviewModal,
   canRequestDuplicateAiReview,
+  isExclusionModalOpen,
+  isExcluding,
+  exclusionError,
+  openExclusionModal,
+  closeExclusionModal,
+  excludeFaqImprovements,
 }: Props) {
   return (
     <section className="faq-dashboard-section faq-dashboard-section--improvement">
@@ -242,6 +255,13 @@ export function FaqImprovements({
               type="button"
             >
               AI 검토
+            </button>
+            <button
+              className="faq-dashboard-improvement-exclusion__button"
+              onClick={openExclusionModal}
+              type="button"
+            >
+              개선 대상 제외
             </button>
           </div>
           <div
@@ -407,6 +427,19 @@ export function FaqImprovements({
           onRequest={requestAiReview}
           results={aiReviewResults}
           target={aiReviewTarget}
+        />
+      )}
+      {isExclusionModalOpen && selectedImprovementItem && (
+        <FaqImprovementExclusionModal
+          error={exclusionError}
+          isSubmitting={isExcluding}
+          onClose={closeExclusionModal}
+          onSubmit={excludeFaqImprovements}
+          target={{
+            faqId: selectedImprovementItem.faqId,
+            question: selectedImprovementItem.question,
+            improvementTypes: selectedImprovementItem.improvementTypes,
+          }}
         />
       )}
     </section>
