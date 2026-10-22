@@ -26,6 +26,12 @@ import { bundleProductKind } from './product/kinds/bundleProductKind'
 import { planKind } from './product/kinds/planKind'
 import { roamingProductKind } from './product/kinds/roamingProductKind'
 
+const GuardReviewPage = lazy(() =>
+  import('./pages/guard-review/GuardReviewPage').then((module) => ({
+    default: module.GuardReviewPage,
+  })),
+)
+
 const DashboardPage = lazy(() =>
   import('./pages/dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })),
 )
@@ -92,6 +98,7 @@ export default function AdminApp() {
         </Route>
         <Route path="stores" element={<StoreListPage />} />
         <Route path="forbidden-words" element={<ForbiddenWordListPage />} />
+        <Route path="forbidden-words/review" element={<GuardReviewPage />} />
         <Route path="unanswered-groups" element={<UnansweredGroupListPage />} />
         <Route path="reservations" element={<ReservationListPage />} />
         <Route path="notices" element={<NoticeListPage />} />

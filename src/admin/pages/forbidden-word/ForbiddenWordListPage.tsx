@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+import { ReviewNavigation } from '../../guard-review/components/ReviewNavigation'
 import { ForbiddenWordEditModal } from '../../forbidden-word/components/ForbiddenWordEditModal'
 import { ForbiddenWordPagination } from '../../forbidden-word/components/ForbiddenWordPagination'
 import { ForbiddenWordTable } from '../../forbidden-word/components/ForbiddenWordTable'
@@ -37,7 +39,11 @@ export function ForbiddenWordListPage() {
             비활성화합니다.
           </p>
         </div>
+        <Link className="review-link-button" to="/admin/forbidden-words/review?view=settings">
+          AI 검토 설정
+        </Link>
       </div>
+      <ReviewNavigation active="words" />
 
       <form className="faq-search" onSubmit={(event) => void create(event)}>
         <input
