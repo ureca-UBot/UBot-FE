@@ -8,6 +8,7 @@ import { FaqCategoryListPage } from './pages/faq/FaqCategoryListPage'
 import { FaqDetailPage } from './pages/faq/FaqDetailPage'
 import { FaqLayout } from './pages/faq/FaqLayout'
 import { FaqListPage } from './pages/faq/FaqListPage'
+import { TelemapPage } from './pages/telemap/TelemapPage'
 import {
   FaqImprovementExclusionHistoryPage,
   FaqImprovementExclusionListPage,
@@ -79,6 +80,7 @@ export default function AdminApp() {
           />
           <Route path=":faqId" element={<FaqDetailPage />} />
         </Route>
+        <Route path="telemap" element={<TelemapPage />} />
         {/* 4종이 같은 화면을 쓰므로 key를 달리해, 탭을 옮길 때 검색 조건과 목록을 새로 시작합니다. */}
         <Route path="products" element={<ProductLayout />}>
           <Route index element={<Navigate replace to="plans" />} />
