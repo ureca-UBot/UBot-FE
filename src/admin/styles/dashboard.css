@@ -133,6 +133,7 @@
 }
 .faq-dashboard-section--detail {
   border-color: #cfb6ff;
+  container-type: inline-size;
 }
 .faq-dashboard-section--improvement {
   border-color: #ffd378;
@@ -2060,5 +2061,35 @@
 @keyframes faq-ai-review-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* 상세 카드 자신의 너비에 맞춰 내용을 배치해 옆 카드 아래로 잘리지 않게 합니다. */
+.faq-dashboard-detail > * {
+  min-width: 0;
+}
+
+.faq-dashboard-detail__basic {
+  grid-template-columns: 82px minmax(0, 1fr);
+}
+
+.faq-dashboard-detail__basic b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.faq-dashboard-detail__trend-heading,
+.faq-dashboard-detail__trend-controls {
+  flex-wrap: wrap;
+}
+
+.faq-dashboard-cooccurring {
+  overflow-x: auto;
+}
+
+@container (max-width: 720px) {
+  .faq-dashboard-detail {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
   }
 }

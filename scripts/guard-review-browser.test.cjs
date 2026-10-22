@@ -300,10 +300,9 @@ test('보관기간이 지난 발견 사례를 현재 원문인 것처럼 보여�
   try {
     await page.getByRole('link', { name: '위험 문장 경고', exact: true }).click()
     await page.getByRole('button', { name: '전체 사례 보기', exact: true }).click()
-    assert.equal(
-      await page.getByText('상세 자료 보관기간이 만료됐습니다.', { exact: true }).count(),
-      2,
-    )
+    const expiredNotices = page.getByText('상세 자료 보관기간이 만료됐습니다.', { exact: true })
+    await expiredNotices.nth(1).waitFor()
+    assert.equal(await expiredNotices.count(), 2)
     assert.equal(await page.getByText('신고 방법을 알려주세요', { exact: true }).count(), 0)
     assert.deepEqual(failures, [])
   } finally {
