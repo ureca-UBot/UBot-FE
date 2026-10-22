@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
-function getDestination(role: 'USER' | 'ADMIN') {
-  return role === 'ADMIN' ? '/admin/dashboard' : '/'
+function getDestination(role: 'USER' | 'ADMIN' | 'COUNSELOR') {
+  return role === 'ADMIN' ? '/admin/dashboard' : role === 'COUNSELOR' ? '/counselor' : '/'
 }
 
 export function LoginPage() {
@@ -37,22 +37,48 @@ export function LoginPage() {
     <main className="login-page">
       <section className="login-card" aria-labelledby="login-title">
         <h1 id="login-title">UBot 로그인</h1>
-        {didSignupSucceed && <p className="login-success" role="status">회원가입이 완료되었습니다. 로그인해 주세요.</p>}
+        {didSignupSucceed && (
+          <p className="login-success" role="status">
+            회원가입이 완료되었습니다. 로그인해 주세요.
+          </p>
+        )}
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
             이메일
-            <input autoComplete="email" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
+            <input
+              autoComplete="email"
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              type="email"
+              value={email}
+            />
           </label>
           <label>
             비밀번호
-            <input autoComplete="current-password" onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
+            <input
+              autoComplete="current-password"
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              type="password"
+              value={password}
+            />
           </label>
-          {errorMessage && <p className="login-error" role="alert">{errorMessage}</p>}
-          <button className="primary-button" disabled={isSubmitting || isInitializing} type="submit">
+          {errorMessage && (
+            <p className="login-error" role="alert">
+              {errorMessage}
+            </p>
+          )}
+          <button
+            className="primary-button"
+            disabled={isSubmitting || isInitializing}
+            type="submit"
+          >
             {isSubmitting ? '로그인 중...' : '로그인'}
           </button>
         </form>
-        <p className="auth-page-link">계정이 없으신가요? <Link to="/auth/signup">회원가입</Link></p>
+        <p className="auth-page-link">
+          계정이 없으신가요? <Link to="/auth/signup">회원가입</Link>
+        </p>
       </section>
     </main>
   )

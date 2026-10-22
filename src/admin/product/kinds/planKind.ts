@@ -1,15 +1,20 @@
-import type { PlanDetail } from '../../../user/product/types/product'
 import {
   NETWORK_TYPE_LABELS,
   PLAN_TARGET_GROUP_LABELS,
   formatPlanData,
   formatWon,
-} from '../../../user/product/utils/format'
+} from '../../../shared/product/format'
+import type { PlanDetail } from '../../../shared/product/types'
 import { adminPlanApi } from '../api/productApi'
 import { PlanFormFields } from '../components/PlanFormFields'
 import type { PlanCreateRequest, PlanFormValues, PlanUpdateRequest } from '../types/product'
 import type { ProductKind } from '../types/productKind'
-import { descriptionOrNull, toNullableNumber, toText, validateCommonValues } from '../utils/formValues'
+import {
+  descriptionOrNull,
+  toNullableNumber,
+  toText,
+  validateCommonValues,
+} from '../utils/formValues'
 
 // 무제한 여부는 기본값을 두지 않고 관리자가 직접 고르게 합니다(전부 꺼진 상태로 시작).
 const blankValues: PlanFormValues = {
@@ -31,7 +36,13 @@ const blankValues: PlanFormValues = {
   maxAge: '',
 }
 
-function valuesFrom({ summary: plan, description, tetheringAmountMb, minAge, maxAge }: PlanDetail): PlanFormValues {
+function valuesFrom({
+  summary: plan,
+  description,
+  tetheringAmountMb,
+  minAge,
+  maxAge,
+}: PlanDetail): PlanFormValues {
   return {
     code: plan.planCode,
     name: plan.name,
@@ -59,18 +70,24 @@ function validate(values: PlanFormValues, isCreate: boolean): string | null {
   if (common) return common
 
   if (values.monthlyFee === '') return '월 요금을 입력해 주세요.'
-  if (values.tetheringAmountMb === '') return '테더링 제공량을 입력해 주세요. 제공하지 않으면 0을 입력합니다.'
-  if (!values.dataUnlimited && values.dataAmountMb === '') return '데이터 제공량을 입력하거나 데이터 무제한을 선택해 주세요.'
+  if (values.tetheringAmountMb === '')
+    return '테더링 제공량을 입력해 주세요. 제공하지 않으면 0을 입력합니다.'
+  if (!values.dataUnlimited && values.dataAmountMb === '')
+    return '데이터 제공량을 입력하거나 데이터 무제한을 선택해 주세요.'
   if (values.exhaustedSpeedKbps !== '' && Number(values.exhaustedSpeedKbps) < 1) {
     return '소진 후 속도는 1Kbps 이상이어야 합니다. 없으면 비워 두세요.'
   }
-  if (!values.voiceUnlimited && values.voiceMinutes === '') return '음성 제공량을 입력하거나 음성 무제한을 선택해 주세요.'
-  if (!values.smsUnlimited && values.smsCount === '') return '문자 제공량을 입력하거나 문자 무제한을 선택해 주세요.'
+  if (!values.voiceUnlimited && values.voiceMinutes === '')
+    return '음성 제공량을 입력하거나 음성 무제한을 선택해 주세요.'
+  if (!values.smsUnlimited && values.smsCount === '')
+    return '문자 제공량을 입력하거나 문자 무제한을 선택해 주세요.'
 
   const minAge = toNullableNumber(values.minAge)
   const maxAge = toNullableNumber(values.maxAge)
-  if ((minAge !== null && minAge > 120) || (maxAge !== null && maxAge > 120)) return '가입 연령은 0~120 사이로 입력해 주세요.'
-  if (minAge !== null && maxAge !== null && minAge > maxAge) return '최소 가입 연령이 최대 가입 연령보다 클 수 없습니다.'
+  if ((minAge !== null && minAge > 120) || (maxAge !== null && maxAge > 120))
+    return '가입 연령은 0~120 사이로 입력해 주세요.'
+  if (minAge !== null && maxAge !== null && minAge > maxAge)
+    return '최소 가입 연령이 최대 가입 연령보다 클 수 없습니다.'
   return null
 }
 
@@ -94,7 +111,12 @@ function toUpdateRequest(values: PlanFormValues): PlanUpdateRequest {
   }
 }
 
-export const planKind: ProductKind<PlanDetail, PlanFormValues, PlanCreateRequest, PlanUpdateRequest> = {
+export const planKind: ProductKind<
+  PlanDetail,
+  PlanFormValues,
+  PlanCreateRequest,
+  PlanUpdateRequest
+> = {
   label: '요금제',
   description: '활성 상태인 요금제만 사용자 스토어의 요금제 탭에 보입니다.',
   api: adminPlanApi,
@@ -104,7 +126,8 @@ export const planKind: ProductKind<PlanDetail, PlanFormValues, PlanCreateRequest
   columns: [
     {
       header: '구분',
-      text: ({ summary }) => `${NETWORK_TYPE_LABELS[summary.networkType]} · ${PLAN_TARGET_GROUP_LABELS[summary.targetGroup]}`,
+      text: ({ summary }) =>
+        `${NETWORK_TYPE_LABELS[summary.networkType]} · ${PLAN_TARGET_GROUP_LABELS[summary.targetGroup]}`,
     },
     { header: '월 요금', text: ({ summary }) => formatWon(summary.monthlyFee) },
     { header: '데이터', text: ({ summary }) => formatPlanData(summary) },

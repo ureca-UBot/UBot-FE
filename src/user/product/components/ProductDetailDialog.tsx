@@ -31,7 +31,8 @@ export function ProductDetailDialog({ kind, productId, onClose }: ProductDetailD
         if (!cancelled) setDetail(next)
       })
       .catch((caught: unknown) => {
-        if (!cancelled) setError(caught instanceof Error ? caught.message : '상품 정보를 불러오지 못했습니다.')
+        if (!cancelled)
+          setError(caught instanceof Error ? caught.message : '상품 정보를 불러오지 못했습니다.')
       })
 
     return () => {
@@ -45,28 +46,47 @@ export function ProductDetailDialog({ kind, productId, onClose }: ProductDetailD
         <div className="modal-head">
           <div>
             <small>{detail?.badge ?? kind.label}</small>
-            <h3>{detail?.name ?? (error ? '상품 정보를 볼 수 없습니다' : '상품 정보를 불러오는 중입니다.')}</h3>
+            <h3>
+              {detail?.name ??
+                (error ? '상품 정보를 볼 수 없습니다' : '상품 정보를 불러오는 중입니다.')}
+            </h3>
           </div>
-          <button value="cancel" aria-label="닫기">×</button>
+          <button value="cancel" aria-label="닫기">
+            ×
+          </button>
         </div>
 
-        {error && <p className="product-detail-error" role="alert">{error}</p>}
+        {error && (
+          <p className="product-detail-error" role="alert">
+            {error}
+          </p>
+        )}
 
         {detail && (
           <>
-            <div className="product-detail-price"><span>{detail.priceLabel}</span><b>{detail.price}</b></div>
-            {detail.description && <p className="product-detail-description">{detail.description}</p>}
+            <div className="product-detail-price">
+              <span>{detail.priceLabel}</span>
+              <b>{detail.price}</b>
+            </div>
+            {detail.description && (
+              <p className="product-detail-description">{detail.description}</p>
+            )}
             {detail.rows.length > 0 && (
               <dl className="product-detail-rows">
                 {detail.rows.map((row) => (
-                  <div key={row.label}><dt>{row.label}</dt><dd>{row.value}</dd></div>
+                  <div key={row.label}>
+                    <dt>{row.label}</dt>
+                    <dd>{row.value}</dd>
+                  </div>
                 ))}
               </dl>
             )}
           </>
         )}
 
-        <button className="black-btn modal-full" value="default">확인</button>
+        <button className="black-btn modal-full" value="default">
+          확인
+        </button>
       </form>
     </dialog>
   )

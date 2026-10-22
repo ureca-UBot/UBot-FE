@@ -1,72 +1,61 @@
-export type UserPage =
-  | 'home'
-  | 'store'
-  | 'product'
-  | 'my'
-  | 'benefits'
-  | 'support'
-  | 'stores'
-  | 'notices'
-  | 'ai'
+export type UserPage = 'store' | 'my' | 'stores' | 'notices' | 'ai' | 'customer'
 
 export const userPageTitles: Record<UserPage, string> = {
-  home: 'U봇',
-  store: '스토어',
-  product: '상품 상세',
-  my: 'MY',
-  benefits: '혜택',
-  support: '고객지원',
-  stores: '매장 찾기',
-  notices: '공지·장애',
-  ai: 'AI 검색',
+  store: '상품 정보',
+  my: '내 정보',
+  stores: '매장 정보',
+  notices: '공지/장애 안내',
+  ai: 'AI 채팅',
+  customer: '고객센터',
 }
 
 const routePaths: Record<UserPage, string> = {
-  home: '',
   store: 'store',
-  product: 'store/product',
   my: 'my',
-  benefits: 'benefits',
-  support: 'support',
-  stores: 'support/store-address',
+  stores: 'stores',
   notices: 'notices',
   ai: 'ai',
+  customer: 'customer-center',
 }
 
 const pathAliases: Record<string, UserPage> = {
-  '': 'home',
+  '': 'ai',
   store: 'store',
-  'store/product': 'product',
+  products: 'store',
+  'store/product': 'store',
   my: 'my',
-  benefit: 'benefits',
-  benefits: 'benefits',
-  network: 'support',
-  support: 'support',
+  benefit: 'store',
+  benefits: 'store',
+  network: 'notices',
+  support: 'notices',
   stores: 'stores',
   'support/store-address': 'stores',
   notices: 'notices',
   ai: 'ai',
+  'customer-center': 'customer',
 }
 
 const appBase = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/')
 
 export function pageFromLocation(): UserPage {
-  const hashPath = window.location.hash
-    .replace(/^#\/?/, '')
-    .split('?')[0]
-    .replace(/\/+$/g, '')
+  const hashPath = window.location.hash.replace(/^#\/?/, '').split('?')[0].replace(/\/+$/g, '')
 
-  return pathAliases[hashPath] ?? 'home'
+  return pathAliases[hashPath] ?? 'ai'
 }
 
 export function pageUrl(page: UserPage) {
   const path = routePaths[page]
 
-  return path
-    ? `${appBase}#/${path}`
-    : `${appBase}#/`
+  return path ? `${appBase}#/${path}` : `${appBase}#/`
 }
 
 export function isUserPage(value: string | undefined): value is UserPage {
   return Boolean(value && value in userPageTitles)
+}
+export function userPageFromPath(pathname: string): UserPage {
+  return pathAliases[pathname.replace(/^\//, '').replace(/\/+$/, '')] ?? 'ai'
+}
+
+export function userPagePath(page: UserPage): string {
+  return page === 'ai' ? '/' : '/' + routePaths[page]
 }

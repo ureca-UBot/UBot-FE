@@ -1,245 +1,104 @@
-import { useCallback, useEffect, useState, type KeyboardEvent, type MouseEvent } from 'react'
-import { useAuth } from '../auth/hooks/useAuth'
-import { useChat } from './ai/hooks/useChat'
-import { useAiDemo } from './ai/useAiDemo'
-import { UserDialogs, type UserDialog } from './components/UserDialogs'
+import { ConnectedAiPage } from './ai/components/ConnectedAiPage'
+import { UserDialogs } from './components/UserDialogs'
 import { UserLoginModal } from './components/UserLoginModal'
-import { NoticeBanners } from './notice/components/NoticeBanners'
-import type { ReservationStore } from './reservation/types/reservation'
-import { useMyProfile } from './my/hooks/useMyProfile'
-import { useHeroCarousel } from './hooks/useHeroCarousel'
-import { useScrollReveal } from './hooks/useScrollReveal'
-import { useUserNavigation } from './hooks/useUserNavigation'
+import { VisitedPage } from './components/VisitedPage'
+import { useUserExperience } from './hooks/useUserExperience'
 import { DesktopHeader } from './layout/DesktopHeader'
 import { MobileBottomNav } from './layout/MobileBottomNav'
 import { MobileHeader } from './layout/MobileHeader'
-import { AiPage } from './pages/AiPage'
-import { BenefitsPage } from './pages/BenefitsPage'
-import { HomePage } from './pages/HomePage'
+import { NoticeBanners } from './notice/components/NoticeBanners'
+import { CustomerCenterPage } from './pages/CustomerCenterPage'
 import { MyPage } from './pages/MyPage'
 import { NoticePage } from './pages/NoticePage'
-import { ProductPage } from './pages/ProductPage'
-import { StorePage } from './pages/StorePage'
 import { StoreLocatorPage } from './pages/StoreLocatorPage'
-import { SupportPage } from './pages/SupportPage'
-import { isUserPage, userPageTitles } from './routes'
-import { useNavigate as useRouterNavigate } from 'react-router-dom'
+import { StorePage } from './pages/StorePage'
+import { userPageTitles } from './routes'
 import './styles/user.css'
 
 export default function UserApp() {
-  const routerNavigate = useRouterNavigate()
-  const { page, navigate } = useUserNavigation()
-  const { heroIndex, previous, next, goTo } = useHeroCarousel()
-  const [loggedIn, setLoggedIn] = useState(false)
-  const { user, isInitializing } = useAuth()
-  const chat = useChat()
-  const { sendQuestion } = chat
-  const [isAiDemo, setIsAiDemo] = useState(false)
-  // 실제 로그인한 사용자 이름. 헤더·홈에서 로그인 여부 표시와 MY 이동에 씁니다.
-  const { profile } = useMyProfile()
-  const memberName = profile?.name ?? null
   const {
+    page,
+    loggedIn,
+    user,
+    isInitializing,
+    isAiDemo,
+    memberName,
+    profile,
     messages,
     chatActive,
     context,
-    sendAi,
-    resetConversation,
-    markNextFailure,
-  } = useAiDemo({ loggedIn })
-  const [scrolled, setScrolled] = useState(false)
-  const [loginOpen, setLoginOpen] = useState(false)
-  const [activeDialog, setActiveDialog] = useState<UserDialog>(null)
-  const [reserveStore, setReserveStore] = useState<ReservationStore | null>(null)
-  const [toast, setToast] = useState('')
-  const [productTitle, setProductTitle] = useState('Galaxy S26')
-
-  useScrollReveal()
-
-  useEffect(() => {
-    const handleStoreSelected = (event: Event) => {
-      setReserveStore((event as CustomEvent<ReservationStore>).detail)
-    }
-    const handleReserveStore = (event: Event) => {
-      setReserveStore((event as CustomEvent<ReservationStore>).detail)
-      setActiveDialog('reserve')
-    }
-    document.addEventListener('ubot:store-selected', handleStoreSelected)
-    document.addEventListener('ubot:reserve-store', handleReserveStore)
-    return () => {
-      document.removeEventListener('ubot:store-selected', handleStoreSelected)
-      document.removeEventListener('ubot:reserve-store', handleReserveStore)
-    }
-  }, [])
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled((current) => (
-        current
-          ? window.scrollY > 24
-          : window.scrollY > 96
-      ))
-    }
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  useEffect(() => {
-    if (!toast) return
-    const timer = window.setTimeout(() => setToast(''), 1900)
-    return () => window.clearTimeout(timer)
-  }, [toast])
-
-  const runDemo = useCallback(async (scenario: string) => {
-    setActiveDialog(null)
-    if (scenario === '9') {
-      setActiveDialog('reserve')
-      return
-    }
-    setIsAiDemo(true)
-    if (scenario === '3') markNextFailure()
-    if (scenario === '5') {
-      setLoggedIn(false)
-      resetConversation()
-    }
-    navigate('ai')
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 150))
-    if (scenario === '8') {
-      await sendAi('5G 요금제 뭐 있어요?')
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 250))
-      await sendAi('5G플랜 종류 알려줘')
-      return
-    }
-    const prompts: Record<string, string> = {
-      '1': '최신 폰 어떤게 있어?',
-      '2': '위성 인터넷 서비스도 되나요?',
-      '3': '인터넷 이전 설치 방법 알려줘',
-      '4': '나의 혜택 알려줘',
-      '5': '최신 폰 어떤게 있어?',
-      '6': '내 요금제에 맞는 결합상품 추천해줘',
-    }
-    const prompt = prompts[scenario]
-    if (prompt) await sendAi(prompt)
-    if (scenario === '5') setLoginOpen(true)
-  }, [markNextFailure, navigate, resetConversation, sendAi])
-
-  const handleClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
-    if (!(event.target instanceof Element)) return
-    const target = event.target.closest<HTMLElement>('button, a, article[data-route]')
-    if (!target) return
-    const route = target.dataset.route
-    if (isUserPage(route)) {
-      event.preventDefault()
-      if (route === 'ai') {
-        setIsAiDemo(false)
-        if (target.dataset.aiPrompt) void sendQuestion(target.dataset.aiPrompt)
-      }
-      navigate(route)
-      return
-    }
-    if (target.classList.contains('open-login')) {
-      routerNavigate('/auth/login')
-      return
-    }
-
-    if (target.hasAttribute('data-login-required')) {
-      routerNavigate('/auth/login')
-      return
-    }
-    // 실제 채팅의 입력·재시도는 채팅 컴포넌트에서 처리합니다.
-    if (target.closest('[data-live-chat]')) return
-    if (target.id === 'demoOpen' || target.id === 'mobileDemoOpen') {
-      setActiveDialog('demo')
-      return
-    }
-    if (target.id === 'demoClose') {
-      setActiveDialog(null)
-      return
-    }
-    if (target.dataset.demo) {
-      void runDemo(target.dataset.demo)
-      return
-    }
-    if (target.classList.contains('hero-prev')) return previous()
-    if (target.classList.contains('hero-next')) return next()
-    if (target.dataset.heroGo !== undefined) return goTo(Number(target.dataset.heroGo))
-    if (target.classList.contains('product-detail')) {
-      setProductTitle(target.closest<HTMLElement>('.phone-product')?.dataset.product ?? 'Galaxy S26')
-      navigate('product')
-      return
-    }
-    if (target.classList.contains('reserve-main') || target.hasAttribute('data-reserve')) {
-      setActiveDialog('reserve')
-      return
-    }
-    if (target.hasAttribute('data-bundle')) {
-      setActiveDialog('bundle')
-      return
-    }
-    if (target.id === 'reportOpen') setToast('통신 불편 제보가 접수되었습니다. (Mock)')
-    if (target.id === 'bundleSubmit') setToast('결합 변경이 완료되었습니다. (Mock)')
-    if (target.id === 'newChat') resetConversation()
-    if (target.classList.contains('send-ai')) {
-      const value = target.closest('.ai-searchbox')?.querySelector<HTMLTextAreaElement>('textarea')?.value
-      void sendAi(value)
-    }
-    if (target.dataset.aiQ) void sendAi(target.dataset.aiQ)
-    if (target.dataset.retry) void sendAi(target.dataset.retry, true)
-    if (target.dataset.choice) void sendAi(target.dataset.choice)
-    if (target.dataset.chatRoute && isUserPage(target.dataset.chatRoute)) navigate(target.dataset.chatRoute)
-    if (target.dataset.productLink) {
-      setProductTitle(target.dataset.productLink)
-      navigate('product')
-    }
-  }, [goTo, navigate, next, previous, resetConversation, routerNavigate, runDemo, sendAi, sendQuestion])
-
-  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
-    if (!isAiDemo || !(event.target instanceof HTMLTextAreaElement)
-      || !event.target.closest('[data-page="ai"]') || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
-    if (event.key !== 'Enter' || event.shiftKey) return
-    event.preventDefault()
-    void sendAi(event.target.value)
-  }, [isAiDemo, sendAi])
-
-  const handleLoginSuccess = useCallback(() => {
-    setLoggedIn(true)
-    setLoginOpen(false)
-    setToast('로그인 UI 시연이 완료되었습니다.')
-  }, [])
+    scrolled,
+    loginOpen,
+    activeDialog,
+    reserveStore,
+    toast,
+    handleClick,
+    handleKeyDown,
+    handleLoginSuccess,
+    setActiveDialog,
+    setToast,
+    setLoginOpen,
+  } = useUserExperience()
 
   return (
     <div className="ubot-user-app" onClick={handleClick} onKeyDown={handleKeyDown}>
       <NoticeBanners onNoticePage={page === 'notices'} />
-      <DesktopHeader loggedIn={loggedIn} memberName={memberName} scrolled={scrolled} page={page} />
+      <DesktopHeader
+        canLogout={Boolean(user)}
+        loggedIn={loggedIn || Boolean(user)}
+        memberName={memberName}
+        scrolled={scrolled}
+        page={page}
+      />
       <MobileHeader title={userPageTitles[page]} />
       <main>
-        <HomePage active={page === 'home'} heroIndex={heroIndex} loggedIn={loggedIn} memberName={memberName} />
-        <StorePage active={page === 'store'} />
-        <ProductPage active={page === 'product'} productTitle={productTitle} />
-        <MyPage active={page === 'my'} loggedIn={loggedIn} />
-        <BenefitsPage active={page === 'benefits'} />
-        <SupportPage active={page === 'support'} />
-        <StoreLocatorPage active={page === 'stores'} />
-        <NoticePage active={page === 'notices'} />
-        <AiPage
-          key={`${isAiDemo ? 'demo' : 'live'}:${user?.id ?? 'guest'}`}
-          active={page === 'ai'} loggedIn={isAiDemo ? loggedIn : Boolean(user)}
-          chatActive={chatActive} messages={messages} context={context}
-          chat={isAiDemo ? undefined : chat} isInitializing={isInitializing} memberName={memberName}
-          residenceArea={profile?.residenceArea}
-        />
+        <VisitedPage active={page === 'store'}>
+          <StorePage active={page === 'store'} />
+        </VisitedPage>
+        <VisitedPage active={page === 'my'}>
+          <MyPage active={page === 'my'} loggedIn={loggedIn} />
+        </VisitedPage>
+        <VisitedPage active={page === 'customer'}>
+          <CustomerCenterPage active={page === 'customer'} />
+        </VisitedPage>
+        <VisitedPage active={page === 'stores'}>
+          <StoreLocatorPage active={page === 'stores'} />
+        </VisitedPage>
+        <VisitedPage active={page === 'notices'}>
+          <NoticePage active={page === 'notices'} />
+        </VisitedPage>
+        <VisitedPage active={page === 'ai'}>
+          <ConnectedAiPage
+            key={`${isAiDemo ? 'demo' : 'live'}:${user?.id ?? 'guest'}`}
+            active={page === 'ai'}
+            loggedIn={isAiDemo ? loggedIn : Boolean(user)}
+            chatActive={chatActive}
+            messages={messages}
+            context={context}
+            isDemo={isAiDemo}
+            isInitializing={isInitializing}
+            residenceArea={profile?.residenceArea}
+          />
+        </VisitedPage>
       </main>
       <MobileBottomNav page={page} />
       <UserDialogs
-        activeDialog={activeDialog} reserveStore={reserveStore}
+        activeDialog={activeDialog}
+        reserveStore={reserveStore}
         onClose={() => setActiveDialog(null)}
         onReserved={(message) => {
           setActiveDialog(null)
           setToast(message)
         }}
       />
-      <UserLoginModal open={loginOpen} onClose={() => setLoginOpen(false)} onSuccess={handleLoginSuccess} />
-      <div className={`toast${toast ? ' show' : ''}`} role="status">{toast}</div>
+      <UserLoginModal
+        open={loginOpen}
+        onClose={() => setLoginOpen(false)}
+        onSuccess={handleLoginSuccess}
+      />
+      <div className={`toast${toast ? ' show' : ''}`} role="status">
+        {toast}
+      </div>
     </div>
   )
 }

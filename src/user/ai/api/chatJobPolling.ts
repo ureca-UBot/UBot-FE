@@ -12,6 +12,8 @@ const MAX_WAIT_MS = 20 * 60_000
 export const CHAT_JOB_RESULT_UNKNOWN = 'FE-CHAT-001'
 
 export interface ChatWaitOptions {
+  // 접수 응답이 늦게 와도 중단 요청을 실제 서버 작업에 연결합니다.
+  onSubmitted?: (submission: ChatJobSubmission) => void | Promise<void>
   onProgress?: (progress: ChatProgress) => void
   // 새 대화·로그아웃으로 더 기다릴 필요가 없을 때 조회를 멈춥니다. 서버 작업은 계속됩니다.
   signal?: AbortSignal
@@ -35,11 +37,14 @@ function wait(ms: number, signal?: AbortSignal) {
   })
 }
 
-function toProgress(state: Pick<ChatJobState, 'status' | 'phase' | 'deadlineAt' | 'serverTime'>): ChatProgress | null {
+function toProgress(
+  state: Pick<ChatJobState, 'status' | 'phase' | 'deadlineAt' | 'serverTime'>,
+): ChatProgress | null {
   if (state.status !== 'QUEUED' && state.status !== 'RUNNING') return null
-  const remainingMs = state.deadlineAt && state.serverTime
-    ? Date.parse(state.deadlineAt) - Date.parse(state.serverTime)
-    : Number.NaN
+  const remainingMs =
+    state.deadlineAt && state.serverTime
+      ? Date.parse(state.deadlineAt) - Date.parse(state.serverTime)
+      : Number.NaN
   return {
     status: state.status,
     phase: state.phase ?? null,
@@ -61,8 +66,12 @@ function nextDelay(failures: number) {
 
 // 접수된 작업을 끝날 때까지 조회합니다.
 // 성공하면 ChatResponse를 돌려주고, 실패하면 기존 동기 API의 실패 응답과 같은 모양의 ApiRequestError를 던집니다.
-export async function waitForAnswer(submission: ChatJobSubmission, options: ChatWaitOptions = {}): Promise<ChatResponse> {
-  const { onProgress, signal } = options
+export async function waitForAnswer(
+  submission: ChatJobSubmission,
+  options: ChatWaitOptions = {},
+): Promise<ChatResponse> {
+  const { onProgress, signal, onSubmitted } = options
+  await onSubmitted?.(submission)
   const conversationId = submission.conversationId ?? null
   const startedAt = Date.now()
   const initial = toProgress(submission)
@@ -73,7 +82,10 @@ export async function waitForAnswer(submission: ChatJobSubmission, options: Chat
     await wait(nextDelay(failures), signal)
     let state: ChatJobState
     try {
-      state = await apiClient.get<ChatJobState>(`/api/chat/jobs/${encodeURIComponent(submission.jobId)}`, { signal })
+      state = await apiClient.get<ChatJobState>(
+        `/api/chat/jobs/${encodeURIComponent(submission.jobId)}`,
+        { signal },
+      )
       failures = 0
     } catch (error) {
       if (signal?.aborted || !isTransient(error)) throw error
@@ -89,6 +101,7 @@ export async function waitForAnswer(submission: ChatJobSubmission, options: Chat
         attemptCount: state.attemptCount,
         retryable: false,
         store: state.store ?? null,
+        userData: state.userData ?? null,
         conversationId,
       }
     }
@@ -107,5 +120,9 @@ export async function waitForAnswer(submission: ChatJobSubmission, options: Chat
     const progress = toProgress(state)
     if (progress) onProgress?.(progress)
   }
-  throw new ApiRequestError('답변 결과를 확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.', 0, CHAT_JOB_RESULT_UNKNOWN)
+  throw new ApiRequestError(
+    '답변 결과를 확인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
+    0,
+    CHAT_JOB_RESULT_UNKNOWN,
+  )
 }

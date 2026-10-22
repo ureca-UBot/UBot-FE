@@ -1,5 +1,5 @@
-import type { RoamingProduct } from '../../../user/product/types/product'
-import { formatDataAmount, formatWon } from '../../../user/product/utils/format'
+import { formatDataAmount, formatWon } from '../../../shared/product/format'
+import type { RoamingProduct } from '../../../shared/product/types'
 import { adminRoamingProductApi } from '../api/productApi'
 import { RoamingProductFormFields } from '../components/RoamingProductFormFields'
 import type {

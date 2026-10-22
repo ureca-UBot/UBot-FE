@@ -1,5 +1,5 @@
-import type { AddonService } from '../../../user/product/types/product'
-import { formatWon } from '../../../user/product/utils/format'
+import { formatWon } from '../../../shared/product/format'
+import type { AddonService } from '../../../shared/product/types'
 import { adminAddonServiceApi } from '../api/productApi'
 import { AddonServiceFormFields } from '../components/AddonServiceFormFields'
 import type {
@@ -39,7 +39,8 @@ export const addonServiceKind: ProductKind<
     monthlyFee: String(detail.monthlyFee),
   }),
   validate: (values, isCreate) =>
-    validateCommonValues(values, isCreate) ?? (values.monthlyFee === '' ? '월 이용료를 입력해 주세요. 무료면 0을 입력합니다.' : null),
+    validateCommonValues(values, isCreate) ??
+    (values.monthlyFee === '' ? '월 이용료를 입력해 주세요. 무료면 0을 입력합니다.' : null),
   toCreateRequest: (values) => ({ code: values.code.trim(), ...toUpdateRequest(values) }),
   toUpdateRequest,
   FormFields: AddonServiceFormFields,

@@ -43,9 +43,10 @@ export async function storeRequest<T>(path: string, options: RequestInit = {}): 
 
   if (!response.ok) {
     const body = await parseResponse(response)
-    const message = isRecord(body) && typeof body.message === 'string'
-      ? body.message
-      : (typeof body === 'string' && body) || `API 요청에 실패했습니다. (${response.status})`
+    const message =
+      isRecord(body) && typeof body.message === 'string'
+        ? body.message
+        : (typeof body === 'string' && body) || `API 요청에 실패했습니다. (${response.status})`
     throw new ApiError(message, {
       status: response.status,
       code: isRecord(body) && typeof body.code === 'string' ? body.code : undefined,
@@ -53,5 +54,5 @@ export async function storeRequest<T>(path: string, options: RequestInit = {}): 
     })
   }
 
-  return await parseResponse(response) as T
+  return (await parseResponse(response)) as T
 }

@@ -56,7 +56,9 @@ export function GuestChatSettingsPage() {
     setSaveError(null)
     setSaved(false)
     try {
-      const next = await adminGuestChatSettingsApi.updateGuestChatSettings({ maxQuestionCount: value })
+      const next = await adminGuestChatSettingsApi.updateGuestChatSettings({
+        maxQuestionCount: value,
+      })
       setSettings(next)
       setMaxQuestionCount(String(next.maxQuestionCount))
       setSaved(true)
@@ -72,7 +74,10 @@ export function GuestChatSettingsPage() {
       <div className="page-heading">
         <div>
           <h1>게스트 채팅 설정</h1>
-          <p>로그인하지 않은 사용자가 한 세션에서 질문할 수 있는 최대 횟수를 정합니다. 정상 답변과 FAQ를 찾지 못한 질문만 횟수에 포함되고, 변경은 바로 적용됩니다.</p>
+          <p>
+            로그인하지 않은 사용자가 한 세션에서 질문할 수 있는 최대 횟수를 정합니다. 정상 답변과
+            FAQ를 찾지 못한 질문만 횟수에 포함되고, 변경은 바로 적용됩니다.
+          </p>
         </div>
       </div>
 
@@ -80,30 +85,42 @@ export function GuestChatSettingsPage() {
 
       {loading ? (
         <p className="page-message">게스트 채팅 설정을 불러오는 중입니다.</p>
-      ) : settings && (
-        <>
-          <form className="faq-search guest-chat-settings-form" onSubmit={(event) => void save(event)}>
-            <input
-              aria-label="게스트 최대 질문 횟수"
-              inputMode="numeric"
-              min={1}
-              onChange={(event) => {
-                setMaxQuestionCount(event.target.value)
-                setSaved(false)
-              }}
-              step={1}
-              type="number"
-              value={maxQuestionCount}
-            />
-            <button className="primary-button" disabled={saving} type="submit">{saving ? '저장 중...' : '저장'}</button>
-          </form>
-          {saveError && <p className="login-error">{saveError}</p>}
-          {saved && <p className="faq-result-count" role="status">저장했습니다.</p>}
-          <p className="faq-result-count">
-            현재 값 {settings.maxQuestionCount}회 · 마지막 변경 {formatDateTime(settings.updatedAt)}
-            {settings.updatedBy !== null && ` · 변경한 관리자 ID ${settings.updatedBy}`}
-          </p>
-        </>
+      ) : (
+        settings && (
+          <>
+            <form
+              className="faq-search guest-chat-settings-form"
+              onSubmit={(event) => void save(event)}
+            >
+              <input
+                aria-label="게스트 최대 질문 횟수"
+                inputMode="numeric"
+                min={1}
+                onChange={(event) => {
+                  setMaxQuestionCount(event.target.value)
+                  setSaved(false)
+                }}
+                step={1}
+                type="number"
+                value={maxQuestionCount}
+              />
+              <button className="primary-button" disabled={saving} type="submit">
+                {saving ? '저장 중...' : '저장'}
+              </button>
+            </form>
+            {saveError && <p className="login-error">{saveError}</p>}
+            {saved && (
+              <p className="faq-result-count" role="status">
+                저장했습니다.
+              </p>
+            )}
+            {/* prettier-ignore */}
+            <p className="faq-result-count">
+              현재 값 {settings.maxQuestionCount}회 · 마지막 변경 {formatDateTime(settings.updatedAt)}
+              {settings.updatedBy !== null && ` · 변경한 관리자 ID ${settings.updatedBy}`}
+            </p>
+          </>
+        )
       )}
     </section>
   )

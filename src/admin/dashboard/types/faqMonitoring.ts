@@ -73,7 +73,13 @@ export interface FaqDetailResponse {
   similarity: { averageSimilarity: number; sampleCount: number }
   top1: { top1Count: number; top1Rate: number; overallAverageTop1Count: number }
   topGap: { averageGap: number; sampleCount: number }
-  cooccurringFaqs: { faqId: number; question: string; intent: FaqIntent; coOccurrenceCount: number; coOccurrenceRate: number }[]
+  cooccurringFaqs: {
+    faqId: number
+    question: string
+    intent: FaqIntent
+    coOccurrenceCount: number
+    coOccurrenceRate: number
+  }[]
 }
 
 export type FaqImprovementType = 'LOW_RAG_QUALITY' | 'DUPLICATE_SUSPECTED' | 'LOW_USAGE'
@@ -83,6 +89,11 @@ export interface FaqDuplicateCandidate {
   question: string
   top1Count: number
   pairCount: number
+}
+
+export interface FaqAiReviewResponse {
+  recommendation: string
+  details: string
 }
 
 export interface FaqImprovementItem {
@@ -95,7 +106,7 @@ export interface FaqImprovementItem {
   topKCount: number
   averageSimilarity: number
   top1SampleCount: number
-  recentUsageCount: number
+  reviewableTopKCount: number
   averageTopGap: number
   lowGapRate: number
 }

@@ -24,5 +24,5 @@ export interface SignupRequest {
 
 export interface AuthUser {
   id: string
-  role: 'USER' | 'ADMIN'
+  role: 'USER' | 'ADMIN' | 'COUNSELOR'
 }

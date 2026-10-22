@@ -1,0 +1,245 @@
+/* Dialogs */
+.ubot-user-app .conversation-delete-dialog {
+  max-width: 400px;
+  color: var(--ink);
+}
+
+.ubot-user-app .conversation-delete-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+  place-items: center;
+  border-radius: 14px;
+  color: #b42318;
+  background: #fff1f0;
+}
+
+.ubot-user-app .conversation-delete-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 21px;
+  letter-spacing: -.5px;
+}
+
+.ubot-user-app .conversation-delete-title {
+  max-height: 100px;
+  padding: 12px 14px;
+  margin: 0;
+  overflow: auto;
+  border-radius: 10px;
+  background: #f4f5f6;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.ubot-user-app .conversation-delete-dialog .modal-desc {
+  margin: 12px 0 24px;
+  line-height: 1.6;
+}
+
+.ubot-user-app .conversation-delete-error {
+  margin: 0 0 16px;
+  color: #b42318;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ubot-user-app .conversation-delete-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ubot-user-app .conversation-delete-actions button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  font-weight: 700;
+}
+
+.ubot-user-app .conversation-delete-actions .conversation-delete-confirm {
+  border-color: #b42318;
+  color: #fff;
+  background: #b42318;
+}
+
+.ubot-user-app .conversation-delete-actions button:hover:not(:disabled) {
+  filter: brightness(.95);
+}
+
+.ubot-user-app .conversation-delete-actions button:disabled {
+  cursor: wait;
+  opacity: .55;
+}
+
+.ubot-user-app .modal,
+.ubot-user-app .demo-dialog {
+  width: min(480px, calc(100vw - 28px));
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, .25)
+}
+
+.ubot-user-app .modal::backdrop,
+.ubot-user-app .demo-dialog::backdrop {
+  background: rgba(0, 0, 0, .46);
+  backdrop-filter: blur(5px)
+}
+
+.ubot-user-app .modal form {
+  padding: 24px
+}
+
+.ubot-user-app .modal-head,
+.ubot-user-app .demo-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px
+}
+
+.ubot-user-app .modal-head small,
+.ubot-user-app .demo-head small {
+  color: var(--subtle);
+  font-size: 11px
+}
+
+.ubot-user-app .modal-head h3,
+.ubot-user-app .demo-head h3 {
+  margin: 5px 0 15px;
+  font-size: 19px;
+  line-height: 1.4
+}
+
+.ubot-user-app .modal-head button,
+.ubot-user-app .demo-head button {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 0;
+  border-radius: 10px;
+  background: #eeeef0
+}
+
+.ubot-user-app .modal-desc {
+  color: var(--muted);
+  font-size: 13px
+}
+
+.ubot-user-app .modal label {
+  display: grid;
+  gap: 7px;
+  margin: 14px 0
+}
+
+.ubot-user-app .modal label span {
+  font-size: 13px;
+  font-weight: 700
+}
+
+.ubot-user-app .modal input,
+.ubot-user-app .modal select,
+.ubot-user-app .modal textarea {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #d6d7db;
+  border-radius: 10px;
+  font-size: 14px;
+  resize: vertical
+}
+
+.ubot-user-app .modal textarea {
+  min-height: 110px
+}
+
+.ubot-user-app .modal-full {
+  width: 100%;
+  margin-top: 8px;
+  border-radius: var(--r-sm)
+}
+
+.ubot-user-app .bundle-preview {
+  padding: 15px;
+  margin-bottom: 13px;
+  border-radius: 14px;
+  background: #f5f5f6
+}
+
+.ubot-user-app .bundle-preview span {
+  display: block;
+  color: var(--subtle);
+  font-size: 11px
+}
+
+.ubot-user-app .bundle-preview b {
+  display: block;
+  margin: 3px 0 8px;
+  font-size: 14px
+}
+
+.ubot-user-app .bundle-preview i {
+  font-style: normal
+}
+
+.ubot-user-app .bundle-preview p {
+  color: var(--muted);
+  font-size: 12px
+}
+
+.ubot-user-app .demo-dialog {
+  width: min(660px, calc(100vw - 28px));
+  padding: 22px
+}
+
+.ubot-user-app .demo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px
+}
+
+.ubot-user-app .demo-grid button {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  min-height: 52px;
+  padding: 11px 13px;
+  border: 1px solid #d9dade;
+  border-radius: 12px;
+  background: #fff;
+  text-align: left
+}
+
+.ubot-user-app .demo-grid b {
+  color: var(--pink-dark);
+  font-size: 12px
+}
+
+.ubot-user-app .demo-grid span {
+  font-size: 13px
+}
+
+.ubot-user-app .toast {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  z-index: 100;
+  padding: 11px 16px;
+  border-radius: 999px;
+  opacity: 0;
+  color: #fff;
+  background: var(--ink);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  transform: translate(-50%, 15px);
+  transition: .2s
+}
+
+.ubot-user-app .toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0)
+}
+
+
