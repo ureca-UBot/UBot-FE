@@ -110,20 +110,35 @@ export function UnansweredGroupDetailModal({
               )}
             </dl>
             <div className="unanswered-question-list">
-              {group.questions.map((question) => (
-                <p key={question.id}>
-                  <span>{question.question}</span>
-                  {question.searchQuery && question.searchQuery !== question.question && (
-                    <small>검색어: {question.searchQuery}</small>
-                  )}
-                  <small>
-                    {UNANSWERED_REASON_LABELS[question.reason]}
-                    {question.bestSimilarity != null &&
-                      ` · 최고 유사도 ${question.bestSimilarity.toFixed(2)}`}
-                    {` · ${formatDate(question.createdAt)}`}
-                  </small>
-                </p>
-              ))}
+              {group.questions.map((question) => {
+                const reverification = group.reverifications?.find(
+                  (item) => item.questionId === question.id,
+                )
+                return (
+                  <p key={question.id}>
+                    <span>{question.question}</span>
+                    {question.searchQuery && question.searchQuery !== question.question && (
+                      <small>검색어: {question.searchQuery}</small>
+                    )}
+                    <small>
+                      {UNANSWERED_REASON_LABELS[question.reason]}
+                      {question.bestSimilarity != null &&
+                        ` · 최고 유사도 ${question.bestSimilarity.toFixed(2)}`}
+                      {` · ${formatDate(question.createdAt)}`}
+                    </small>
+                    {reverification && (
+                      <small className="unanswered-reverify">
+                        FAQ #{reverification.faqId} 「{reverification.faqQuestion}」로 해결 가능 ·
+                        유사도{' '}
+                        {reverification.beforeSimilarity != null
+                          ? reverification.beforeSimilarity.toFixed(2)
+                          : '-'}{' '}
+                        → {reverification.afterSimilarity.toFixed(2)}
+                      </small>
+                    )}
+                  </p>
+                )
+              })}
             </div>
           </>
         )}
