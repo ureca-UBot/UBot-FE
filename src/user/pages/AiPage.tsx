@@ -245,11 +245,6 @@ export function AiPage({
                   {isInitializing
                     ? '로그인 상태를 확인하는 중입니다.'
                     : '비회원은 질문할 수 있는 횟수가 제한됩니다.'}
-                  {!isInitializing && (
-                    <button className="open-login" type="button">
-                      로그인하기
-                    </button>
-                  )}
                 </p>
               )}
               {chat?.error && <p role="alert">{chat.error}</p>}

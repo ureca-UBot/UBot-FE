@@ -99,6 +99,26 @@ function getMetric(item: RankingItem): string {
   return `${item.currentCount}회`
 }
 
+function formatCalculatedAt(calculatedAt?: string): string | null {
+  if (!calculatedAt) return null
+
+  const date = new Date(calculatedAt)
+  if (Number.isNaN(date.getTime())) return null
+
+  const parts = new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date)
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+
+  return `${value('year')}.${value('month')}.${value('day')} ${value('hour')}:${value('minute')} 기준`
+}
+
 interface RankingSectionProps {
   title: string
   criterion: string
@@ -119,12 +139,16 @@ function RankingSection({
   onSelect,
 }: RankingSectionProps) {
   const items = snapshot?.rankings ?? []
+  const calculatedAt = formatCalculatedAt(snapshot?.calculatedAt)
 
   return (
     <section className="ranking-sidebar__section" aria-label={title}>
       <div className="ranking-sidebar__section-head">
         <b>{title}</b>
-        <small>{criterion}</small>
+        <div className="ranking-sidebar__section-meta">
+          <small>{criterion}</small>
+          {calculatedAt && <time dateTime={snapshot?.calculatedAt}>{calculatedAt}</time>}
+        </div>
       </div>
       {isLoading ? (
         <p className="ranking-sidebar__status">불러오는 중입니다.</p>
