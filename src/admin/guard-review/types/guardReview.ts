@@ -9,6 +9,7 @@ export interface Candidate {
   revision: number
   status: string
   wordId: number | null
+  profile?: string | null
   occurrences: number
   unreadOccurrences: number
 }
@@ -29,6 +30,7 @@ export interface ReviewRun {
   status: string
   processed: number
   total: number
+  cutoff?: string | null
   result: Record<string, unknown>
   createdAt: string
   analysisMode?: 'INCREMENTAL' | 'FULL' | null
@@ -73,9 +75,11 @@ export interface Finding {
   id: number
   sourceKey: string
   stage: string
+  category?: string
   question: string | null
   answer: string | null
   detailsRetained?: boolean
+  createdAt?: string
 }
 export interface ReviewNotification {
   id: number

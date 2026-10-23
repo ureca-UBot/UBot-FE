@@ -519,3 +519,20 @@
 .review-case-details summary {
   cursor: pointer;
 }
+
+.guard-review td small.review-run-detail {
+  display: block;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+.guard-review td small.review-run-detail--warning {
+  color: #92400e;
+}
+.guard-review td small.review-run-detail--danger {
+  color: #b91c1c;
+}
+.review-run-hint {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+}

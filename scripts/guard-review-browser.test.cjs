@@ -338,11 +338,88 @@ test('주기 분석 범위를 표시하고 만료된 실패 실행의 재개는 
   }
 })
 
+test('분석 실행의 재시도 대기와 중단 사유·건수를 실행 이력에 표시한다', async () => {
+  const { context, page, state, failures } = await pageFixture()
+  try {
+    await page.getByRole('link', { name: '분석 설정', exact: true }).click()
+    state.runs.push(
+      {
+        id: 31,
+        kind: 'ANALYSIS',
+        analysisMode: 'FULL',
+        status: 'RUNNING',
+        detailsRetained: true,
+        processed: 4,
+        total: 10,
+        result: {
+          consecutiveFailures: 2,
+          retryAt: '2026-10-23T09:00:30',
+          errorCode: 'LLM_TIMEOUT',
+          completed: 4,
+          failed: 0,
+          pending: 6,
+        },
+      },
+      {
+        id: 32,
+        kind: 'ANALYSIS',
+        analysisMode: 'INCREMENTAL',
+        status: 'FAILED',
+        detailsRetained: true,
+        processed: 5,
+        total: 10,
+        result: {
+          error: 'REVIEW_FAILED',
+          errorCode: 'LLM_SERVICE_UNAVAILABLE',
+          completed: 4,
+          failed: 1,
+          pending: 5,
+        },
+      },
+    )
+    await page.getByText('자동 재시도 대기', { exact: false }).waitFor()
+    await page.getByText('모델 응답 시간 초과 (2/3회 실패)', { exact: false }).waitFor()
+    await page.getByText('최종 실패 · 분석 중단', { exact: false }).waitFor()
+    await page.getByRole('columnheader', { name: '처리(실패 포함) / 전체' }).waitFor()
+    await page.getByText('이후 재시도', { exact: false }).waitFor()
+    await page.getByText('모델 서버에 연결하지 못함', { exact: false }).waitFor()
+    await page.getByText('완료 4건 · 실패 1건 · 남음 5건', { exact: false }).waitFor()
+    assert.equal(await page.getByRole('button', { name: '실패 건 재개' }).count(), 1)
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('상세 보관이 만료된 실패 실행에는 재개 안내를 표시하지 않는다', async () => {
+  const { context, page, state, failures } = await pageFixture()
+  try {
+    await page.getByRole('link', { name: '분석 설정', exact: true }).click()
+    state.runs.push({
+      id: 33,
+      kind: 'ANALYSIS',
+      analysisMode: 'FULL',
+      status: 'FAILED',
+      detailsRetained: false,
+      processed: 2,
+      total: 3,
+      result: { error: 'REVIEW_FAILED', completed: 2, failed: 1, pending: 0 },
+    })
+    await page.getByText('상세 보관 만료 · 재검사 필요').waitFor()
+    await page.getByText('최종 실패 · 분석 중단', { exact: false }).waitFor()
+    assert.equal(await page.getByText('재개하면', { exact: false }).count(), 0)
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
 test('보관기간이 지난 발견 사례를 현재 원문인 것처럼 보여주지 않는다', async () => {
   const { context, page, failures } = await pageFixture(false, { expiredFindings: true })
   try {
     await page.getByRole('link', { name: '위험 문장 경고', exact: true }).click()
     await page.getByRole('button', { name: '전체 사례 보기', exact: true }).click()
+    await page.locator('aside[aria-label="발견 사례"]').waitFor()
     assert.equal(
       await page.getByText('상세 자료 보관기간이 만료됐습니다.', { exact: true }).count(),
       2,
