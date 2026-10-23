@@ -14,6 +14,8 @@ export interface UnansweredGroupResponse {
   resolvedFaqId: number | null
   status: UnansweredGroupStatus
   lastOccurredAt: string
+  reverifiedFaqId?: number | null
+  resolvableQuestionCount?: number
 }
 
 export interface UnansweredQuestionResponse {
@@ -28,9 +30,18 @@ export interface UnansweredQuestionResponse {
   createdAt: string
 }
 
+export interface UnansweredReverificationResponse {
+  questionId: number
+  faqId: number
+  faqQuestion: string
+  beforeSimilarity: number | null
+  afterSimilarity: number
+}
+
 export interface UnansweredGroupDetailResponse extends UnansweredGroupResponse {
   createdAt: string
   questions: UnansweredQuestionResponse[]
+  reverifications?: UnansweredReverificationResponse[]
 }
 
 export interface UnansweredGroupStatusUpdateRequest {

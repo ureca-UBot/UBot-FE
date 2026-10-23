@@ -306,3 +306,4 @@
 .embedding-backfill-status--failed { color: #b91c1c; background: #fef2f2; }
 .embedding-backfill-modal ul { margin: 0; padding-left: 20px; color: #4b5563; font-size: 14px; line-height: 1.7; }
 .unanswered-topic { display: block; margin-bottom: 2px; color: #4f46e5; font-size: 12px; font-weight: 700; }
+.unanswered-reverify { display: block; margin-top: 2px; color: #047857; font-size: 12px; font-weight: 700; }

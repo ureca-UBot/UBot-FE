@@ -46,7 +46,14 @@ export function UnansweredGroupTable({ groups, onSelect }: UnansweredGroupTableP
                   {group.topicName && <span className="unanswered-topic">{group.topicName}</span>}
                   {group.representativeQuestion}
                 </td>
-                <td>{group.questionCount}</td>
+                <td>
+                  {group.questionCount}
+                  {(group.resolvableQuestionCount ?? 0) > 0 && (
+                    <span className="unanswered-reverify">
+                      FAQ #{group.reverifiedFaqId}로 {group.resolvableQuestionCount}건 해결 가능
+                    </span>
+                  )}
+                </td>
                 <td>
                   <UnansweredStatusBadge status={group.status} />
                 </td>
