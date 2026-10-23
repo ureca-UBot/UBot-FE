@@ -27,8 +27,6 @@ interface ChatMessagesProps {
   onOpenMap?: (key: string, storeId: number) => void
 }
 
-const GUEST_QUESTION_LIMIT_CODE = 'CHAT-017'
-
 // BE 연동 가이드의 처리 단계별 안내 문구입니다.
 const PHASE_MESSAGES: Record<ChatJobPhase, string> = {
   WAITING: '질문을 접수했습니다. 순서를 기다리고 있습니다.',
@@ -177,21 +175,11 @@ export function ChatMessages({
                   {turn.cancelError && <p role="alert">{turn.cancelError}</p>}
                 </>
               ) : turn.error ? (
-                <div className="chat-card error-card">
-                  <div className="chat-card-pad">
-                    <h4>답변을 완료하지 못했습니다.</h4>
-                    <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{turn.error}</p>
-                    {turn.response && turn.response.attemptCount > 0 && (
-                      <small>시도 횟수: {turn.response.attemptCount}회</small>
-                    )}
-                    {turn.errorCode === GUEST_QUESTION_LIMIT_CODE && (
-                      <div className="answer-actions">
-                        <button className="retry-btn primary open-login" type="button">
-                          로그인하기
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                <div
+                  className="answer-text"
+                  style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}
+                >
+                  {turn.error}
                 </div>
               ) : (
                 <>

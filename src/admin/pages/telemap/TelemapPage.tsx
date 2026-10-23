@@ -143,7 +143,7 @@ function TelemapDetailModal({
 }
 
 export function TelemapPage() {
-  const [status, setStatus] = useState<SurgingAlertStatus | null>('PENDING')
+  const [status, setStatus] = useState<SurgingAlertStatus | null>(null)
   const [region, setRegion] = useState<TelemapRegion | null>(null)
   const [page, setPage] = useState(0)
   const [result, setResult] = useState<PageResponse<SurgingAlertSummary> | null>(null)
