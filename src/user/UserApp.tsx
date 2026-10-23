@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { ConnectedAiPage } from './ai/components/ConnectedAiPage'
 import { UserDialogs } from './components/UserDialogs'
 import { UserLoginModal } from './components/UserLoginModal'
@@ -6,6 +7,7 @@ import { useUserExperience } from './hooks/useUserExperience'
 import { DesktopHeader } from './layout/DesktopHeader'
 import { MobileBottomNav } from './layout/MobileBottomNav'
 import { MobileHeader } from './layout/MobileHeader'
+import { refreshNoticeBanners } from './notice/hooks/useNoticeBanners'
 import { NoticeBanners } from './notice/components/NoticeBanners'
 import { CustomerCenterPage } from './pages/CustomerCenterPage'
 import { MyPage } from './pages/MyPage'
@@ -39,6 +41,15 @@ export default function UserApp() {
     setToast,
     setLoginOpen,
   } = useUserExperience()
+
+  // 로그인하면 접속 지역과 공지 배너를 바로 다시 불러옵니다.
+  const signedIn = loggedIn || Boolean(user)
+  const wasSignedIn = useRef(signedIn)
+  useEffect(() => {
+    // 처음부터 로그인돼 있던 경우는 화면이 열리며 이미 받으므로, 로그아웃 상태에서 로그인으로 바뀔 때만 다시 받습니다.
+    if (signedIn && !wasSignedIn.current) refreshNoticeBanners()
+    wasSignedIn.current = signedIn
+  }, [signedIn])
 
   return (
     <div className="ubot-user-app" onClick={handleClick} onKeyDown={handleKeyDown}>

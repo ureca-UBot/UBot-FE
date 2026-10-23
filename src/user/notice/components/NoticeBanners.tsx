@@ -11,11 +11,14 @@ interface NoticeBannersProps {
 // 접속했을 때 공지·장애 배너를 보여줍니다. 장애를 먼저 보여주고, 둘 다 없으면 아무것도 그리지 않습니다.
 export function NoticeBanners({ onNoticePage }: NoticeBannersProps) {
   const { region, notices, outages } = useNoticeBanners()
-  const [outageClosed, setOutageClosed] = useState(false)
-  const [noticeClosed, setNoticeClosed] = useState(false)
+  // 닫은 배너는 그때 보던 공지 묶음으로 기억합니다. 새 공지가 등록되어 묶음이 바뀌면 다시 보여줍니다.
+  const [closedOutages, setClosedOutages] = useState<string | null>(null)
+  const [closedNotices, setClosedNotices] = useState<string | null>(null)
+  const outageKey = outages.map((outage) => outage.noticeId).join(',')
+  const noticeKey = notices.map((notice) => notice.noticeId).join(',')
 
-  const showOutages = outages.length > 0 && !outageClosed
-  const showNotices = notices.length > 0 && !noticeClosed
+  const showOutages = outages.length > 0 && closedOutages !== outageKey
+  const showNotices = notices.length > 0 && closedNotices !== noticeKey
   if (!showOutages && !showNotices) return null
 
   // 접속 지역은 맨 위 배너 한 곳에만 표시합니다. 장애 배너를 닫으면 공지 배너에 표시됩니다.
@@ -26,7 +29,7 @@ export function NoticeBanners({ onNoticePage }: NoticeBannersProps) {
       {showOutages && (
         <NoticeBannerCarousel
           notices={outages}
-          onClose={() => setOutageClosed(true)}
+          onClose={() => setClosedOutages(outageKey)}
           regionLabel={regionLabel}
           showAllLink={!onNoticePage}
           type="OUTAGE"
@@ -35,7 +38,7 @@ export function NoticeBanners({ onNoticePage }: NoticeBannersProps) {
       {showNotices && (
         <NoticeBannerCarousel
           notices={notices}
-          onClose={() => setNoticeClosed(true)}
+          onClose={() => setClosedNotices(noticeKey)}
           regionLabel={showOutages ? null : regionLabel}
           showAllLink={!onNoticePage}
           type="NOTICE"
