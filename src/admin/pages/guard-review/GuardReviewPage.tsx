@@ -1,5 +1,6 @@
 import { GuardReviewEditModal } from '../../guard-review/components/GuardReviewEditModal'
 import { ReviewValidationCases } from '../../guard-review/components/ReviewValidationCases'
+import { RunStatusNote } from '../../guard-review/components/RunStatusNote'
 import { ApiRequestError } from '../../../shared/api/client'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -11,6 +12,7 @@ import { canApprove, parseValidation } from '../../guard-review/utils/validation
 import { ReviewNavigation, type ReviewView } from '../../guard-review/components/ReviewNavigation'
 import { ReviewSettingsForm } from '../../guard-review/components/ReviewSettingsForm'
 import { displayReviewTime, intervalLabel } from '../../guard-review/utils/format'
+import { shortSourceKey } from '../../guard-review/utils/runStatus'
 import type {
   Candidate,
   Finding,
@@ -315,7 +317,7 @@ export function GuardReviewPage() {
                       <th>실행</th>
                       <th>종류</th>
                       <th>상태</th>
-                      <th>처리 건수</th>
+                      <th title="실패한 건도 포함한 처리 건수입니다.">처리(실패 포함) / 전체</th>
                       <th>작업</th>
                     </tr>
                   </thead>
@@ -333,6 +335,7 @@ export function GuardReviewPage() {
                           >
                             {label(r.status)}
                           </span>
+                          <RunStatusNote run={r} />
                         </td>
                         <td>
                           {r.processed} / {r.total}
@@ -630,7 +633,9 @@ export function GuardReviewPage() {
           {findings.map((f) => (
             <article key={f.id}>
               <small>
-                원본 {f.sourceKey} · {f.stage}
+                원본 {shortSourceKey(f.sourceKey)} · {f.stage}
+                {f.category && ` · ${label(f.category)}`}
+                {f.createdAt && ` · ${displayReviewTime(f.createdAt)}`}
               </small>
               <h3>질문</h3>
               <pre>
