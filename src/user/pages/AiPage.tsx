@@ -253,11 +253,6 @@ export function AiPage({
                   {counsel.error}
                 </p>
               )}
-              {counsel.loading && (
-                <p className="status-line" role="status">
-                  진행 중인 상담을 확인하고 있어요.
-                </p>
-              )}
               {counsel.session && !counsel.loading ? (
                 <div className="ai-counsel-session">
                   <div className="counsel-toolbar">

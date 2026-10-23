@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { ConnectedAiPage } from './ai/components/ConnectedAiPage'
+import { useChat } from './ai/hooks/useChat'
 import { UserDialogs } from './components/UserDialogs'
 import { UserLoginModal } from './components/UserLoginModal'
 import { VisitedPage } from './components/VisitedPage'
@@ -18,6 +19,7 @@ import { userPageTitles } from './routes'
 import './styles/user.css'
 
 export default function UserApp() {
+  const { resetConversation: resetChatConversation } = useChat()
   const {
     page,
     loggedIn,
@@ -61,6 +63,7 @@ export default function UserApp() {
         memberName={memberName}
         scrolled={scrolled}
         page={page}
+        onBrandClick={resetChatConversation}
       />
       <MobileHeader isAdmin={user?.role === 'ADMIN'} title={userPageTitles[page]} />
       <main>
