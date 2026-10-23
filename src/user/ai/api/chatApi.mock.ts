@@ -261,7 +261,7 @@ function mockUserData(question: string): ChatUserData | null {
 
 // 상품 카드 확인용: 상품 질문 키워드가 있으면 가입 정보 카드 대신 상품 카드를 돌려줍니다.
 // "로밍" → 로밍(요금 없는 상품 포함) / "부가" → 부가서비스 / "결합" → 결합 할인 / "요금제 하나" → 요금제 1개
-// "요금제 추천" → 요금제 5개(긴 이름, 네트워크 없는 specs, 요금·highlights 없는 상품 포함) / "추천"·"상품" → 종류별 하나씩
+// "요금제 추천" → 요금제 5개(긴 이름, 네트워크 없는 specs, 요금·highlights 없는 상품 포함) / "추천"·"상품" → 종류별(0원 부가서비스 포함)
 const mockProduct = (
   type: ChatProductCard['type'],
   name: string,
@@ -388,7 +388,21 @@ function mockProductData(question: string): ChatProductData | null {
     }
   }
   if (question.includes('추천') || question.includes('상품')) {
-    return { products: [MOCK_PLAN_LITE, MOCK_ADDON, MOCK_BUNDLE, MOCK_ROAMING] }
+    return {
+      products: [
+        MOCK_PLAN_LITE,
+        MOCK_ADDON,
+        mockProduct(
+          'ADDON',
+          '통화 연결음 체험',
+          0,
+          [],
+          ['첫 달 무료 이용', '다음 달부터 해지 가능'],
+        ),
+        MOCK_BUNDLE,
+        MOCK_ROAMING,
+      ],
+    }
   }
   return null
 }

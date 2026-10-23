@@ -497,6 +497,13 @@
   flex-direction: column
 }
 
+/* 여러 장일 때는 요금 줄과 글머리표 목록 사이에 구분선을 둡니다. 둘 중 하나가 없으면 선도 없습니다. */
+.ubot-user-app .chat-user-data .pd-track .pd-fee+.pd-bullets {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line)
+}
+
 /* 폭이 좁아 큰 금액은 앞말 아래로 내려갑니다. */
 .ubot-user-app .chat-user-data .pd-track .pd-fee {
   flex-wrap: wrap;

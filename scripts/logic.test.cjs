@@ -368,8 +368,49 @@ test('여러 장의 요금제 카드만 네트워크·데이터 요약 줄을 �
   assert.deepEqual(productCards.productBullets(plan, false), plan.highlights)
   assert.deepEqual(productCards.productBullets({ ...plan, specs: [], highlights: [] }, true), [])
 
-  const roaming = { ...plan, type: 'ROAMING', specs: ['일본', '데이터 1GB'], highlights: [] }
-  assert.deepEqual(productCards.productBullets(roaming, true), [])
+  // 로밍은 한 장이든 여러 장이든 데이터 항목을 맨 앞에 두고, 국가는 보여 주지 않습니다.
+  const roaming = {
+    ...plan,
+    type: 'ROAMING',
+    specs: ['일본', '데이터 1GB'],
+    highlights: ['현지 시간 기준 24시간 이용'],
+  }
+  assert.deepEqual(productCards.productBullets(roaming, false), [
+    '데이터 1GB',
+    '현지 시간 기준 24시간 이용',
+  ])
+  assert.deepEqual(productCards.productBullets({ ...roaming, highlights: [] }, true), [
+    '데이터 1GB',
+  ])
+  assert.deepEqual(productCards.productBullets({ ...roaming, specs: ['일본'] }, true), [
+    '현지 시간 기준 24시간 이용',
+  ])
+
+  const addon = { ...plan, type: 'ADDON', specs: [], highlights: ['제공량 소진 후 계속 사용'] }
+  assert.deepEqual(productCards.productBullets(addon, true), addon.highlights)
+})
+
+test('상품 요금은 종류별 앞말을 붙이고 0원이면 무료로 쓴다', () => {
+  const { productCards } = modules
+  const card = (type, fee) => ({ type, name: '상품', fee, specs: [], highlights: [] })
+  assert.deepEqual(productCards.productFee(card('PLAN', 55000)), {
+    prefix: '월',
+    amount: '55,000원',
+  })
+  assert.deepEqual(productCards.productFee(card('ROAMING', 11000)), {
+    prefix: '일',
+    amount: '11,000원',
+  })
+  assert.deepEqual(productCards.productFee(card('BUNDLE', 5500)), {
+    prefix: '할인',
+    amount: '5,500원',
+  })
+  for (const type of ['PLAN', 'ADDON', 'ROAMING']) {
+    assert.deepEqual(productCards.productFee(card(type, 0)), { prefix: null, amount: '무료' })
+  }
+  // 결합의 fee는 할인액이므로 0이어도 무료가 아닙니다.
+  assert.deepEqual(productCards.productFee(card('BUNDLE', 0)), { prefix: '할인', amount: '0원' })
+  assert.equal(productCards.productFee(card('ADDON', null)), null)
 })
 
 test('개발용 채팅 mock의 상품 카드는 BE 응답 형식(specs·highlights 배열)을 따른다', async () => {

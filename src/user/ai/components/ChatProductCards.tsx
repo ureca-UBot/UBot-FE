@@ -6,8 +6,7 @@ import {
 } from '../../product/catalog'
 import { ProductDetailDialog } from '../../product/components/ProductDetailDialog'
 import type { ChatProductCard, ChatProductData, ChatProductType } from '../types/chat'
-import { productBullets } from '../utils/productCardFormat'
-import { formatWon } from '../utils/userDataFormat'
+import { productBullets, productFee } from '../utils/productCardFormat'
 import '../../styles/sections/chat-user-data.css'
 
 interface ChatProductCardsProps {
@@ -17,14 +16,6 @@ interface ChatProductCardsProps {
 interface OpenDetail {
   kind: ProductCatalogKind
   productId: number
-}
-
-// 결합의 fee는 요금이 아니라 할인액입니다.
-const FEE_PREFIX: Record<ChatProductType, string> = {
-  PLAN: '월',
-  ADDON: '월',
-  ROAMING: '일',
-  BUNDLE: '할인',
 }
 
 // 상품 정보 화면(StorePage)의 종류 탭과 같은 조회 방식을 씁니다.
@@ -87,6 +78,7 @@ function ProductCard({
   onOpenDetail: (detail: OpenDetail) => void
 }) {
   const [lookup, setLookup] = useState<'idle' | 'loading' | 'missing' | 'failed'>('idle')
+  const fee = productFee(card)
   const bullets = productBullets(card, inCarousel)
 
   const handleDetail = async () => {
@@ -106,10 +98,10 @@ function ProductCard({
         <h4 className="pd-name" title={card.name}>
           {card.name}
         </h4>
-        {card.fee !== null && (
+        {fee && (
           <p className="pd-fee">
-            <span className="pd-fee-label">{FEE_PREFIX[card.type]}</span>
-            <strong>{formatWon(card.fee)}원</strong>
+            {fee.prefix && <span className="pd-fee-label">{fee.prefix}</span>}
+            <strong>{fee.amount}</strong>
           </p>
         )}
         {bullets.length > 0 && (
