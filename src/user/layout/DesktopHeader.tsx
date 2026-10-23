@@ -12,6 +12,7 @@ interface DesktopHeaderProps {
   memberName: string | null
   scrolled: boolean
   page: UserPage
+  onBrandClick: () => void
 }
 
 const mainNav = [
@@ -29,6 +30,7 @@ export function DesktopHeader({
   memberName,
   scrolled,
   page,
+  onBrandClick,
 }: DesktopHeaderProps) {
   const { unreadCount } = useNotificationUnread()
   const isLoggedIn = loggedIn || Boolean(memberName)
@@ -36,7 +38,13 @@ export function DesktopHeader({
   return (
     <header className={`desktop-header simple-header${scrolled ? ' scrolled' : ''}`}>
       <div className="global-nav">
-        <button className="utility-brand" data-route="ai" aria-label="U봇 AI 채팅 홈" type="button">
+        <button
+          className="utility-brand"
+          data-route="ai"
+          aria-label="U봇 AI 채팅 홈"
+          onClick={onBrandClick}
+          type="button"
+        >
           <img src={logo} alt="U봇" />
         </button>
         <nav className="gnb" aria-label="주요 메뉴">
