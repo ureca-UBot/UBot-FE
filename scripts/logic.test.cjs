@@ -388,6 +388,24 @@ test('여러 장의 요금제 카드만 네트워크·데이터 요약 줄을 �
 
   const addon = { ...plan, type: 'ADDON', specs: [], highlights: ['제공량 소진 후 계속 사용'] }
   assert.deepEqual(productCards.productBullets(addon, true), addon.highlights)
+
+  // 결합은 한 장이든 여러 장이든 specs(홈 결합의 필요 인터넷)를 highlights 앞에 둡니다.
+  const homeBundle = {
+    ...plan,
+    type: 'BUNDLE',
+    fee: 3300,
+    specs: ['필요 인터넷 Ubot 인터넷 100M'],
+    highlights: ['결합 전체 월 3,300원 할인'],
+  }
+  for (const inCarousel of [true, false]) {
+    assert.deepEqual(productCards.productBullets(homeBundle, inCarousel), [
+      '필요 인터넷 Ubot 인터넷 100M',
+      '결합 전체 월 3,300원 할인',
+    ])
+  }
+  const familyBundle = { ...homeBundle, specs: [], highlights: ['최대 5회선까지 결합 가능'] }
+  assert.deepEqual(productCards.productBullets(familyBundle, true), familyBundle.highlights)
+  assert.deepEqual(productCards.productBullets(familyBundle, false), familyBundle.highlights)
 })
 
 test('상품 요금은 종류별 앞말을 붙이고 0원이면 무료로 쓴다', () => {

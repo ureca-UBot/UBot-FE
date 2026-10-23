@@ -260,7 +260,7 @@ function mockUserData(question: string): ChatUserData | null {
 }
 
 // 상품 카드 확인용: 상품 질문 키워드가 있으면 가입 정보 카드 대신 상품 카드를 돌려줍니다.
-// "로밍" → 로밍(요금 없는 상품 포함) / "부가" → 부가서비스 / "결합" → 결합 할인 / "요금제 하나" → 요금제 1개
+// "로밍" → 로밍(요금 없는 상품 포함) / "부가" → 부가서비스 / "결합" → 홈 결합·가족 결합 / "요금제 하나" → 요금제 1개
 // "요금제 추천" → 요금제 5개(긴 이름, 네트워크 없는 specs, 요금·highlights 없는 상품 포함) / "추천"·"상품" → 종류별(0원 부가서비스 포함)
 const mockProduct = (
   type: ChatProductCard['type'],
@@ -322,7 +322,21 @@ function mockProductData(question: string): ChatProductData | null {
     }
   }
   if (question.includes('부가')) return { products: [MOCK_ADDON] }
-  if (question.includes('결합')) return { products: [MOCK_BUNDLE] }
+  if (question.includes('결합')) {
+    return {
+      products: [
+        // 홈 결합은 specs에 필요한 인터넷 상품이 들어옵니다.
+        mockProduct(
+          'BUNDLE',
+          'Ubot 홈 100 결합',
+          3_300,
+          ['필요 인터넷 Ubot 인터넷 100M'],
+          ['휴대폰 1회선과 별도 가입한 가상 Ubot 100Mbps 인터넷 이용 시 결합 전체 월 3,300원 할인'],
+        ),
+        MOCK_BUNDLE,
+      ],
+    }
+  }
   if (question.includes('요금제') && question.includes('하나'))
     return { products: [MOCK_PLAN_LITE] }
   if (question.includes('요금제') && question.includes('추천')) {

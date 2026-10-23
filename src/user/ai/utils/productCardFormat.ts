@@ -34,11 +34,13 @@ export function planSummaryLine(specs: string[]): string | null {
   return parts.length > 0 ? parts.join('. ') : null
 }
 
-// 카드에 글머리표로 보여 줄 항목입니다. 그 밖의 specs는 보여 주지 않습니다.
+// 카드에 글머리표로 보여 줄 항목입니다. 아래에 적지 않은 specs는 보여 주지 않습니다.
+// - 결합: specs 전부(홈 결합의 "필요 인터넷 …")를 맨 앞에 둡니다. 홈 결합이 아니면 specs가 비어 있습니다.
 // - 로밍: 데이터 항목을 맨 앞에 둡니다.
 // - 여러 장을 가로로 보여 줄 때의 요금제: 네트워크·데이터 요약 줄을 맨 앞에 둡니다.
 // - 그 밖에는 highlights만 씁니다.
 export function productBullets(card: ChatProductCard, inCarousel: boolean): string[] {
+  if (card.type === 'BUNDLE') return [...card.specs, ...card.highlights]
   const lead =
     card.type === 'ROAMING'
       ? dataSpec(card.specs)
