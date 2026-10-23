@@ -10,3 +10,4 @@ export { tokenStorage } from '../../src/auth/utils/tokenStorage'
 export { chatMockApi } from '../../src/user/ai/api/chatApi.mock'
 
 export * as feedback from '../../src/user/ai/utils/answerFeedback'
+export * as productCards from '../../src/user/ai/utils/productCardFormat'

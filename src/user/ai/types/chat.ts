@@ -216,13 +216,17 @@ export interface ChatUserData {
 // BE ProductType
 export type ChatProductType = 'PLAN' | 'ADDON' | 'BUNDLE' | 'ROAMING'
 
-// BE ProductDataCards.ProductCard: type은 요금 앞말을 고르는 데만 씁니다.
+// BE ProductDataCards.ProductCard: type은 요금 앞말과 표시할 항목을 고르는 데만 씁니다.
 // fee는 요금제·부가서비스는 월 요금, 로밍은 일 요금, 결합은 할인액이며 없으면 null입니다.
+// specs는 DB 값으로 만든 핵심 수치이고(요금제: 네트워크 "5G"·"LTE", "데이터 24GB(소진 후 최대 1Mbps)" 등,
+// 로밍: 국가·데이터, 부가서비스·결합: 빈 배열), highlights는 설명에서 고른 조건·혜택 문장(최대 3개, 마침표 없음)입니다.
+// 두 배열은 null이 아니며 비어 있을 수 있고, 순서에 기대지 않습니다.
 export interface ChatProductCard {
   type: ChatProductType
   name: string
   fee: number | null
-  description: string | null
+  specs: string[]
+  highlights: string[]
 }
 
 // BE ProductDataCards: 상품 정보 질문의 답변에 쓰인 상품입니다. 카드가 없으면 productData 자체가 null이고,

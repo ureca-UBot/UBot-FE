@@ -339,3 +339,47 @@ test('긴 질문 때문에 짧은 정상 답변이나 세부 의견을 누락하
     /300자/,
   )
 })
+
+test('여러 장의 요금제 카드만 네트워크·데이터 요약 줄을 글머리표 맨 앞에 둔다', () => {
+  const { productCards } = modules
+  // specs 순서에 기대지 않고 값으로 고릅니다.
+  const specs = ['음성·문자 기본 제공', '데이터 24GB(소진 후 최대 1Mbps)', '테더링 24GB', '5G']
+  assert.equal(productCards.planSummaryLine(specs), '5G. 데이터 24GB(소진 후 최대 1Mbps)')
+  assert.equal(
+    productCards.planSummaryLine(['LTE', '데이터 6GB(소진 후 최대 400kbps)']),
+    'LTE. 데이터 6GB(소진 후 최대 400kbps)',
+  )
+  assert.equal(productCards.planSummaryLine(['데이터 무제한']), '데이터 무제한')
+  // "5G"와 정확히 같아야 네트워크로 봅니다.
+  assert.equal(productCards.planSummaryLine(['5G 전용', '음성 100분, 문자 100건']), null)
+
+  const plan = {
+    type: 'PLAN',
+    name: '5G 라이트',
+    fee: 55000,
+    specs,
+    highlights: ['가입 대상 만 19~34세', '이후 일반형 변경 상담 안내'],
+  }
+  assert.deepEqual(productCards.productBullets(plan, true), [
+    '5G. 데이터 24GB(소진 후 최대 1Mbps)',
+    '가입 대상 만 19~34세',
+    '이후 일반형 변경 상담 안내',
+  ])
+  assert.deepEqual(productCards.productBullets(plan, false), plan.highlights)
+  assert.deepEqual(productCards.productBullets({ ...plan, specs: [], highlights: [] }, true), [])
+
+  const roaming = { ...plan, type: 'ROAMING', specs: ['일본', '데이터 1GB'], highlights: [] }
+  assert.deepEqual(productCards.productBullets(roaming, true), [])
+})
+
+test('개발용 채팅 mock의 상품 카드는 BE 응답 형식(specs·highlights 배열)을 따른다', async () => {
+  const response = await modules.chatMockApi.createQuestion({ question: '요금제 추천해줘' })
+  const { products } = response.productData
+  assert.ok(products.length > 1)
+  for (const card of products) {
+    assert.ok(Array.isArray(card.specs))
+    assert.ok(Array.isArray(card.highlights))
+    assert.ok(card.highlights.length <= 3)
+    assert.equal('description' in card, false)
+  }
+})

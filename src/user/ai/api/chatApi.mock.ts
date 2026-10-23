@@ -260,98 +260,135 @@ function mockUserData(question: string): ChatUserData | null {
 }
 
 // 상품 카드 확인용: 상품 질문 키워드가 있으면 가입 정보 카드 대신 상품 카드를 돌려줍니다.
-// "로밍" → 로밍(요금 없는 상품 포함) / "부가" → 부가서비스 / "결합" → 결합 할인
-// "요금제 추천" → 요금제 5개(긴 이름, 요금·설명 없는 상품 포함) / "추천"·"상품" → 종류별 하나씩
+// "로밍" → 로밍(요금 없는 상품 포함) / "부가" → 부가서비스 / "결합" → 결합 할인 / "요금제 하나" → 요금제 1개
+// "요금제 추천" → 요금제 5개(긴 이름, 네트워크 없는 specs, 요금·highlights 없는 상품 포함) / "추천"·"상품" → 종류별 하나씩
 const mockProduct = (
   type: ChatProductCard['type'],
   name: string,
   fee: number | null,
-  description: string | null,
-): ChatProductCard => ({ type, name, fee, description })
+  specs: string[],
+  highlights: string[],
+): ChatProductCard => ({ type, name, fee, specs, highlights })
+
+// BE PlanTools가 만드는 specs 순서를 따르지만, 화면은 순서에 기대지 않습니다.
+const MOCK_PLAN_LITE = mockProduct(
+  'PLAN',
+  '5G 라이트',
+  55_000,
+  [
+    '5G',
+    '데이터 12GB(소진 후 최대 1Mbps)',
+    '음성·문자 기본 제공',
+    '테더링 12GB',
+    '선택약정 25% 할인 시 월 41,250원',
+  ],
+  ['가입 대상 만 19~34세', '만 35세가 되는 달 말일까지 이용 가능', '이후 일반형 변경 상담 안내'],
+)
+const MOCK_ADDON = mockProduct(
+  'ADDON',
+  '데이터 안심 옵션',
+  3_300,
+  [],
+  ['제공량을 다 쓰면 속도를 낮춰 계속 사용'],
+)
+const MOCK_BUNDLE = mockProduct(
+  'BUNDLE',
+  '가족 결합 할인',
+  5_500,
+  [],
+  ['가족 회선을 묶으면 회선마다 매달 할인', '최대 5회선까지 결합 가능'],
+)
+const MOCK_ROAMING = mockProduct(
+  'ROAMING',
+  '로밍 데이터 하루 패스',
+  11_000,
+  ['일본', '데이터 1GB'],
+  ['현지 시간 기준 24시간 이용', '소진 후 최대 400kbps'],
+)
 
 function mockProductData(question: string): ChatProductData | null {
   if (question.includes('로밍')) {
     return {
       products: [
-        mockProduct(
-          'ROAMING',
-          '로밍 데이터 하루 패스',
-          11_000,
-          '하루 동안 데이터를 무제한으로 씁니다.',
-        ),
+        MOCK_ROAMING,
         mockProduct(
           'ROAMING',
           '로밍 안심 차단',
           null,
-          '해외에서 데이터 로밍을 막아 요금이 나오지 않습니다.',
+          [],
+          ['해외에서 데이터 로밍을 막아 요금이 나오지 않음'],
         ),
       ],
     }
   }
-  if (question.includes('부가')) {
-    return {
-      products: [
-        mockProduct(
-          'ADDON',
-          '데이터 안심 옵션',
-          3_300,
-          '제공량을 다 쓰면 속도를 낮춰 계속 씁니다.',
-        ),
-      ],
-    }
-  }
-  if (question.includes('결합')) {
-    return {
-      products: [
-        mockProduct(
-          'BUNDLE',
-          '가족 결합 할인',
-          5_500,
-          '가족 회선을 묶으면 회선마다 매달 할인합니다.',
-        ),
-      ],
-    }
-  }
+  if (question.includes('부가')) return { products: [MOCK_ADDON] }
+  if (question.includes('결합')) return { products: [MOCK_BUNDLE] }
+  if (question.includes('요금제') && question.includes('하나'))
+    return { products: [MOCK_PLAN_LITE] }
   if (question.includes('요금제') && question.includes('추천')) {
     return {
       products: [
-        mockProduct('PLAN', '5G 라이트', 55_000, '데이터 12GB, 소진 후 1Mbps로 계속 씁니다.'),
+        MOCK_PLAN_LITE,
         mockProduct(
           'PLAN',
           '5G 스탠다드',
           75_000,
-          '데이터 150GB, 소진 후 5Mbps로 계속 씁니다. 통화·문자는 기본 제공입니다.',
+          [
+            '5G',
+            '데이터 150GB(소진 후 최대 5Mbps)',
+            '음성·문자 기본 제공',
+            '테더링 50GB',
+            '선택약정 25% 할인 시 월 56,250원',
+          ],
+          ['통화·문자 기본 제공', '스마트기기 1회선 데이터 공유'],
         ),
-        mockProduct('PLAN', '5G 프리미어 에센셜', 85_000, '데이터 무제한입니다.'),
+        mockProduct(
+          'PLAN',
+          '5G 프리미어 에센셜',
+          85_000,
+          [
+            '5G',
+            '데이터 무제한',
+            '음성·문자 기본 제공',
+            '테더링 70GB',
+            '선택약정 25% 할인 시 월 63,750원',
+          ],
+          ['데이터 무제한'],
+        ),
         mockProduct(
           'PLAN',
           '5G 시그니처 무제한 가족 공유 요금제',
           130_000,
-          '데이터·통화·문자 모두 무제한이며 가족 회선과 데이터를 나눠 씁니다.',
+          [
+            '5G',
+            '데이터 무제한',
+            '음성·문자 기본 제공',
+            '테더링 100GB',
+            '선택약정 25% 할인 시 월 97,500원',
+          ],
+          [
+            '가족 회선과 데이터 나눠 쓰기 가능',
+            '스마트기기 2회선 무료',
+            'OTT 구독 중 하나 매달 제공',
+          ],
         ),
-        mockProduct('PLAN', '청소년 5G', null, null),
+        // 네트워크 항목이 없으면 요약 줄은 데이터 항목만 씁니다.
+        mockProduct(
+          'PLAN',
+          '청소년 데이터',
+          null,
+          [
+            '데이터 6GB(소진 후 최대 400kbps)',
+            '음성 100분, 문자 100건',
+            '선택약정 할인 미적용(무약정 요금제)',
+          ],
+          [],
+        ),
       ],
     }
   }
   if (question.includes('추천') || question.includes('상품')) {
-    return {
-      products: [
-        mockProduct('PLAN', '5G 라이트', 55_000, '데이터 12GB, 소진 후 1Mbps로 계속 씁니다.'),
-        mockProduct('ADDON', '데이터 안심 옵션', 3_300, null),
-        mockProduct(
-          'BUNDLE',
-          '가족 결합 할인',
-          5_500,
-          '가족 회선을 묶으면 회선마다 매달 할인합니다.',
-        ),
-        mockProduct(
-          'ROAMING',
-          '로밍 데이터 하루 패스',
-          11_000,
-          '하루 동안 데이터를 무제한으로 씁니다.',
-        ),
-      ],
-    }
+    return { products: [MOCK_PLAN_LITE, MOCK_ADDON, MOCK_BUNDLE, MOCK_ROAMING] }
   }
   return null
 }

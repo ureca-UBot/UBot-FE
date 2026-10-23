@@ -401,6 +401,20 @@
   letter-spacing: -.02em
 }
 
+.ubot-user-app .chat-user-data .pd-bullets {
+  margin: 8px 0 0;
+  padding-left: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  list-style: disc;
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .chat-user-data .pd-bullets li+li {
+  margin-top: 2px
+}
+
 .ubot-user-app .chat-user-data .pd-actions {
   display: flex;
   flex-wrap: wrap;

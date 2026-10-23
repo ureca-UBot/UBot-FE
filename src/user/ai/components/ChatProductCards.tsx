@@ -6,6 +6,7 @@ import {
 } from '../../product/catalog'
 import { ProductDetailDialog } from '../../product/components/ProductDetailDialog'
 import type { ChatProductCard, ChatProductData, ChatProductType } from '../types/chat'
+import { productBullets } from '../utils/productCardFormat'
 import { formatWon } from '../utils/userDataFormat'
 import '../../styles/sections/chat-user-data.css'
 
@@ -38,7 +39,7 @@ const CATALOG_KEY: Record<ChatProductType, ProductCatalogKey> = {
 const DRAG_THRESHOLD_PX = 5
 
 // 상품 정보 질문의 답변 아래에 답변에 쓰인 상품 카드를 그립니다.
-// 가입 정보 카드의 스타일을 그대로 쓰며, 이름·요금·설명과 상세 보기 버튼만 둡니다.
+// 가입 정보 카드의 스타일을 그대로 쓰며, 이름·요금·글머리표 항목과 상세 보기 버튼만 둡니다.
 // 상품이 여러 개면 가로로 넘겨 보는 목록으로 바꿉니다.
 export function ChatProductCards({ productData }: ChatProductCardsProps) {
   const [detail, setDetail] = useState<OpenDetail | null>(null)
@@ -78,12 +79,15 @@ async function findProduct(card: ChatProductCard): Promise<OpenDetail | null> {
 
 function ProductCard({
   card,
+  inCarousel = false,
   onOpenDetail,
 }: {
   card: ChatProductCard
+  inCarousel?: boolean
   onOpenDetail: (detail: OpenDetail) => void
 }) {
   const [lookup, setLookup] = useState<'idle' | 'loading' | 'missing' | 'failed'>('idle')
+  const bullets = productBullets(card, inCarousel)
 
   const handleDetail = async () => {
     setLookup('loading')
@@ -108,7 +112,13 @@ function ProductCard({
             <strong>{formatWon(card.fee)}원</strong>
           </p>
         )}
-        {card.description && <p className="ud-note pd-description">{card.description}</p>}
+        {bullets.length > 0 && (
+          <ul className="pd-bullets">
+            {bullets.map((bullet, index) => (
+              <li key={`${index}-${bullet}`}>{bullet}</li>
+            ))}
+          </ul>
+        )}
         <div className="pd-actions">
           <button
             className="pd-detail"
@@ -263,6 +273,7 @@ function ProductCarousel({
           <ProductCard
             key={`${card.type}-${card.name}-${index}`}
             card={card}
+            inCarousel
             onOpenDetail={onOpenDetail}
           />
         ))}
