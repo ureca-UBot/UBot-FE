@@ -2,7 +2,14 @@ const { test, before, after } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
 const { startServer, launchBrowser, sleep } = require('./test-support/browser.cjs')
-const { installFixtures, token, pageOf, faq } = require('./test-support/fixtures.cjs')
+const {
+  installFixtures,
+  token,
+  pageOf,
+  faq,
+  improvement,
+  overview,
+} = require('./test-support/fixtures.cjs')
 
 let server, browser
 before(async () => {
@@ -37,6 +44,262 @@ async function withPage(role, run) {
 const ok = (route, data) => route.fulfill({ json: { success: true, data } })
 const fail = (route, message, code = 'TEST-500', status = 500) =>
   route.fulfill({ status, json: { success: false, message, code } })
+
+for (const count of [undefined, null, 0, 15]) {
+  test(`기존 개선 API의 추가 지표가 없어도 FAQ를 열고 실제 0건과 미집계를 구분한다 (${count})`, async () => {
+    await withPage('ADMIN', async ({ page, context, goto }) => {
+      await context.route('**/api/admin/faq-monitoring/improvements?**', (route) =>
+        ok(route, {
+          items: [{ ...improvement, reviewableTopKCount: count, recentUsageCount: 2 }],
+          evaluatedAt: '2026-10-20T12:00:00',
+          page: 0,
+          size: 5,
+          totalElements: 1,
+          totalPages: 1,
+          first: true,
+          last: true,
+        }),
+      )
+      await goto('/admin/dashboard')
+      await page.locator('.faq-dashboard-improvement-table tbody tr').first().click()
+      const metric = page
+        .locator('.faq-dashboard-improvement-metrics > div')
+        .filter({ hasText: '검토 가능 Top-K 건수' })
+        .locator('strong')
+      await metric.waitFor()
+      assert.equal(await metric.innerText(), count == null ? '-' : String(count))
+      assert.equal(await page.locator('.faq-dashboard').count(), 1)
+      await page.getByRole('button', { name: 'AI 검토', exact: true }).click()
+      await page.getByRole('dialog', { name: 'FAQ AI 검토' }).waitFor()
+    })
+  })
+}
+
+for (const width of [1440, 1280, 1024, 390]) {
+  test(`FAQ 상세 카드의 사용량 그래프와 표가 카드 밖으로 잘리지 않는다 (${width}px)`, async () => {
+    await withPage('ADMIN', async ({ page, goto }) => {
+      await page.setViewportSize({ width, height: 800 })
+      await goto('/admin/dashboard')
+      await page.getByRole('textbox', { name: 'FAQ ID', exact: true }).fill('1')
+      await page.locator('.faq-dashboard-detail__search button').click()
+      await page
+        .locator('.faq-dashboard-detail__basic b')
+        .first()
+        .filter({ hasText: faq.question })
+        .waitFor()
+      const layout = await page.locator('.faq-dashboard-section--detail').evaluate((section) => {
+        const bounds = section.getBoundingClientRect()
+        return {
+          width: section.clientWidth,
+          contentWidth: section.scrollWidth,
+          inside: [
+            ...section.querySelectorAll(
+              '.faq-dashboard-detail__basic,.faq-dashboard-detail__trend,.faq-dashboard-cooccurring',
+            ),
+          ].every((item) => item.getBoundingClientRect().right <= bounds.right + 1),
+        }
+      })
+      assert.ok(layout.contentWidth <= layout.width + 1, JSON.stringify(layout))
+      assert.equal(layout.inside, true)
+    })
+  })
+}
+
+test('운영 차트는 축 숫자를 끝까지 표시하고 JVM 단위를 구분해 빈 행 없이 배치한다', async () => {
+  await withPage('ADMIN', async ({ page, context, goto }) => {
+    const data = structuredClone(overview)
+    const points = (values) =>
+      values.map((value, index) => ({ at: `2026-10-20T12:0${index}:00Z`, value }))
+    data.series.apiRps = points([0.2, 1.2, 0.5])
+    data.series.errorRate.server5xx = points([0.05, 0.8, 1])
+    data.series.apiLatencyMillis.p99 = points([1500, 3500, 15000])
+    data.series.backend.liveThreads = points([45, 48, 50])
+    data.series.backend.jvmHeapUsageRate = points([0.2, 0.25, 0.3])
+    data.series.backend.gcPauseSecondsPerSecond = points([0.001, 0.002, 0.0001])
+    data.series.containers.memoryBytes = {
+      backend: points([1_000_000_000, 1_800_000_000, 1_500_000_000]),
+    }
+    await context.route('**/api/admin/operation-monitoring/services/overview?**', (route) =>
+      ok(route, data),
+    )
+    await page.setViewportSize({ width: 1440, height: 1000 })
+    await goto('/admin/operation')
+    await page.locator('.operation-chart-card .recharts-yAxis-tick-labels text').first().waitFor()
+    assert.equal(await page.locator('.operation-charts').count(), 1)
+    assert.equal(await page.locator('.operation-chart-card').count(), 9)
+    for (const heading of ['백엔드 CPU·Heap 사용률', 'JVM GC 중지 시간', 'JVM 스레드 수'])
+      await page.getByRole('heading', { name: heading, exact: true }).waitFor()
+    const clipped = await page.locator('.operation-chart').evaluateAll((charts) =>
+      charts.flatMap((chart) => {
+        const bounds = chart.querySelector('svg[role="application"]').getBoundingClientRect()
+        return [...chart.querySelectorAll('.recharts-yAxis-tick-labels text')]
+          .filter(
+            (tick) =>
+              tick.getBoundingClientRect().left < bounds.left - 1 ||
+              tick.getBoundingClientRect().right > bounds.right + 1,
+          )
+          .map((tick) => tick.textContent)
+      }),
+    )
+    assert.deepEqual(clipped, [])
+    await page.screenshot({
+      path: path.join(__dirname, '../test-results/operation-fixed.png'),
+      fullPage: true,
+    })
+    await page.setViewportSize({ width: 390, height: 844 })
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+      false,
+    )
+  })
+})
+
+test('상담 오류 코드는 표 오른쪽에서 전체 내용이 줄바꿈되어 보인다', async () => {
+  await withPage('ADMIN', async ({ page, context, goto }) => {
+    const errorCode = 'EMBEDDING_WORKER_RESPONSE_TIMEOUT_WITHOUT_READY_PROFILE'
+    await context.route('**/api/admin/counsel/safety/summary?**', (route) =>
+      ok(route, { total: 1, allowed: 0, blocked: 0, checkFailed: 1, falsePositives: 0 }),
+    )
+    await context.route('**/api/admin/counsel/safety/events?**', (route) =>
+      ok(route, {
+        items: [
+          {
+            id: 1,
+            createdAt: '2026-10-20T12:00:00Z',
+            sessionId: '00000000-0000-0000-0000-000000000001',
+            senderRole: 'USER',
+            decision: 'CHECK_FAILED',
+            category: null,
+            score: null,
+            threshold: 0.95,
+            modelName: 'ubot-embedding',
+            profileVersion: 'insult-v1',
+            ruleVersion: 'direct-v1',
+            errorCode,
+          },
+        ],
+        page: 0,
+        hasNext: false,
+      }),
+    )
+    await goto('/admin/counsel-safety')
+    const cell = page.locator('td.counsel-error-cell')
+    await cell.waitFor()
+    assert.equal(await cell.innerText(), errorCode)
+    const layout = await cell.evaluate((e) => ({
+      width: e.clientWidth,
+      contentWidth: e.scrollWidth,
+      right: e.getBoundingClientRect().right,
+      tableRight: e.closest('.counsel-table-wrap').getBoundingClientRect().right,
+    }))
+    assert.ok(layout.contentWidth <= layout.width + 1, JSON.stringify(layout))
+    assert.ok(layout.right <= layout.tableRight + 1, JSON.stringify(layout))
+    await page.screenshot({
+      path: path.join(__dirname, '../test-results/counsel-errors-fixed.png'),
+      fullPage: true,
+    })
+  })
+})
+
+for (const width of [1440, 768, 390, 320]) {
+  test(`관리자가 로그인 상태를 유지하며 홈과 관리자 화면을 왕복한다 (${width}px)`, async () => {
+    await withPage('ADMIN', async ({ page, fixtures, goto }) => {
+      await page.setViewportSize({ width, height: 960 })
+      await goto('/admin/faqs')
+      const accessToken = await page.evaluate(() => sessionStorage.getItem('accessToken'))
+      await page.getByRole('link', { name: '홈 화면', exact: true }).click()
+      await page.waitForURL('**/#/ai')
+      const back = page
+        .getByRole('link', { name: '관리자 화면', exact: true })
+        .filter({ visible: true })
+      await back.waitFor()
+      const bounds = await back.boundingBox()
+      assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width)
+      await page.screenshot({
+        path: path.join(__dirname, `../test-results/admin-home-${width}.png`),
+      })
+      await back.click()
+      await page.waitForURL('**/#/admin/dashboard')
+      await page.locator('.admin-main').waitFor()
+      assert.equal(await page.evaluate(() => sessionStorage.getItem('accessToken')), accessToken)
+      assert.equal(
+        fixtures.requests.some(({ path }) => path === '/api/auth/logout'),
+        false,
+      )
+    })
+  })
+}
+
+for (const role of ['USER', null]) {
+  test(`관리자 외 계정에는 관리자 이동 버튼이 표시되지 않는다 (${role ?? '비회원'})`, async () => {
+    await withPage(role, async ({ page, goto }) => {
+      await goto('/ai')
+      await page.locator('.ubot-user-app').waitFor()
+      assert.equal(await page.getByRole('link', { name: '관리자 화면', exact: true }).count(), 0)
+    })
+  })
+}
+
+test('예약 시간 조회 실패를 로딩과 구분하고 다시 불러온 뒤 예약을 한 번만 접수한다', async () => {
+  await withPage('USER', async ({ page, context, goto }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    let failed = true
+    let submitted = 0
+    let release
+    const pending = new Promise((resolve) => {
+      release = resolve
+    })
+    await context.route('**/api/stores/1/reservation-slots?**', (route) =>
+      failed ? fail(route, '시간 조회 실패') : ok(route, [{ time: '10:00:00', available: true }]),
+    )
+    await context.route('**/api/reservations', async (route) => {
+      submitted += 1
+      await pending
+      return ok(route, { reservationId: 1, storeName: '강남점' })
+    })
+    await goto('/my')
+    await page.locator('.my-member:not(.hidden)').waitFor()
+    await page.evaluate(() => {
+      document.dispatchEvent(
+        new CustomEvent('ubot:reserve-store', {
+          detail: { id: 1, name: '강남점' },
+        }),
+      )
+    })
+    try {
+      await page.getByRole('alert').filter({ hasText: '시간 조회 실패' }).waitFor()
+      const bounds = await page.locator('dialog[open]').boundingBox()
+      assert.ok(
+        bounds.x >= 0 && bounds.x + bounds.width <= 390,
+        '작은 화면 안에 예약 창이 표시된다',
+      )
+      await page.screenshot({ path: path.join(__dirname, '../test-results/reservation-error.png') })
+      assert.equal(await page.getByRole('option', { name: '불러오는 중...' }).count(), 0)
+      assert.equal(
+        await page.getByRole('button', { name: '예약 완료', exact: true }).isDisabled(),
+        true,
+      )
+      failed = false
+      await page.getByRole('button', { name: '예약 시간 다시 불러오기' }).click()
+      await page.waitForFunction(
+        () => document.querySelector('select[required]')?.value === '10:00:00',
+      )
+      await page.getByRole('button', { name: '예약 완료', exact: true }).evaluate((button) => {
+        button.click()
+        button.click()
+      })
+      await page.waitForFunction(() =>
+        document.querySelector('button[type="submit"]')?.textContent?.includes('예약 중'),
+      )
+      release()
+      await page.getByRole('status').filter({ hasText: '방문 예약이 완료' }).waitFor()
+      assert.equal(submitted, 1)
+      assert.equal(await page.getByRole('alert').count(), 0)
+    } finally {
+      release()
+    }
+  })
+})
 
 test('FAQ 검색: 늦게 도착한 이전 응답은 최신 검색을 덮지 않는다', async () => {
   await withPage('ADMIN', async ({ page, context, goto }) => {

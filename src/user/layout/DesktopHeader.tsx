@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { LogoutButton } from '../../auth/components/LogoutButton'
 import logo from '../assets/ubot-logo.png'
 import { NotificationBadge } from '../notification/components/NotificationBadge'
@@ -5,6 +6,7 @@ import { useNotificationUnread } from '../notification/hooks/useNotificationUnre
 import type { UserPage } from '../routes'
 
 interface DesktopHeaderProps {
+  isAdmin: boolean
   loggedIn: boolean
   canLogout: boolean
   memberName: string | null
@@ -21,6 +23,7 @@ const mainNav = [
 ] as const
 
 export function DesktopHeader({
+  isAdmin,
   canLogout,
   loggedIn,
   memberName,
@@ -51,6 +54,11 @@ export function DesktopHeader({
           ))}
         </nav>
         <div className="header-tools">
+          {isAdmin && (
+            <Link className="admin-screen-link" to="/admin/dashboard">
+              관리자 화면
+            </Link>
+          )}
           <button className="header-action" data-route="stores" aria-label="매장찾기" type="button">
             <span className="header-action-icon" aria-hidden="true">
               <svg width="40" height="40" viewBox="0 0 40 40" fill="none">

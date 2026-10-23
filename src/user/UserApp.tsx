@@ -44,13 +44,14 @@ export default function UserApp() {
     <div className="ubot-user-app" onClick={handleClick} onKeyDown={handleKeyDown}>
       <NoticeBanners onNoticePage={page === 'notices'} />
       <DesktopHeader
+        isAdmin={user?.role === 'ADMIN'}
         canLogout={Boolean(user)}
         loggedIn={loggedIn || Boolean(user)}
         memberName={memberName}
         scrolled={scrolled}
         page={page}
       />
-      <MobileHeader title={userPageTitles[page]} />
+      <MobileHeader isAdmin={user?.role === 'ADMIN'} title={userPageTitles[page]} />
       <main>
         <VisitedPage active={page === 'store'}>
           <StorePage active={page === 'store'} />

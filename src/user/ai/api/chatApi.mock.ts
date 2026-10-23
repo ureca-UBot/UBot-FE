@@ -2,6 +2,8 @@ import { ApiRequestError } from '../../../shared/api/client'
 import type {
   ChatBillingCard,
   ChatPlanCard,
+  ChatProductCard,
+  ChatProductData,
   ChatStoreMap,
   ChatUsageCard,
   ChatUsageRecord,
@@ -257,6 +259,103 @@ function mockUserData(question: string): ChatUserData | null {
   return empty ? null : userData
 }
 
+// 상품 카드 확인용: 상품 질문 키워드가 있으면 가입 정보 카드 대신 상품 카드를 돌려줍니다.
+// "로밍" → 로밍(요금 없는 상품 포함) / "부가" → 부가서비스 / "결합" → 결합 할인
+// "요금제 추천" → 요금제 5개(긴 이름, 요금·설명 없는 상품 포함) / "추천"·"상품" → 종류별 하나씩
+const mockProduct = (
+  type: ChatProductCard['type'],
+  name: string,
+  fee: number | null,
+  description: string | null,
+): ChatProductCard => ({ type, name, fee, description })
+
+function mockProductData(question: string): ChatProductData | null {
+  if (question.includes('로밍')) {
+    return {
+      products: [
+        mockProduct(
+          'ROAMING',
+          '로밍 데이터 하루 패스',
+          11_000,
+          '하루 동안 데이터를 무제한으로 씁니다.',
+        ),
+        mockProduct(
+          'ROAMING',
+          '로밍 안심 차단',
+          null,
+          '해외에서 데이터 로밍을 막아 요금이 나오지 않습니다.',
+        ),
+      ],
+    }
+  }
+  if (question.includes('부가')) {
+    return {
+      products: [
+        mockProduct(
+          'ADDON',
+          '데이터 안심 옵션',
+          3_300,
+          '제공량을 다 쓰면 속도를 낮춰 계속 씁니다.',
+        ),
+      ],
+    }
+  }
+  if (question.includes('결합')) {
+    return {
+      products: [
+        mockProduct(
+          'BUNDLE',
+          '가족 결합 할인',
+          5_500,
+          '가족 회선을 묶으면 회선마다 매달 할인합니다.',
+        ),
+      ],
+    }
+  }
+  if (question.includes('요금제') && question.includes('추천')) {
+    return {
+      products: [
+        mockProduct('PLAN', '5G 라이트', 55_000, '데이터 12GB, 소진 후 1Mbps로 계속 씁니다.'),
+        mockProduct(
+          'PLAN',
+          '5G 스탠다드',
+          75_000,
+          '데이터 150GB, 소진 후 5Mbps로 계속 씁니다. 통화·문자는 기본 제공입니다.',
+        ),
+        mockProduct('PLAN', '5G 프리미어 에센셜', 85_000, '데이터 무제한입니다.'),
+        mockProduct(
+          'PLAN',
+          '5G 시그니처 무제한 가족 공유 요금제',
+          130_000,
+          '데이터·통화·문자 모두 무제한이며 가족 회선과 데이터를 나눠 씁니다.',
+        ),
+        mockProduct('PLAN', '청소년 5G', null, null),
+      ],
+    }
+  }
+  if (question.includes('추천') || question.includes('상품')) {
+    return {
+      products: [
+        mockProduct('PLAN', '5G 라이트', 55_000, '데이터 12GB, 소진 후 1Mbps로 계속 씁니다.'),
+        mockProduct('ADDON', '데이터 안심 옵션', 3_300, null),
+        mockProduct(
+          'BUNDLE',
+          '가족 결합 할인',
+          5_500,
+          '가족 회선을 묶으면 회선마다 매달 할인합니다.',
+        ),
+        mockProduct(
+          'ROAMING',
+          '로밍 데이터 하루 패스',
+          11_000,
+          '하루 동안 데이터를 무제한으로 씁니다.',
+        ),
+      ],
+    }
+  }
+  return null
+}
+
 export const chatMockApi: ChatApi = {
   cancelJob: async (jobId) => ({ jobId, cancelled: true }),
   createQuestion: async (request, options) => {
@@ -269,19 +368,23 @@ export const chatMockApi: ChatApi = {
     })
     await simulateProgress(1500, options)
     const asksStore = request.question.includes('매장')
-    const userData = mockUserData(request.question)
+    const productData = mockProductData(request.question)
+    const userData = productData ? null : mockUserData(request.question)
     return {
       answer: asksStore
         ? `[mock] 강남역 반경 3km 안에 매장 3곳이 있습니다. 가장 가까운 곳은 일상의틈_역삼동_강남역12번출구점(0.1km)입니다.`
-        : userData
-          ? `[mock] 2026년 10월 청구서(9월 사용분) 기준으로 안내드립니다. "${request.question}"에 대한 가입 정보입니다.`
-          : `[mock] "${request.question}"에 대한 답변입니다.`,
+        : productData
+          ? `[mock] "${request.question}"에 대한 상품 정보입니다.`
+          : userData
+            ? `[mock] 2026년 10월 청구서(9월 사용분) 기준으로 안내드립니다. "${request.question}"에 대한 가입 정보입니다.`
+            : `[mock] "${request.question}"에 대한 답변입니다.`,
       status: 'SUCCESS',
       idempotencyKey: 'a'.repeat(64),
       attemptCount: 1,
       retryable: false,
       store: asksStore ? { locationRequired: false, map: MOCK_STORE_MAP } : null,
       userData,
+      productData,
     }
   },
 
@@ -305,6 +408,8 @@ export const chatMockApi: ChatApi = {
       idempotencyKey: 'b'.repeat(64),
       attemptCount: 1,
       retryable: false,
+      // 재검색 답변의 상품 카드 확인용입니다.
+      productData: request.intent === 'PRODUCT_DATA' ? mockProductData('상품') : null,
     }
   },
 

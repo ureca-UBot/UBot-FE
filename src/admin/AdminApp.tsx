@@ -8,6 +8,11 @@ import { FaqCategoryListPage } from './pages/faq/FaqCategoryListPage'
 import { FaqDetailPage } from './pages/faq/FaqDetailPage'
 import { FaqLayout } from './pages/faq/FaqLayout'
 import { FaqListPage } from './pages/faq/FaqListPage'
+import { TelemapPage } from './pages/telemap/TelemapPage'
+import {
+  FaqImprovementExclusionHistoryPage,
+  FaqImprovementExclusionListPage,
+} from './pages/faq/FaqImprovementExclusionPages'
 import { ForbiddenWordListPage } from './pages/forbidden-word/ForbiddenWordListPage'
 import { GuestChatSettingsPage } from './pages/guest-chat/GuestChatSettingsPage'
 import { InquiryListPage } from './pages/inquiry/InquiryListPage'
@@ -21,6 +26,12 @@ import { addonServiceKind } from './product/kinds/addonServiceKind'
 import { bundleProductKind } from './product/kinds/bundleProductKind'
 import { planKind } from './product/kinds/planKind'
 import { roamingProductKind } from './product/kinds/roamingProductKind'
+
+const GuardReviewPage = lazy(() =>
+  import('./pages/guard-review/GuardReviewPage').then((module) => ({
+    default: module.GuardReviewPage,
+  })),
+)
 
 const DashboardPage = lazy(() =>
   import('./pages/dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })),
@@ -62,8 +73,14 @@ export default function AdminApp() {
           <Route index element={<FaqListPage />} />
           <Route path="deleted" element={<DeletedFaqListPage />} />
           <Route path="categories" element={<FaqCategoryListPage />} />
+          <Route path="improvement-exclusions" element={<FaqImprovementExclusionListPage />} />
+          <Route
+            path="improvement-exclusions/history"
+            element={<FaqImprovementExclusionHistoryPage />}
+          />
           <Route path=":faqId" element={<FaqDetailPage />} />
         </Route>
+        <Route path="telemap" element={<TelemapPage />} />
         {/* 4종이 같은 화면을 쓰므로 key를 달리해, 탭을 옮길 때 검색 조건과 목록을 새로 시작합니다. */}
         <Route path="products" element={<ProductLayout />}>
           <Route index element={<Navigate replace to="plans" />} />
@@ -83,6 +100,7 @@ export default function AdminApp() {
         </Route>
         <Route path="stores" element={<StoreListPage />} />
         <Route path="forbidden-words" element={<ForbiddenWordListPage />} />
+        <Route path="forbidden-words/review" element={<GuardReviewPage />} />
         <Route path="unanswered-groups" element={<UnansweredGroupListPage />} />
         <Route path="reservations" element={<ReservationListPage />} />
         <Route path="notices" element={<NoticeListPage />} />

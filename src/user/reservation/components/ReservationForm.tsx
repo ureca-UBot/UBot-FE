@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useAuth } from '../../../auth/hooks/useAuth'
 import { reservationApi } from '../api/reservationApi'
 import {
@@ -30,6 +30,9 @@ export function ReservationForm({ store, onClose, onReserved }: ReservationFormP
   const [purpose, setPurpose] = useState<ReservationPurpose>('PURCHASE_CONSULTING')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [slotError, setSlotError] = useState<string | null>(null)
+  const [slotReload, setSlotReload] = useState(0)
+  const inFlight = useRef(false)
 
   useEffect(() => {
     if (!store || !user || !date) return
@@ -40,28 +43,38 @@ export function ReservationForm({ store, onClose, onReserved }: ReservationFormP
         if (cancelled) return
         setSlots(next)
         setTime(next.find((slot) => slot.available)?.time ?? '')
-        setError(null)
+        setSlotError(null)
       })
       .catch((caught: unknown) => {
         if (!cancelled)
-          setError(
+          setSlotError(
             caught instanceof Error ? caught.message : '예약 가능한 시간을 불러오지 못했습니다.',
           )
       })
     return () => {
       cancelled = true
     }
-  }, [store, user, date])
+  }, [store, user, date, slotReload])
 
   function changeDate(next: string) {
     setDate(next)
     setSlots(null)
     setTime('')
+    setSlotError(null)
+    setError(null)
+  }
+
+  function retrySlots() {
+    setSlots(null)
+    setTime('')
+    setSlotError(null)
+    setSlotReload((current) => current + 1)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!store || !time) return
+    if (!store || !user || !time || inFlight.current) return
+    inFlight.current = true
     setSubmitting(true)
     setError(null)
     try {
@@ -74,6 +87,7 @@ export function ReservationForm({ store, onClose, onReserved }: ReservationFormP
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '예약하지 못했습니다.')
     } finally {
+      inFlight.current = false
       setSubmitting(false)
     }
   }
@@ -127,7 +141,7 @@ export function ReservationForm({ store, onClose, onReserved }: ReservationFormP
   const hasAvailableSlot = slots?.some((slot) => slot.available) ?? false
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="reservation-form" onSubmit={handleSubmit}>
       {head}
       <label>
         <span>방문 날짜</span>
@@ -149,7 +163,15 @@ export function ReservationForm({ store, onClose, onReserved }: ReservationFormP
           required
           value={time}
         >
-          {slots === null && <option value="">불러오는 중...</option>}
+          {slots === null && (
+            <option value="">
+              {!date
+                ? '방문 날짜를 선택해 주세요'
+                : slotError
+                  ? '시간을 불러오지 못했어요'
+                  : '불러오는 중...'}
+            </option>
+          )}
           {slots !== null && !hasAvailableSlot && (
             <option value="">예약 가능한 시간이 없어요</option>
           )}
@@ -161,6 +183,14 @@ export function ReservationForm({ store, onClose, onReserved }: ReservationFormP
           ))}
         </select>
       </label>
+      {slotError && (
+        <div className="modal-desc reservation-error" role="alert">
+          <p>{slotError}</p>
+          <button type="button" className="outline-wide" onClick={retrySlots}>
+            예약 시간 다시 불러오기
+          </button>
+        </div>
+      )}
       <label>
         <span>상담 업무</span>
         <select

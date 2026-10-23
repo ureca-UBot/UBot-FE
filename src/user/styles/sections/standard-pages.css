@@ -776,6 +776,11 @@
   color: #c42e53
 }
 
+.ubot-user-app .reservation-form .modal-full:disabled {
+  opacity: .45;
+  cursor: not-allowed
+}
+
 .ubot-user-app .benefit-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

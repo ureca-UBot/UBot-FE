@@ -44,6 +44,9 @@ export function useFaqImprovements() {
     type: FaqImprovementType
   } | null>(null)
   const [isAiReviewModalOpen, setIsAiReviewModalOpen] = useState(false)
+  const [isExclusionModalOpen, setIsExclusionModalOpen] = useState(false)
+  const [isExcluding, setIsExcluding] = useState(false)
+  const [exclusionError, setExclusionError] = useState<string | null>(null)
   const [aiReviewTarget, setAiReviewTarget] = useState<{
     key: string
     faqId: number
@@ -271,6 +274,39 @@ export function useFaqImprovements() {
         }
       })
   }
+  const excludeFaqImprovements = (types: FaqImprovementType[], memo: string) => {
+    if (selectedImprovementItem === null || types.length === 0 || isExcluding) return
+    setIsExcluding(true)
+    setExclusionError(null)
+    void Promise.all(
+      types.map((improvementType) =>
+        faqMonitoringApi.excludeFaqImprovement(selectedImprovementItem.faqId, {
+          improvementType,
+          ...(memo.trim() ? { memo: memo.trim() } : {}),
+        }),
+      ),
+    )
+      .then(() => {
+        setIsExclusionModalOpen(false)
+        setSelectedImprovementFaqId(null)
+        setImprovementResponse(null)
+        setImprovementError(null)
+        setIsImprovementLoading(true)
+        setImprovementPage(0)
+        if (improvementPage === 0) refreshImprovements()
+      })
+      .catch((error) => {
+        console.error('개선 대상 제외를 요청하지 못했습니다.', error)
+        setExclusionError(
+          error instanceof ApiRequestError
+            ? `${error.message} (HTTP ${error.status})`
+            : error instanceof Error
+              ? error.message
+              : '네트워크 오류',
+        )
+      })
+      .finally(() => setIsExcluding(false))
+  }
   const stopDuplicateDrag = () => {
     duplicateDragRef.current = null
     setIsDuplicateDragging(false)
@@ -313,5 +349,16 @@ export function useFaqImprovements() {
     isAiReviewModalOpen,
     closeAiReviewModal: () => setIsAiReviewModalOpen(false),
     canRequestDuplicateAiReview: aiReviewCandidateIds !== undefined,
+    isExclusionModalOpen,
+    isExcluding,
+    exclusionError,
+    openExclusionModal: () => {
+      setExclusionError(null)
+      setIsExclusionModalOpen(true)
+    },
+    closeExclusionModal: () => {
+      if (!isExcluding) setIsExclusionModalOpen(false)
+    },
+    excludeFaqImprovements,
   }
 }

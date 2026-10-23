@@ -133,15 +133,15 @@ export function SafetySentenceEditor({ sentence, onClose, onSaved }: Props) {
           </button>
         )}
         <div className="faq-modal__actions">
+          <button className="secondary-button" type="button" disabled={saving} onClick={onClose}>
+            취소
+          </button>
           <button
             className="primary-button"
             type="submit"
             disabled={saving || stale || !content.trim()}
           >
             {saving ? '저장 중...' : '저장'}
-          </button>
-          <button className="secondary-button" type="button" disabled={saving} onClick={onClose}>
-            취소
           </button>
         </div>
       </form>

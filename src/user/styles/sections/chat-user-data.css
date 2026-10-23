@@ -369,3 +369,170 @@
   color: var(--ink);
   font-weight: 800
 }
+
+/* 채팅 상품 카드: ChatProductCards가 위 카드 스타일을 그대로 쓰고 요금 줄·상세 버튼·가로 목록만 더합니다. */
+.ubot-user-app .chat-user-data {
+  /* 여러 개일 때 카드 너비입니다. 세로는 이 값의 1.6배(가로:세로 10:16)를 최소로 둡니다. */
+  --pd-card-width: 170px
+}
+
+.ubot-user-app .chat-user-data .pd-name {
+  margin: 0;
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .chat-user-data .pd-fee {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 10px 0 0;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums
+}
+
+.ubot-user-app .chat-user-data .pd-fee-label {
+  color: var(--muted);
+  font-size: 13px
+}
+
+.ubot-user-app .chat-user-data .pd-fee strong {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -.02em
+}
+
+.ubot-user-app .chat-user-data .pd-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 12px
+}
+
+.ubot-user-app .chat-user-data .pd-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #d6d7db;
+  border-radius: 999px;
+  color: var(--ink);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer
+}
+
+.ubot-user-app .chat-user-data .pd-detail:hover {
+  border-color: var(--ink)
+}
+
+.ubot-user-app .chat-user-data .pd-detail:disabled {
+  color: var(--muted);
+  cursor: progress
+}
+
+.ubot-user-app .chat-user-data .pd-lookup-note {
+  color: var(--pink-dark);
+  font-size: 12px
+}
+
+.ubot-user-app .chat-user-data .pd-carousel {
+  /* 그리드 칸보다 넓어지지 않아야 목록 안에서 가로로 넘어갑니다. */
+  min-width: 0;
+  position: relative
+}
+
+.ubot-user-app .chat-user-data .pd-track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  cursor: grab
+}
+
+.ubot-user-app .chat-user-data .pd-track::-webkit-scrollbar {
+  display: none
+}
+
+/* 끄는 동안에는 칸 맞춤을 꺼 두고, 놓으면 가까운 카드에 맞춥니다. */
+.ubot-user-app .chat-user-data .pd-track.is-dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none
+}
+
+/* 가로:세로 10:16의 세로로 긴 카드입니다. 설명은 자르지 않으므로 길면 카드가 더 길어지고,
+   같은 줄의 카드는 가장 긴 카드에 맞춰 높이를 같게 둡니다. */
+.ubot-user-app .chat-user-data .pd-track .pd-card {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: var(--pd-card-width);
+  min-height: calc(var(--pd-card-width) * 1.6);
+  margin-top: 0;
+  scroll-snap-align: start
+}
+
+.ubot-user-app .chat-user-data .pd-track .chat-card-pad {
+  display: flex;
+  flex: 1;
+  flex-direction: column
+}
+
+/* 폭이 좁아 큰 금액은 앞말 아래로 내려갑니다. */
+.ubot-user-app .chat-user-data .pd-track .pd-fee {
+  flex-wrap: wrap;
+  row-gap: 0
+}
+
+.ubot-user-app .chat-user-data .pd-track .pd-actions {
+  margin-top: auto;
+  padding-top: 12px
+}
+
+.ubot-user-app .chat-user-data .pd-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #d6d7db;
+  border-radius: 50%;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(23, 23, 26, .12);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: opacity .15s
+}
+
+.ubot-user-app .chat-user-data .pd-nav.prev {
+  left: -10px
+}
+
+.ubot-user-app .chat-user-data .pd-nav.next {
+  right: -10px
+}
+
+.ubot-user-app .chat-user-data .pd-nav:hover {
+  border-color: var(--ink)
+}
+
+.ubot-user-app .chat-user-data .pd-nav:focus-visible,
+.ubot-user-app .chat-user-data .pd-detail:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: 2px
+}
+
+/* 끝에 닿은 쪽 버튼은 숨깁니다. */
+.ubot-user-app .chat-user-data .pd-nav:disabled {
+  opacity: 0;
+  pointer-events: none
+}

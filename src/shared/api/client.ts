@@ -94,6 +94,7 @@ async function request<T>(path: string, init: RequestInit = {}, withAuth = true)
 async function send<T>(path: string, init: RequestInit, withAuth: boolean): Promise<T> {
   const accessToken = withAuth ? tokenStorage.getAccessToken() : null
   const response = await fetch(`${apiBaseUrl}${path}`, {
+    credentials: 'include',
     ...init,
     headers: {
       Accept: 'application/json',

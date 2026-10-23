@@ -6,6 +6,8 @@ const tabs = [
   ['전체 FAQ', '/admin/faqs'],
   ['삭제된 FAQ', '/admin/faqs/deleted'],
   ['카테고리 관리', '/admin/faqs/categories'],
+  ['개선 대상 제외', '/admin/faqs/improvement-exclusions'],
+  ['제외 해제 이력', '/admin/faqs/improvement-exclusions/history'],
 ]
 
 function CategoryLoadError() {
@@ -29,7 +31,7 @@ export function FaqLayout() {
           {tabs.map(([label, to]) => (
             <NavLink
               className={({ isActive }) => `faq-tab${isActive ? ' faq-tab--active' : ''}`}
-              end={to === '/admin/faqs'}
+              end
               key={to}
               to={to}
             >

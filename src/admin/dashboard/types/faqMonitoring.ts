@@ -1,4 +1,4 @@
-export type FaqIntent = 'GENERAL' | 'USER_DATA' | 'STORE_DATA'
+export type FaqIntent = 'GENERAL' | 'USER_DATA' | 'STORE_DATA' | 'PRODUCT_DATA'
 
 export interface UnansweredQuestionSummary {
   totalQuestionCount: number
@@ -24,6 +24,7 @@ export interface FaqUsageRanking {
   general: FaqUsageByIntent
   userData: FaqUsageByIntent
   storeData: FaqUsageByIntent
+  productData: FaqUsageByIntent
 }
 
 export interface FaqSimilarityItem {
@@ -44,6 +45,7 @@ export interface FaqSimilarityRanking {
   general: FaqSimilarityByIntent
   userData: FaqSimilarityByIntent
   storeData: FaqSimilarityByIntent
+  productData: FaqSimilarityByIntent
 }
 
 export interface FaqMonitoringResponse {
@@ -106,7 +108,7 @@ export interface FaqImprovementItem {
   topKCount: number
   averageSimilarity: number
   top1SampleCount: number
-  reviewableTopKCount: number
+  reviewableTopKCount?: number | null
   averageTopGap: number
   lowGapRate: number
 }
@@ -120,4 +122,20 @@ export interface FaqImprovementResponse {
   totalPages: number
   first: boolean
   last: boolean
+}
+
+export interface FaqImprovementExclusion {
+  exclusionId: number
+  faqId: number
+  faqQuestion: string
+  improvementType: FaqImprovementType
+  memo: string | null
+  excludedBy: number | null
+  excludedAt: string
+  outdated: boolean
+}
+
+export interface FaqImprovementExclusionHistory extends FaqImprovementExclusion {
+  releasedBy: number | null
+  releasedAt: string
 }

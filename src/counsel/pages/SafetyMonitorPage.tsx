@@ -10,10 +10,12 @@ function localInput(date: Date) {
 export function SafetyMonitorPage() {
   if (!counselConfig.enabled)
     return (
-      <main className="counsel-monitor">
-        <h1>상담 안전성 모니터링</h1>
-        <p>현재 사람 상담을 이용할 수 없습니다.</p>
-      </main>
+      <section className="page-heading">
+        <div>
+          <h1>상담 안전성 모니터링</h1>
+          <p>상담자 기능은 준비 중입니다.</p>
+        </div>
+      </section>
     )
   return <SafetyMonitor />
 }
@@ -73,13 +75,17 @@ function SafetyMonitor() {
     })
   }
   return (
-    <main className="counsel-monitor">
-      <h1>상담 안전성 모니터링</h1>
-      <p>
-        선택한 기간의 판정 기록입니다. 기본 조회 범위는 최근 24시간이며 메시지 원문은 표시하지
-        않습니다.
-      </p>
-      <form className="counsel-filters" onSubmit={search}>
+    <section className="counsel-monitor">
+      <div className="page-heading">
+        <div>
+          <h1>상담 안전성 모니터링</h1>
+          <p>
+            선택한 기간의 판정 기록입니다. 기본 조회 범위는 최근 24시간이며 메시지 원문은 표시하지
+            않습니다.
+          </p>
+        </div>
+      </div>
+      <form className="faq-search counsel-filters" onSubmit={search}>
         <label>
           시작
           <input
@@ -107,14 +113,20 @@ function SafetyMonitor() {
             <option value="CHECK_FAILED">검사 실패</option>
           </select>
         </label>
-        <button disabled={loading}>조회</button>
+        <button className="primary-button" type="submit" disabled={loading}>
+          {loading ? '조회 중...' : '조회'}
+        </button>
       </form>
       {error && (
-        <p role="alert" className="counsel-error">
+        <p role="alert" className="page-message page-message--error">
           {error}
         </p>
       )}
-      {loading && <p role="status">조회 중…</p>}
+      {loading && (
+        <p className="page-message" role="status">
+          조회 중…
+        </p>
+      )}
       {result && !loading && (
         <>
           <div className="counsel-counters">
@@ -133,8 +145,13 @@ function SafetyMonitor() {
               </div>
             ))}
           </div>
-          <div className="counsel-table-wrap">
-            <table>
+          <div
+            className="faq-table-wrapper counsel-table-wrap"
+            role="region"
+            aria-label="상담 판정 이력"
+            tabIndex={0}
+          >
+            <table className="faq-table">
               <caption>상담 가드 판정 이력</caption>
               <thead>
                 <tr>
@@ -149,7 +166,9 @@ function SafetyMonitor() {
                     '모델 / 버전',
                     '오류',
                   ].map((label) => (
-                    <th key={label}>{label}</th>
+                    <th className={label === '오류' ? 'counsel-error-cell' : undefined} key={label}>
+                      {label}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -157,9 +176,31 @@ function SafetyMonitor() {
                 {result.events.items.map((event) => (
                   <tr key={event.id}>
                     <td>{new Date(event.createdAt).toLocaleString('ko-KR')}</td>
-                    <td className="counsel-session-id">{event.sessionId}</td>
-                    <td>{event.senderRole}</td>
-                    <td>{event.decision}</td>
+                    <td>
+                      <span className="counsel-session-id" title={event.sessionId}>
+                        {event.sessionId}
+                      </span>
+                    </td>
+                    <td>
+                      {event.senderRole === 'USER'
+                        ? '고객'
+                        : event.senderRole === 'COUNSELOR'
+                          ? '상담사'
+                          : event.senderRole}
+                    </td>
+                    <td>
+                      <span
+                        className={`counsel-decision counsel-decision--${event.decision.toLowerCase()}`}
+                      >
+                        {event.decision === 'ALLOWED'
+                          ? '허용'
+                          : event.decision === 'BLOCKED'
+                            ? '차단'
+                            : event.decision === 'CHECK_FAILED'
+                              ? '검사 실패'
+                              : event.decision}
+                      </span>
+                    </td>
                     <td>{event.category ?? '—'}</td>
                     <td>{event.score?.toFixed(4) ?? '—'}</td>
                     <td>{event.threshold}</td>
@@ -168,14 +209,20 @@ function SafetyMonitor() {
                       <br />
                       {event.profileVersion} / {event.ruleVersion}
                     </td>
-                    <td>{event.errorCode ?? '—'}</td>
+                    <td className="counsel-error-cell" title={event.errorCode ?? undefined}>
+                      <code>{event.errorCode ?? '—'}</code>
+                    </td>
                   </tr>
                 ))}
+                {result.events.items.length === 0 && (
+                  <tr>
+                    <td colSpan={10}>해당 조건의 판정 기록이 없습니다.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
-            {result.events.items.length === 0 && <p>해당 조건의 판정 기록이 없습니다.</p>}
           </div>
-          <div className="counsel-toolbar">
+          <nav className="pagination" aria-label="상담 판정 이력 페이지">
             <button
               disabled={query.page === 0}
               onClick={() => {
@@ -195,9 +242,9 @@ function SafetyMonitor() {
             >
               다음
             </button>
-          </div>
+          </nav>
         </>
       )}
-    </main>
+    </section>
   )
 }

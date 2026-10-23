@@ -13,7 +13,7 @@ export function SafetySentencesPage() {
       <section className="page-heading">
         <div>
           <h1>상담 금지 문장 관리</h1>
-          <p>현재 사람 상담을 이용할 수 없습니다.</p>
+          <p>상담자 기능은 준비 중입니다.</p>
         </div>
       </section>
     )

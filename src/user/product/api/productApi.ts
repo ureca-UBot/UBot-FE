@@ -28,30 +28,40 @@ function listQuery({ keyword, page = 0, size = 20 }: ProductListParams) {
 // 로그인 없이 조회할 수 있습니다. 활성 상태이고 삭제되지 않은 상품만 내려옵니다.
 export const productApi = {
   getPlanList: (params: ProductListParams = {}) =>
-    apiClient.get<PageResponse<PlanSummary>>(`/api/plans?${listQuery(params).toString()}`),
-  getPlan: (planId: number) => apiClient.get<PlanDetail>(`/api/plans/${planId}`),
+    apiClient.get<PageResponse<PlanSummary>>(
+      `/api/plans?${listQuery(params).toString()}`,
+      undefined,
+      false,
+    ),
+  getPlan: (planId: number) => apiClient.get<PlanDetail>(`/api/plans/${planId}`, undefined, false),
 
   getBundleProductList: (params: ProductListParams = {}) =>
     apiClient.get<PageResponse<BundleProduct>>(
       `/api/bundle-products?${listQuery(params).toString()}`,
+      undefined,
+      false,
     ),
   getBundleProduct: (bundleProductId: number) =>
-    apiClient.get<BundleProduct>(`/api/bundle-products/${bundleProductId}`),
+    apiClient.get<BundleProduct>(`/api/bundle-products/${bundleProductId}`, undefined, false),
 
   getAddonServiceList: (params: ProductListParams = {}) =>
     apiClient.get<PageResponse<AddonService>>(
       `/api/addon-services?${listQuery(params).toString()}`,
+      undefined,
+      false,
     ),
   getAddonService: (addonServiceId: number) =>
-    apiClient.get<AddonService>(`/api/addon-services/${addonServiceId}`),
+    apiClient.get<AddonService>(`/api/addon-services/${addonServiceId}`, undefined, false),
 
   getRoamingProductList: ({ country, ...params }: RoamingProductListParams = {}) => {
     const searchParams = listQuery(params)
     if (country?.trim()) searchParams.set('country', country.trim())
     return apiClient.get<PageResponse<RoamingProduct>>(
       `/api/roaming-products?${searchParams.toString()}`,
+      undefined,
+      false,
     )
   },
   getRoamingProduct: (roamingProductId: number) =>
-    apiClient.get<RoamingProduct>(`/api/roaming-products/${roamingProductId}`),
+    apiClient.get<RoamingProduct>(`/api/roaming-products/${roamingProductId}`, undefined, false),
 }

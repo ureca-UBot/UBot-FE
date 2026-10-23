@@ -133,6 +133,7 @@
 }
 .faq-dashboard-section--detail {
   border-color: #cfb6ff;
+  container-type: inline-size;
 }
 .faq-dashboard-section--improvement {
   border-color: #ffd378;
@@ -1682,12 +1683,14 @@
   gap: 12px;
 }
 .faq-dashboard-improvement-extra__title > div {
+  order: 1;
   display: flex;
   min-width: 0;
   align-items: baseline;
   gap: 7px;
 }
 .faq-dashboard-ai-review__button {
+  order: 3;
   min-height: 29px;
   padding: 0 10px;
   flex: 0 0 auto;
@@ -1705,6 +1708,8 @@
   cursor: wait;
   opacity: 0.55;
 }
+.faq-dashboard-improvement-exclusion__button { order: 2; min-height: 29px; margin-left: auto; padding: 0 10px; flex: 0 0 auto; border: 1px solid #0f766e; border-radius: 6px; color: #fff; background: #0f766e; font-size: 10px; font-weight: 800; }.faq-dashboard-improvement-exclusion__button:hover { background: #0d5f59; }
+.faq-improvement-exclusion-modal { width: min(100%, 560px); }.faq-improvement-exclusion-modal__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }.faq-improvement-exclusion-modal__header span { display: block; margin-bottom: 3px; color: #0f766e; font-size: 10px; font-weight: 900; letter-spacing: .1em; }.faq-improvement-exclusion-modal__header h2 { margin: 0; color: #134e4a; font-size: 21px; }.faq-improvement-exclusion-modal__header > button { display: grid; width: 30px; height: 30px; place-items: center; border: 0; border-radius: 50%; color: #6b7280; background: #f3f4f6; font-size: 22px; line-height: 1; }.faq-improvement-exclusion-modal__question { margin: 0; padding: 12px 14px; border: 1px solid #99f6e4; border-radius: 10px; color: #115e59; background: #f0fdfa; line-height: 1.55; }.faq-improvement-exclusion-modal__question b { margin-right: 6px; }.faq-improvement-exclusion-modal__types { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 13px 14px; border: 1px solid #e5e7eb; border-radius: 10px; }.faq-improvement-exclusion-modal__types-title { width: 100%; margin: 0; padding: 0 4px; color: #374151; font-size: 13px; font-weight: 700; }.faq-improvement-exclusion-modal__types label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border: 1px solid #bfdbfe; border-radius: 999px; color: #185da8; background: #e8f2ff; font-size: 12px; font-weight: 700; cursor: pointer; }.faq-improvement-exclusion-modal__types label[data-type='LOW_USAGE'] { border-color: #ddd6fe; color: #7147a3; background: #f2eaff; }.faq-improvement-exclusion-modal__types label[data-type='DUPLICATE_SUSPECTED'] { border-color: #f0d4a8; color: #a85e13; background: #fff1db; }.faq-improvement-exclusion-modal__types label:has(input:not(:checked)) { opacity: .52; }.faq-improvement-exclusion-modal__types input { width: 14px; height: 14px; margin: 0; accent-color: currentColor; }.faq-improvement-exclusion-modal__memo { color: #374151; font-size: 14px; font-weight: 700; }.faq-improvement-exclusion-modal__memo span { color: #6b7280; font-size: 12px; font-weight: 400; }.faq-improvement-exclusion-modal__memo textarea { min-height: 92px; resize: vertical; font: inherit; }.faq-improvement-exclusion-modal__error { margin: 0; padding: 10px 12px; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; background: #fef2f2; font-size: 13px; }
 .faq-ai-review-modal {
   width: min(100%, 760px);
   max-width: calc(100vw - 32px);
@@ -2056,5 +2061,35 @@
 @keyframes faq-ai-review-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* 상세 카드 자신의 너비에 맞춰 내용을 배치해 옆 카드 아래로 잘리지 않게 합니다. */
+.faq-dashboard-detail > * {
+  min-width: 0;
+}
+
+.faq-dashboard-detail__basic {
+  grid-template-columns: 82px minmax(0, 1fr);
+}
+
+.faq-dashboard-detail__basic b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.faq-dashboard-detail__trend-heading,
+.faq-dashboard-detail__trend-controls {
+  flex-wrap: wrap;
+}
+
+.faq-dashboard-cooccurring {
+  overflow-x: auto;
+}
+
+@container (max-width: 720px) {
+  .faq-dashboard-detail {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
   }
 }
