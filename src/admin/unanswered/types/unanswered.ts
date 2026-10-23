@@ -1,7 +1,7 @@
 import type { FaqIntent } from '../../faq/types/faq'
 
 export type UnansweredGroupStatus = 'PENDING' | 'APPROVED' | 'ON_HOLD' | 'REJECTED'
-export type UnansweredReason = 'NO_FAQ' | 'INSUFFICIENT_FAQ' | 'LLM_ABSTAIN'
+export type UnansweredReason = 'NO_FAQ' | 'INSUFFICIENT_FAQ' | 'LLM_ABSTAIN' | 'LLM_CONFLICT'
 export type UnansweredGroupSort = 'recent' | 'count'
 
 export interface UnansweredGroupResponse {
@@ -77,4 +77,5 @@ export const UNANSWERED_REASON_LABELS: Record<UnansweredReason, string> = {
   NO_FAQ: 'FAQ 없음',
   INSUFFICIENT_FAQ: '유사도 미달',
   LLM_ABSTAIN: 'LLM 답변 불가',
+  LLM_CONFLICT: 'FAQ 내용 충돌',
 }
