@@ -33,15 +33,21 @@ const OPTION_PAGE_SIZE = 100
 const PHONE_NUMBER_PATTERN = /^010-?\d{4}-?\d{4}$/
 
 // MY 화면에서 열 수 있는 신청 창입니다. 회선 신청은 그 회선(subscription)에서만 엽니다.
+// productId는 상품 화면에서 고른 상품으로, 창을 열 때 미리 골라 둡니다.
 export type SubscriptionAction =
-  | { type: 'open' }
+  | { type: 'open'; productId?: number }
   | { type: 'terminate'; subscription: Subscription }
-  | { type: 'changePlan'; subscription: Subscription }
-  | { type: 'subscribeAddon'; subscription: Subscription; activeAddonIds: number[] }
+  | { type: 'changePlan'; subscription: Subscription; productId?: number }
+  | {
+      type: 'subscribeAddon'
+      subscription: Subscription
+      activeAddonIds: number[]
+      productId?: number
+    }
   | { type: 'cancelAddon'; subscription: Subscription; addon: SubscriptionAddon }
-  | { type: 'scheduleRoaming'; subscription: Subscription }
+  | { type: 'scheduleRoaming'; subscription: Subscription; productId?: number }
   | { type: 'cancelRoaming'; subscription: Subscription; roaming: SubscriptionRoaming }
-  | { type: 'createBundle'; subscription: Subscription }
+  | { type: 'createBundle'; subscription: Subscription; productId?: number }
   | { type: 'addBundleMember'; subscription: Subscription; group: BundleGroup }
   | {
       type: 'removeBundleMember'
@@ -49,7 +55,7 @@ export type SubscriptionAction =
       group: BundleGroup
       member: BundleGroupMember
     }
-  | { type: 'subscribeHome'; activeTypes: HomeProductType[] }
+  | { type: 'subscribeHome'; activeTypes: HomeProductType[]; productId?: number }
   | { type: 'endHome'; home: HomeSubscription }
 
 interface SubscriptionActionsProps {
@@ -59,19 +65,27 @@ interface SubscriptionActionsProps {
   onDone: (message: string) => void
 }
 
-// 신청 창에서 고를 상품 목록입니다. 판매 중인 상품만 내려옵니다.
+// 신청 창에서 고를 상품 목록과 고른 값입니다. 판매 중인 상품만 내려옵니다.
 // 창을 여는 동안 한 번만 불러옵니다. 부르는 쪽이 매번 새 함수를 넘겨도 다시 조회하지 않습니다.
-function useOptions<T>(load: () => Promise<T[]>) {
-  const loadRef = useRef(load)
+// initialId는 상품 화면에서 고른 상품입니다. 목록에 없으면(이미 이용 중이거나 판매가 끝남) 선택을 비우고 dropped로 알립니다.
+function useOptions<T>(load: () => Promise<T[]>, idOf: (item: T) => number, initialId?: number) {
+  const loadRef = useRef({ load, idOf, initialId })
   const [items, setItems] = useState<T[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [value, setValue] = useState(initialId === undefined ? '' : String(initialId))
+  const [dropped, setDropped] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    loadRef
-      .current()
+    const { load, idOf, initialId } = loadRef.current
+    load()
       .then((next) => {
-        if (!cancelled) setItems(next)
+        if (cancelled) return
+        setItems(next)
+        if (initialId !== undefined && !next.some((item) => idOf(item) === initialId)) {
+          setValue('')
+          setDropped(true)
+        }
       })
       .catch((caught: unknown) => {
         if (!cancelled)
@@ -82,13 +96,13 @@ function useOptions<T>(load: () => Promise<T[]>) {
     }
   }, [])
 
-  return { items, error }
+  return { items, error, value, setValue, dropped }
 }
 
 interface OptionSelectProps<T> {
   label: string
   placeholder: string
-  options: { items: T[] | null; error: string | null }
+  options: { items: T[] | null; error: string | null; dropped: boolean }
   value: string
   onChange: (value: string) => void
   idOf: (item: T) => number
@@ -106,7 +120,7 @@ function OptionSelect<T>({
   textOf,
   emptyText,
 }: OptionSelectProps<T>) {
-  const { items, error } = options
+  const { items, error, dropped } = options
   return (
     <label>
       <span>{label}</span>
@@ -132,19 +146,28 @@ function OptionSelect<T>({
         ))}
       </select>
       {error && <small className="my-profile-message error">{error}</small>}
+      {dropped && value === '' && (
+        <small className="my-profile-message error">
+          고른 상품은 이미 이용 중이거나 지금 가입할 수 없어요. 다른 상품을 골라 주세요.
+        </small>
+      )}
     </label>
   )
 }
+
+type DialogProps = Omit<SubscriptionActionsProps, 'action'> & { productId?: number }
 
 function planText(plan: PlanSummary) {
   return `${plan.name} · 월 ${formatWon(plan.monthlyFee)}`
 }
 
-function OpenSubscriptionDialog({ onClose, onDone }: Omit<SubscriptionActionsProps, 'action'>) {
+function OpenSubscriptionDialog({ productId, onClose, onDone }: DialogProps) {
   const plans = useOptions(
     async () => (await productApi.getPlanList({ size: OPTION_PAGE_SIZE })).content,
+    (plan) => plan.planId,
+    productId,
   )
-  const [planId, setPlanId] = useState('')
+  const { value: planId, setValue: setPlanId } = plans
   const [phoneNumber, setPhoneNumber] = useState('')
   const phoneValid = phoneNumber.trim() === '' || PHONE_NUMBER_PATTERN.test(phoneNumber.trim())
 
@@ -196,15 +219,19 @@ function OpenSubscriptionDialog({ onClose, onDone }: Omit<SubscriptionActionsPro
 
 function ChangePlanDialog({
   subscription,
+  productId,
   onClose,
   onDone,
-}: Omit<SubscriptionActionsProps, 'action'> & { subscription: Subscription }) {
-  const plans = useOptions(async () =>
-    (await productApi.getPlanList({ size: OPTION_PAGE_SIZE })).content.filter(
-      (plan) => plan.planId !== subscription.planId,
-    ),
+}: DialogProps & { subscription: Subscription }) {
+  const plans = useOptions(
+    async () =>
+      (await productApi.getPlanList({ size: OPTION_PAGE_SIZE })).content.filter(
+        (plan) => plan.planId !== subscription.planId,
+      ),
+    (plan) => plan.planId,
+    productId,
   )
-  const [planId, setPlanId] = useState('')
+  const { value: planId, setValue: setPlanId } = plans
 
   return (
     <SubscriptionActionDialog
@@ -246,19 +273,23 @@ function ChangePlanDialog({
 function SubscribeAddonDialog({
   subscription,
   activeAddonIds,
+  productId,
   onClose,
   onDone,
-}: Omit<SubscriptionActionsProps, 'action'> & {
+}: DialogProps & {
   subscription: Subscription
   activeAddonIds: number[]
 }) {
   // 이미 이용 중인 부가서비스는 다시 가입할 수 없으므로(SUB-006) 목록에서 뺍니다.
-  const addons = useOptions(async () =>
-    (await productApi.getAddonServiceList({ size: OPTION_PAGE_SIZE })).content.filter(
-      (addon) => !activeAddonIds.includes(addon.addonServiceId),
-    ),
+  const addons = useOptions(
+    async () =>
+      (await productApi.getAddonServiceList({ size: OPTION_PAGE_SIZE })).content.filter(
+        (addon) => !activeAddonIds.includes(addon.addonServiceId),
+      ),
+    (addon) => addon.addonServiceId,
+    productId,
   )
-  const [addonServiceId, setAddonServiceId] = useState('')
+  const { value: addonServiceId, setValue: setAddonServiceId } = addons
 
   return (
     <SubscriptionActionDialog
@@ -294,14 +325,17 @@ function SubscribeAddonDialog({
 
 function ScheduleRoamingDialog({
   subscription,
+  productId,
   onClose,
   onDone,
-}: Omit<SubscriptionActionsProps, 'action'> & { subscription: Subscription }) {
+}: DialogProps & { subscription: Subscription }) {
   const roamings = useOptions(
     async () => (await productApi.getRoamingProductList({ size: OPTION_PAGE_SIZE })).content,
+    (product) => product.roamingProductId,
+    productId,
   )
   const today = toLocalDateText(new Date())
-  const [roamingProductId, setRoamingProductId] = useState('')
+  const { value: roamingProductId, setValue: setRoamingProductId } = roamings
   const [startDate, setStartDate] = useState(today)
   const [endDate, setEndDate] = useState(today)
   const days = startDate && endDate ? countDays(startDate, endDate) : 0
@@ -378,13 +412,16 @@ function ScheduleRoamingDialog({
 
 function CreateBundleDialog({
   subscription,
+  productId,
   onClose,
   onDone,
-}: Omit<SubscriptionActionsProps, 'action'> & { subscription: Subscription }) {
+}: DialogProps & { subscription: Subscription }) {
   const bundles = useOptions(
     async () => (await productApi.getBundleProductList({ size: OPTION_PAGE_SIZE })).content,
+    (product) => product.bundleProductId,
+    productId,
   )
-  const [bundleProductId, setBundleProductId] = useState('')
+  const { value: bundleProductId, setValue: setBundleProductId } = bundles
 
   return (
     <SubscriptionActionDialog
@@ -463,16 +500,20 @@ function AddBundleMemberDialog({
 
 function SubscribeHomeDialog({
   activeTypes,
+  productId,
   onClose,
   onDone,
-}: Omit<SubscriptionActionsProps, 'action'> & { activeTypes: HomeProductType[] }) {
+}: DialogProps & { activeTypes: HomeProductType[] }) {
   // 같은 종류는 하나만 이용할 수 있으므로(HSUB-002) 이용 중인 종류는 목록에서 뺍니다.
-  const products = useOptions(async () =>
-    (await productApi.getHomeProductList({ size: OPTION_PAGE_SIZE })).content.filter(
-      (product) => !activeTypes.includes(product.productType),
-    ),
+  const products = useOptions(
+    async () =>
+      (await productApi.getHomeProductList({ size: OPTION_PAGE_SIZE })).content.filter(
+        (product) => !activeTypes.includes(product.productType),
+      ),
+    (product) => product.homeProductId,
+    productId,
   )
-  const [homeProductId, setHomeProductId] = useState('')
+  const { value: homeProductId, setValue: setHomeProductId } = products
 
   return (
     <SubscriptionActionDialog
@@ -524,21 +565,40 @@ export function SubscriptionActions({ action, onClose, onDone }: SubscriptionAct
 
   switch (action.type) {
     case 'open':
-      return <OpenSubscriptionDialog {...common} />
+      return <OpenSubscriptionDialog {...common} productId={action.productId} />
     case 'changePlan':
-      return <ChangePlanDialog {...common} subscription={action.subscription} />
+      return (
+        <ChangePlanDialog
+          {...common}
+          productId={action.productId}
+          subscription={action.subscription}
+        />
+      )
     case 'subscribeAddon':
       return (
         <SubscribeAddonDialog
           {...common}
           activeAddonIds={action.activeAddonIds}
+          productId={action.productId}
           subscription={action.subscription}
         />
       )
     case 'scheduleRoaming':
-      return <ScheduleRoamingDialog {...common} subscription={action.subscription} />
+      return (
+        <ScheduleRoamingDialog
+          {...common}
+          productId={action.productId}
+          subscription={action.subscription}
+        />
+      )
     case 'createBundle':
-      return <CreateBundleDialog {...common} subscription={action.subscription} />
+      return (
+        <CreateBundleDialog
+          {...common}
+          productId={action.productId}
+          subscription={action.subscription}
+        />
+      )
     case 'addBundleMember':
       return (
         <AddBundleMemberDialog
@@ -548,7 +608,13 @@ export function SubscriptionActions({ action, onClose, onDone }: SubscriptionAct
         />
       )
     case 'subscribeHome':
-      return <SubscribeHomeDialog {...common} activeTypes={action.activeTypes} />
+      return (
+        <SubscribeHomeDialog
+          {...common}
+          activeTypes={action.activeTypes}
+          productId={action.productId}
+        />
+      )
     case 'terminate':
       return (
         <ConfirmDialog

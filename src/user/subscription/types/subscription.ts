@@ -196,7 +196,8 @@ export interface RoamingScheduleRequest {
 // 회선 하나의 화면에 쓰는 정보입니다. 항목마다 따로 조회합니다.
 export interface SubscriptionDetail {
   plan: PlanDetail
-  contract: SubscriptionContract | null
+  // 현재 약정과 끝난 약정을 모두 담습니다. 시작일이 최근인 약정이 앞에 옵니다.
+  contracts: SubscriptionContract[]
   bundles: SubscriptionBundle[]
   addons: SubscriptionAddon[]
   roamings: SubscriptionRoaming[]

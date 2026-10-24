@@ -27,9 +27,9 @@ export const subscriptionApi = {
   getMySubscriptionList: () => apiClient.get<Subscription[]>(BASE_PATH),
   getMyPlan: (subscriptionId: number) =>
     apiClient.get<PlanDetail>(`${BASE_PATH}/${subscriptionId}/plan`),
-  // 현재 약정이 없으면 data가 null로 내려옵니다.
-  getMyContract: (subscriptionId: number) =>
-    apiClient.get<SubscriptionContract | null>(`${BASE_PATH}/${subscriptionId}/contract`),
+  // 현재 약정(ACTIVE)과 만료·해지된 약정까지 모두 내려옵니다. 시작일이 최근인 약정부터 옵니다.
+  getMyContractList: (subscriptionId: number) =>
+    apiClient.get<SubscriptionContract[]>(`${BASE_PATH}/${subscriptionId}/contracts`),
   getMyBundleList: (subscriptionId: number) =>
     apiClient.get<SubscriptionBundle[]>(`${BASE_PATH}/${subscriptionId}/bundles`),
   getMyAddonList: (subscriptionId: number) =>
@@ -110,7 +110,7 @@ export const subscriptionDetailLoaders: {
   [Key in SubscriptionDetailKey]: (subscriptionId: number) => Promise<SubscriptionDetail[Key]>
 } = {
   plan: (subscriptionId) => subscriptionApi.getMyPlan(subscriptionId),
-  contract: async (subscriptionId) => (await subscriptionApi.getMyContract(subscriptionId)) ?? null,
+  contracts: (subscriptionId) => subscriptionApi.getMyContractList(subscriptionId),
   bundles: (subscriptionId) => subscriptionApi.getMyBundleList(subscriptionId),
   addons: (subscriptionId) => subscriptionApi.getMyAddonList(subscriptionId),
   roamings: (subscriptionId) => subscriptionApi.getMyRoamingList(subscriptionId),

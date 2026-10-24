@@ -97,6 +97,12 @@ export const ROAMING_STATUS_TONES: Record<SubscriptionRoamingStatus, StatusTone>
   CANCELED: 'off',
 }
 
+export const CONTRACT_STATUS_TONES: Record<ContractStatus, StatusTone> = {
+  ACTIVE: 'on',
+  EXPIRED: 'off',
+  CANCELED: 'off',
+}
+
 export const PAYMENT_STATUS_TONES: Record<PaymentStatus, StatusTone> = {
   UNPAID: 'pending',
   PAID: 'on',

@@ -23,6 +23,7 @@ import {
   ADDON_STATUS_LABELS,
   BUNDLE_STATUS_LABELS,
   CONTRACT_STATUS_LABELS,
+  CONTRACT_STATUS_TONES,
   CONTRACT_TYPE_LABELS,
   INSTALLMENT_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
@@ -149,8 +150,42 @@ function paymentDetail(bill: BillingRecord) {
   return parts.join(' · ')
 }
 
-function ContractContent({ contract }: { contract: SubscriptionContract | null }) {
-  if (!contract) return <p className="my-profile-message">현재 약정이 없습니다.</p>
+// 현재 약정은 자세히 보여 주고, 끝난 약정은 아래에 이력으로 짧게 보여 줍니다.
+function ContractsContent({ contracts }: { contracts: SubscriptionContract[] }) {
+  const current = contracts.find((contract) => contract.status === 'ACTIVE') ?? null
+  const history = contracts.filter((contract) => contract !== current)
+
+  return (
+    <>
+      {current ? (
+        <ContractContent contract={current} />
+      ) : (
+        <p className="my-profile-message">현재 약정이 없습니다.</p>
+      )}
+      {history.length > 0 && (
+        <ul className="my-item-list my-sub-list">
+          {history.map((contract) => (
+            <li key={contract.contractId}>
+              <div>
+                <b>{CONTRACT_TYPE_LABELS[contract.contractType]}</b>
+                <span>{formatPeriod(contract.startedAt, contract.expiresAt)}</span>
+                {contract.canceledAt && <small>{formatDate(contract.canceledAt)} 해지</small>}
+              </div>
+              <div className="my-item-side">
+                <StatusBadge
+                  label={CONTRACT_STATUS_LABELS[contract.status]}
+                  tone={CONTRACT_STATUS_TONES[contract.status]}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  )
+}
+
+function ContractContent({ contract }: { contract: SubscriptionContract }) {
   const installment = contract.installment
 
   return (
@@ -420,8 +455,8 @@ export function SubscriptionDetailSections({
       </Block>
 
       <Block title="약정·단말 할부">
-        <PartContent part={parts.contract}>
-          {(contract) => <ContractContent contract={contract} />}
+        <PartContent part={parts.contracts}>
+          {(contracts) => <ContractsContent contracts={contracts} />}
         </PartContent>
       </Block>
 
