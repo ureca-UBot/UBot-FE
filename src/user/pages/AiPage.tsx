@@ -11,6 +11,7 @@ import { ConversationHistory } from '../ai/components/ConversationHistory'
 import { RankingFaqPanel } from '../ai/components/RankingFaqPanel'
 import type { useChat } from '../ai/hooks/useChat'
 import { collectStoreMaps } from '../ai/utils/storeMaps'
+import { Mascot } from '../mascot/Mascot'
 
 interface StoreMapState {
   // 드로어에 보여 줄 지도입니다. 지도를 새로 열어 달라고 할 때마다 새 객체로 바꿔 드로어가 다시 그리게 합니다.
@@ -384,7 +385,11 @@ export function AiPage({
                       <div className="chat-thread" id="chatThread">
                         {messages.map((message) => (
                           <div className={`msg ${message.role}`} key={message.id}>
-                            {message.role === 'ai' && <div className="msg-avatar">AI</div>}
+                            {message.role === 'ai' && (
+                              <div className="msg-avatar ubot-mascot-avatar">
+                                <Mascot size={48} />
+                              </div>
+                            )}
                             <div
                               className="msg-body"
                               dangerouslySetInnerHTML={{ __html: message.html }}

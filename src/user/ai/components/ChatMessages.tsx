@@ -1,5 +1,6 @@
 import { getAnswerText } from '../utils/answerText'
-import { Fragment, useEffect, useRef } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { Mascot } from '../../mascot/Mascot'
 import {
   CHAT_INTENT_LABELS,
   type ChatIntent,
@@ -127,6 +128,38 @@ function ResearchResult({
   )
 }
 
+function ChatAvatar({ turn }: { turn: ChatTurn }) {
+  const wasPending = useRef(turn.isPending)
+  const [justDone, setJustDone] = useState(false)
+
+  useEffect(() => {
+    if (wasPending.current && !turn.isPending && !turn.error && !turn.isCancelled) {
+      setJustDone(true)
+      const timer = window.setTimeout(() => setJustDone(false), 1500)
+      wasPending.current = false
+      return () => window.clearTimeout(timer)
+    }
+    wasPending.current = turn.isPending
+  }, [turn.isPending, turn.error, turn.isCancelled])
+
+  const state =
+    turn.isCancelling || turn.isCancelled
+      ? 'idle'
+      : turn.isPending
+        ? 'thinking'
+        : turn.error
+          ? 'fail'
+          : justDone
+            ? 'done'
+            : 'idle'
+
+  return (
+    <div className="msg-avatar ubot-mascot-avatar">
+      <Mascot state={state} size={48} />
+    </div>
+  )
+}
+
 export function ChatMessages({
   active,
   turns,
@@ -158,7 +191,7 @@ export function ChatMessages({
             </div>
           </div>
           <div className="msg ai">
-            <div className="msg-avatar">AI</div>
+            <ChatAvatar turn={turn} />
             <div className="msg-body">
               {turn.isCancelling ? (
                 <ProgressLine progress={null} message="답변 중단을 요청하고 있습니다." />
