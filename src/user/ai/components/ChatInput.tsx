@@ -51,7 +51,6 @@ export function ChatInput({
         onKeyDown={handleKeyDown}
         maxLength={4000}
         required
-        disabled={disabled}
       />
       <button
         className="voice"
