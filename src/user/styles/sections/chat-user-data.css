@@ -1,6 +1,8 @@
 /* 채팅 가입 정보 카드: 요금제·사용량·청구서
    ChatUserDataCards에서 직접 가져옵니다. user.css의 섹션 목록은 리팩터링 원문 보존 테스트 대상이라 여기에 두지 않습니다. */
 .ubot-user-app .chat-user-data {
+  /* 한 장으로 보여 주는 카드의 폭입니다. 세로는 이 값의 4/3(가로:세로 3:4)을 최소로 둡니다. */
+  --ud-narrow-card-width: 260px;
   display: grid;
   gap: 14px;
   margin-top: 4px
@@ -13,6 +15,13 @@
 
 .ubot-user-app .chat-user-data .ud-line .chat-card {
   margin-top: 0
+}
+
+/* 요금제, 한 달 사용량·청구서, 상품 1장 카드입니다. 비교표·월별 막대가 있는 카드는 넓게 둡니다.
+   내용이 길면 3:4보다 길어지고, 짧으면 아래에 여백이 남습니다. */
+.ubot-user-app .chat-user-data .chat-card.is-narrow {
+  width: min(100%, var(--ud-narrow-card-width));
+  min-height: calc(var(--ud-narrow-card-width) * 4 / 3)
 }
 
 .ubot-user-app .chat-user-data .ud-line-title {
@@ -87,6 +96,12 @@
   flex-basis: 100%;
   color: var(--muted);
   font-size: 12px
+}
+
+/* "월 75,000원"처럼 라벨을 금액 앞에 한 줄로 둡니다. */
+.ubot-user-app .chat-user-data .ud-hero.inline .ud-hero-label {
+  flex-basis: auto;
+  font-size: 13px
 }
 
 .ubot-user-app .chat-user-data .ud-hero-value {
@@ -499,14 +514,23 @@
   scroll-snap-align: start
 }
 
-.ubot-user-app .chat-user-data .pd-track .chat-card-pad {
+/* 상품 1장 카드도 여러 장일 때처럼 상세 보기 버튼을 카드 맨 아래에 둡니다. */
+.ubot-user-app .chat-user-data .pd-card.is-narrow {
+  display: flex;
+  flex-direction: column
+}
+
+.ubot-user-app .chat-user-data .pd-track .chat-card-pad,
+.ubot-user-app .chat-user-data .pd-card.is-narrow .chat-card-pad {
   display: flex;
   flex: 1;
   flex-direction: column
 }
 
-/* 여러 장일 때는 요금 줄과 글머리표 목록 사이에 구분선을 둡니다. 둘 중 하나가 없으면 선도 없습니다. */
-.ubot-user-app .chat-user-data .pd-track .pd-fee+.pd-bullets {
+/* 요금 줄(1장일 때 선택약정 문구가 있으면 그 아래)과 글머리표 목록 사이에 구분선을 둡니다.
+   요금 줄이나 목록 중 하나가 없으면 선도 없습니다. */
+.ubot-user-app .chat-user-data .pd-track .pd-fee~.pd-bullets,
+.ubot-user-app .chat-user-data .pd-card.is-narrow .pd-fee~.pd-bullets {
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--line)
@@ -518,7 +542,8 @@
   row-gap: 0
 }
 
-.ubot-user-app .chat-user-data .pd-track .pd-actions {
+.ubot-user-app .chat-user-data .pd-track .pd-actions,
+.ubot-user-app .chat-user-data .pd-card.is-narrow .pd-actions {
   margin-top: auto;
   padding-top: 12px
 }

@@ -16,6 +16,7 @@ import {
   formatWon,
   groupByPhone,
   paymentLabel,
+  planBadge,
   shortMonthLabel,
   usageTitle,
   yearOf,
@@ -112,19 +113,19 @@ function PlanCard({ card, phoneNumber }: { card: ChatPlanCard; phoneNumber?: str
   const exhausted = summary.exhaustedSpeedKbps
     ? ` · 소진 후 ${formatSpeedKbps(summary.exhaustedSpeedKbps)}`
     : ''
-  const meta = [summary.networkType, summary.targetGroup].filter(Boolean).join(' · ')
+  const badge = planBadge(summary.networkType, summary.targetGroup)
 
   return (
-    <div className="chat-card ud-card">
+    <div className="chat-card ud-card is-narrow">
       <div className="chat-card-pad">
         <CardHead
           kicker="현재 요금제"
           title={summary.name}
           phoneNumber={phoneNumber}
-          badge={meta || undefined}
+          badge={badge ?? undefined}
         />
-        <div className="ud-hero">
-          <span className="ud-hero-label">월정액</span>
+        <div className="ud-hero inline">
+          <span className="ud-hero-label">월</span>
           <strong className="ud-hero-value">{formatWon(summary.monthlyFee)}원</strong>
         </div>
         <dl className="ud-rows">
@@ -242,7 +243,7 @@ function UsageCard({ usages, phoneNumber }: { usages: ChatUsageRecord[]; phoneNu
   const baseYear = yearOf(usages[usages.length - 1].billingMonth)
 
   return (
-    <div className="chat-card ud-card">
+    <div className={`chat-card ud-card${usages.length === 1 ? ' is-narrow' : ''}`}>
       <div className="chat-card-pad">
         <CardHead
           title={usageTitle(usage.billingMonth)}
@@ -332,7 +333,7 @@ function BillingCard({
   const baseYear = yearOf(billings[billings.length - 1].billing.billingMonth)
 
   return (
-    <div className="chat-card ud-card">
+    <div className={`chat-card ud-card${billings.length === 1 ? ' is-narrow' : ''}`}>
       <div className="chat-card-pad">
         <CardHead
           title={billingTitle(billing.billingMonth, usageMonth)}

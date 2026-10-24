@@ -96,7 +96,7 @@ function ProductCard({
   }
 
   return (
-    <div className="chat-card ud-card pd-card">
+    <div className={`chat-card ud-card pd-card${inCarousel ? '' : ' is-narrow'}`}>
       <div className="chat-card-pad">
         <div className="ud-head">
           <h4 className="pd-name" title={card.name}>

@@ -86,6 +86,10 @@ const MOCK_PHONE = '010-****-1234'
 const MOCK_PHONE_2 = '010-****-5678'
 const GB = 1024
 
+// BE LocalDate와 같은 "2026-10-25" 형식의 로컬 날짜입니다.
+const toLocalDate = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+
 const mockPlan = (
   phoneNumber: string,
   name: string,
@@ -98,8 +102,8 @@ const mockPlan = (
       planId: phoneNumber === MOCK_PHONE ? 11 : 12,
       planCode: 'MOCK',
       name,
-      networkType: '5G',
-      targetGroup: '일반',
+      networkType: 'FIVE_G',
+      targetGroup: phoneNumber === MOCK_PHONE ? 'GENERAL' : 'YOUTH',
       monthlyFee,
       dataAmountMb,
       dataUnlimited: dataAmountMb === null,
@@ -176,6 +180,8 @@ const mockBilling = (
 }
 
 function mockUserData(question: string): ChatUserData | null {
+  // 집계일은 BE가 보내는 값입니다. mock은 질문한 날까지 집계한 것으로 둡니다.
+  const today = toLocalDate(new Date())
   if (question.includes('회선')) {
     return {
       plans: [
@@ -188,7 +194,7 @@ function mockUserData(question: string): ChatUserData | null {
           usage: mockUsage('2026-10', 4 * GB, 15 * GB, {
             finalized: false,
             finalizedAt: null,
-            aggregatedThroughDate: '2026-10-18',
+            aggregatedThroughDate: today,
           }),
         },
         {
@@ -196,7 +202,7 @@ function mockUserData(question: string): ChatUserData | null {
           usage: mockUsage('2026-10', 21.4 * GB, null, {
             finalized: false,
             finalizedAt: null,
-            aggregatedThroughDate: '2026-10-18',
+            aggregatedThroughDate: today,
           }),
         },
       ],
@@ -235,7 +241,7 @@ function mockUserData(question: string): ChatUserData | null {
         usage: mockUsage('2026-10', 4 * GB, 15 * GB, {
           finalized: false,
           finalizedAt: null,
-          aggregatedThroughDate: '2026-10-18',
+          aggregatedThroughDate: today,
         }),
       },
       { phoneNumber: MOCK_PHONE, usage: mockUsage('2026-08', 8.2 * GB, 10 * GB) },

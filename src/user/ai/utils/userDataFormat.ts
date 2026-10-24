@@ -5,6 +5,7 @@ import type {
   ChatUsageCard,
   ChatUserData,
 } from '../types/chat'
+import { NETWORK_TYPE_LABELS, PLAN_TARGET_GROUP_LABELS } from '../../../shared/product/format'
 
 const MB_PER_GB = 1024
 
@@ -31,6 +32,20 @@ export function formatDataPair(usedMb: number, totalMb: number): string {
 
 export function formatSpeedKbps(kbps: number): string {
   return kbps >= 1000 ? `${Math.round(kbps / 100) / 10}Mbps` : `${kbps}kbps`
+}
+
+// 가입 정보 응답은 BE enum을 문자열로 받으므로 모르는 값이 올 수 있습니다.
+const networkLabels: Record<string, string | undefined> = NETWORK_TYPE_LABELS
+const targetGroupLabels: Record<string, string | undefined> = PLAN_TARGET_GROUP_LABELS
+
+// 요금제 카드 배지입니다. 상품 정보 화면과 같은 공용 라벨을 쓰고, 모르는 값은 받은 그대로 보여 줍니다.
+// 예: "5G · 일반". 둘 다 없으면 null입니다.
+export function planBadge(networkType: string | null, targetGroup: string | null): string | null {
+  const parts = [
+    networkType && (networkLabels[networkType] ?? networkType),
+    targetGroup && (targetGroupLabels[targetGroup] ?? targetGroup),
+  ].filter(Boolean)
+  return parts.length > 0 ? parts.join(' · ') : null
 }
 
 function parseYearMonth(yearMonth: string) {

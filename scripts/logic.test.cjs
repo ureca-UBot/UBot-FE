@@ -441,3 +441,16 @@ test('개발용 채팅 mock의 상품 카드는 BE 응답 형식(specs·highligh
     assert.equal(card.specs.includes(card.network), false)
   }
 })
+
+test('가입 정보 요금제 배지는 BE enum을 화면 이름으로 바꾼다', () => {
+  const { userDataFormat } = modules
+  assert.equal(userDataFormat.planBadge('FIVE_G', 'GENERAL'), '5G · 일반')
+  assert.equal(userDataFormat.planBadge('LTE', 'YOUTH'), 'LTE · 청소년')
+  assert.deepEqual(
+    ['SENIOR', 'KIDS', 'WATCH', 'TABLET'].map((group) => userDataFormat.planBadge(null, group)),
+    ['시니어', '키즈', '워치', '태블릿'],
+  )
+  // 모르는 값은 받은 그대로 둡니다.
+  assert.equal(userDataFormat.planBadge('6G', 'VIP'), '6G · VIP')
+  assert.equal(userDataFormat.planBadge(null, null), null)
+})
