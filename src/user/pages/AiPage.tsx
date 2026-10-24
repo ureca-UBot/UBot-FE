@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { chatApi } from '../ai/api/chatApi'
 import { useCustomerCounsel, counselStates } from '../../counsel/hooks/useCustomerCounsel'
 import { CounselConversation } from '../../counsel/components/CounselConversation'
@@ -56,6 +56,12 @@ export function AiPage({
   const historyBusy = useRef(false)
   const counsel = useCustomerCounsel(chat)
   const hasConversation = chat ? chat.turns.length > 0 : chatActive
+
+  useEffect(() => {
+    if (hasConversation && document.activeElement?.id === 'aiHeroInput') {
+      document.getElementById('aiChatInput')?.focus()
+    }
+  }, [hasConversation])
   const inputDisabled = chat
     ? isInitializing || chat.isPending || counsel.blocking || deletingId !== null || openingHistory
     : false
@@ -153,18 +159,19 @@ export function AiPage({
               <strong>AI 채팅</strong>
             </div>
             <button
-              className="ai-counsel-link"
+              className={`ai-counsel-link${loggedIn ? '' : ' open-login'}`}
               type="button"
-              onClick={() => void counsel.requestCounsel()}
+              onClick={loggedIn ? () => void counsel.requestCounsel() : undefined}
               disabled={
-                !counsel.enabled ||
                 isInitializing ||
-                deletingId !== null ||
-                openingHistory ||
-                chat?.isPending ||
-                counsel.loading ||
-                counsel.busy ||
-                Boolean(counsel.session && counsel.session.status !== 'ENDED')
+                (loggedIn &&
+                  (!counsel.enabled ||
+                    deletingId !== null ||
+                    openingHistory ||
+                    chat?.isPending ||
+                    counsel.loading ||
+                    counsel.busy ||
+                    Boolean(counsel.session && counsel.session.status !== 'ENDED')))
               }
               title={
                 !loggedIn
@@ -354,9 +361,6 @@ export function AiPage({
                           placeholder="궁금한 내용을 입력해 주세요."
                           aria-label="AI 채팅 입력"
                         ></textarea>
-                        <button className="voice" aria-label="음성 입력">
-                          ◉
-                        </button>
                         <button className="send-ai" aria-label="질문 보내기">
                           ↑
                         </button>
@@ -419,9 +423,6 @@ export function AiPage({
                             placeholder="궁금한 내용을 입력해 주세요."
                             aria-label="AI 채팅 입력"
                           ></textarea>
-                          <button className="voice" aria-label="음성 입력">
-                            ◉
-                          </button>
                           <button className="send-ai" aria-label="질문 보내기">
                             ↑
                           </button>

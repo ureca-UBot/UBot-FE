@@ -51,17 +51,7 @@ export function ChatInput({
         onKeyDown={handleKeyDown}
         maxLength={4000}
         required
-        disabled={disabled}
       />
-      <button
-        className="voice"
-        type="button"
-        aria-label="음성 입력"
-        title="음성 입력 준비 중"
-        disabled
-      >
-        ◉
-      </button>
       <button
         className="send-ai"
         type={isGenerating ? 'button' : 'submit'}
