@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { AuthLayout } from '../components/AuthLayout'
+import { PasswordField } from '../components/PasswordField'
 
 function getDestination(role: 'USER' | 'ADMIN' | 'COUNSELOR') {
   return role === 'ADMIN' ? '/admin/dashboard' : role === 'COUNSELOR' ? '/counselor' : '/'
@@ -34,52 +36,48 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-page">
-      <section className="login-card" aria-labelledby="login-title">
-        <h1 id="login-title">UBot 로그인</h1>
-        {didSignupSucceed && (
-          <p className="login-success" role="status">
-            회원가입이 완료되었습니다. 로그인해 주세요.
+    <AuthLayout mode="login">
+      {didSignupSucceed && (
+        <p className="auth-feedback auth-feedback--success" role="status">
+          회원가입이 완료되었습니다. 로그인해 주세요.
+        </p>
+      )}
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <label>
+          이메일
+          <input
+            autoComplete="email"
+            name="email"
+            placeholder="이메일 주소"
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            type="email"
+            value={email}
+          />
+        </label>
+        <PasswordField
+          label="비밀번호"
+          name="password"
+          autoComplete="current-password"
+          placeholder="비밀번호"
+          onChange={(event) => setPassword(event.target.value)}
+          value={password}
+        />
+        {errorMessage && (
+          <p className="auth-feedback auth-feedback--error" role="alert">
+            {errorMessage}
           </p>
         )}
-        <form className="login-form" onSubmit={handleSubmit}>
-          <label>
-            이메일
-            <input
-              autoComplete="email"
-              onChange={(event) => setEmail(event.target.value)}
-              required
-              type="email"
-              value={email}
-            />
-          </label>
-          <label>
-            비밀번호
-            <input
-              autoComplete="current-password"
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              type="password"
-              value={password}
-            />
-          </label>
-          {errorMessage && (
-            <p className="login-error" role="alert">
-              {errorMessage}
-            </p>
-          )}
-          <button
-            className="primary-button"
-            disabled={isSubmitting || isInitializing}
-            type="submit"
-          >
-            {isSubmitting ? '로그인 중...' : '로그인'}
-          </button>
-        </form>
-        <p className="auth-page-link">
-          계정이 없으신가요? <Link to="/auth/signup">회원가입</Link>
-        </p>
-      </section>
-    </main>
+        <button className="auth-submit" disabled={isSubmitting || isInitializing} type="submit">
+          {isSubmitting ? '로그인 중...' : '로그인'}
+        </button>
+      </form>
+      <div className="auth-switch">
+        <span>아직 계정이 없으신가요?</span>
+        <Link to="/auth/signup">
+          회원가입 <span aria-hidden="true">›</span>
+        </Link>
+      </div>
+    </AuthLayout>
   )
 }

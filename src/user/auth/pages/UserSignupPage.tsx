@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authApi } from '../../../auth/api/authApi'
 import type { SignupRequest } from '../../../auth/types/auth'
+import { AuthLayout } from '../../../auth/components/AuthLayout'
+import { PasswordField } from '../../../auth/components/PasswordField'
 
 const initialForm: SignupRequest = {
   email: '',
@@ -18,6 +20,8 @@ export function UserSignupPage() {
   const [form, setForm] = useState<SignupRequest>(initialForm)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const validPasswordLength = form.password.length >= 8 && form.password.length <= 20
+  const passwordsMatch = validPasswordLength && form.password === form.passwordConfirm
 
   function updateField<Key extends keyof SignupRequest>(key: Key, value: SignupRequest[Key]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -44,15 +48,16 @@ export function UserSignupPage() {
   }
 
   return (
-    <main className="login-page">
-      <section className="login-card signup-card" aria-labelledby="signup-title">
-        <h1 id="signup-title">회원가입</h1>
-        <p>UBot 일반 사용자 계정을 만들어 주세요.</p>
-        <form className="signup-form" onSubmit={handleSubmit}>
-          <label className="signup-form__full">
+    <AuthLayout mode="signup">
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <fieldset className="auth-field-group">
+          <legend>계정 정보</legend>
+          <label className="auth-field">
             이메일
             <input
               autoComplete="email"
+              name="email"
+              placeholder="example@email.com"
               maxLength={100}
               onChange={(event) => updateField('email', event.target.value)}
               required
@@ -60,87 +65,113 @@ export function UserSignupPage() {
               value={form.email}
             />
           </label>
-          <label>
-            비밀번호
-            <input
+          <div className="auth-field-row">
+            <PasswordField
+              label="비밀번호"
+              name="password"
+              placeholder="8~20자"
               autoComplete="new-password"
               maxLength={20}
               minLength={8}
               onChange={(event) => updateField('password', event.target.value)}
-              required
-              type="password"
               value={form.password}
+              validation={{
+                status: validPasswordLength ? 'valid' : 'invalid',
+                message: validPasswordLength
+                  ? '사용 가능한 길이입니다.'
+                  : '8~20자로 입력해 주세요.',
+              }}
             />
-          </label>
-          <label>
-            비밀번호 확인
-            <input
+            <PasswordField
+              label="비밀번호 확인"
+              name="passwordConfirm"
+              placeholder="다시 입력"
               autoComplete="new-password"
               maxLength={20}
               minLength={8}
               onChange={(event) => updateField('passwordConfirm', event.target.value)}
-              required
-              type="password"
               value={form.passwordConfirm}
+              validation={{
+                status: passwordsMatch ? 'valid' : 'invalid',
+                message: passwordsMatch
+                  ? '비밀번호가 일치합니다.'
+                  : '비밀번호가 일치하지 않습니다.',
+              }}
             />
-          </label>
-          <label>
-            이름
-            <input
-              maxLength={20}
-              onChange={(event) => updateField('name', event.target.value)}
-              required
-              value={form.name}
-            />
-          </label>
-          <label>
-            생년월일
-            <input
-              max={new Date().toISOString().slice(0, 10)}
-              onChange={(event) => updateField('birthDate', event.target.value)}
-              required
-              type="date"
-              value={form.birthDate}
-            />
-          </label>
-          <label>
-            성별
-            <select
-              onChange={(event) =>
-                updateField('gender', event.target.value as SignupRequest['gender'])
-              }
-              value={form.gender}
-            >
-              <option value="MALE">남성</option>
-              <option value="FEMALE">여성</option>
-            </select>
-          </label>
-          <label>
-            거주 지역
-            <input
-              maxLength={100}
-              onChange={(event) => updateField('residenceArea', event.target.value)}
-              required
-              value={form.residenceArea}
-            />
-          </label>
-          {errorMessage && (
-            <p className="login-error signup-form__full" role="alert">
-              {errorMessage}
-            </p>
-          )}
-          <button
-            className="primary-button signup-form__full"
-            disabled={isSubmitting}
-            type="submit"
-          >
-            {isSubmitting ? '가입 중...' : '회원가입'}
-          </button>
-        </form>
-        <p className="auth-page-link">
-          <Link to="/auth/login">로그인</Link>
-        </p>
-      </section>
-    </main>
+          </div>
+        </fieldset>
+        <fieldset className="auth-field-group">
+          <legend>기본 정보</legend>
+          <div className="auth-field-row">
+            <label className="auth-field">
+              이름
+              <input
+                maxLength={20}
+                name="name"
+                autoComplete="name"
+                placeholder="이름 입력"
+                onChange={(event) => updateField('name', event.target.value)}
+                required
+                value={form.name}
+              />
+            </label>
+            <label className="auth-field">
+              생년월일
+              <input
+                max={new Date().toISOString().slice(0, 10)}
+                name="birthDate"
+                autoComplete="bday"
+                onChange={(event) => updateField('birthDate', event.target.value)}
+                required
+                type="date"
+                value={form.birthDate}
+              />
+            </label>
+          </div>
+          <div className="auth-field-row">
+            <label className="auth-field">
+              성별
+              <select
+                name="gender"
+                onChange={(event) => {
+                  const gender = event.target.value
+                  if (gender === 'MALE' || gender === 'FEMALE') updateField('gender', gender)
+                }}
+                value={form.gender}
+              >
+                <option value="MALE">남성</option>
+                <option value="FEMALE">여성</option>
+              </select>
+            </label>
+            <label className="auth-field">
+              거주 지역
+              <input
+                maxLength={100}
+                name="residenceArea"
+                autoComplete="address-level1"
+                placeholder="예: 서울특별시"
+                onChange={(event) => updateField('residenceArea', event.target.value)}
+                required
+                value={form.residenceArea}
+              />
+            </label>
+          </div>
+        </fieldset>
+        {errorMessage && (
+          <p className="auth-feedback auth-feedback--error" role="alert">
+            {errorMessage}
+          </p>
+        )}
+        <button className="auth-submit" disabled={isSubmitting} type="submit">
+          {isSubmitting ? '가입 중...' : '회원가입'}
+        </button>
+      </form>
+      <div className="auth-switch">
+        <span>이미 계정이 있으신가요?</span>
+        <Link to="/auth/login">
+          로그인 <span aria-hidden="true">›</span>
+        </Link>
+      </div>
+    </AuthLayout>
   )
 }
