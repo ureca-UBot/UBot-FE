@@ -401,6 +401,14 @@
   letter-spacing: -.02em
 }
 
+/* 한 장일 때 요금 아래에 두는 선택약정 할인가 문구입니다. */
+.ubot-user-app .chat-user-data .pd-fee-note {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums
+}
+
 .ubot-user-app .chat-user-data .pd-bullets {
   margin: 8px 0 0;
   padding-left: 16px;

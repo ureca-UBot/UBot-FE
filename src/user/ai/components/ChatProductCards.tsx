@@ -30,7 +30,8 @@ const CATALOG_KEY: Record<ChatProductType, ProductCatalogKey> = {
 const DRAG_THRESHOLD_PX = 5
 
 // 상품 정보 질문의 답변 아래에 답변에 쓰인 상품 카드를 그립니다.
-// 가입 정보 카드의 스타일을 그대로 쓰며, 이름·요금·글머리표 항목과 상세 보기 버튼만 둡니다.
+// 가입 정보 카드의 스타일을 그대로 쓰며, 이름·네트워크 뱃지·요금(한 장일 때는 선택약정 할인가 포함)·글머리표 항목과
+// 상세 보기 버튼만 둡니다.
 // 상품이 여러 개면 가로로 넘겨 보는 목록으로 바꿉니다.
 export function ChatProductCards({ productData }: ChatProductCardsProps) {
   const [detail, setDetail] = useState<OpenDetail | null>(null)
@@ -79,7 +80,9 @@ function ProductCard({
 }) {
   const [lookup, setLookup] = useState<'idle' | 'loading' | 'missing' | 'failed'>('idle')
   const fee = productFee(card)
-  const bullets = productBullets(card, inCarousel)
+  const bullets = productBullets(card)
+  // 선택약정 할인가는 폭이 좁은 가로 목록에서는 줄이 너무 길어져 한 장일 때만 보여 줍니다.
+  const feeNote = inCarousel ? null : card.feeNote
 
   const handleDetail = async () => {
     setLookup('loading')
@@ -95,15 +98,19 @@ function ProductCard({
   return (
     <div className="chat-card ud-card pd-card">
       <div className="chat-card-pad">
-        <h4 className="pd-name" title={card.name}>
-          {card.name}
-        </h4>
+        <div className="ud-head">
+          <h4 className="pd-name" title={card.name}>
+            {card.name}
+          </h4>
+          {card.network && <span className="ud-badge">{card.network}</span>}
+        </div>
         {fee && (
           <p className="pd-fee">
             {fee.prefix && <span className="pd-fee-label">{fee.prefix}</span>}
             <strong>{fee.amount}</strong>
           </p>
         )}
+        {feeNote && <p className="pd-fee-note">{feeNote}</p>}
         {bullets.length > 0 && (
           <ul className="pd-bullets">
             {bullets.map((bullet, index) => (

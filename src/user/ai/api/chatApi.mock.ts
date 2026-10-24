@@ -261,28 +261,37 @@ function mockUserData(question: string): ChatUserData | null {
 
 // 상품 카드 확인용: 상품 질문 키워드가 있으면 가입 정보 카드 대신 상품 카드를 돌려줍니다.
 // "로밍" → 로밍(요금 없는 상품 포함) / "부가" → 부가서비스 / "결합" → 홈 결합·가족 결합 / "요금제 하나" → 요금제 1개
-// "요금제 추천" → 요금제 5개(긴 이름, 네트워크 없는 specs, 요금·highlights 없는 상품 포함) / "추천"·"상품" → 종류별(0원 부가서비스 포함)
+// "요금제 추천" → 요금제 5개(긴 이름, 네트워크·약정가 없는 무약정 요금제, 요금·highlights 없는 상품 포함) / "추천"·"상품" → 종류별(0원 부가서비스 포함)
+// network·feeNote는 요금제만 씁니다(BE PlanTools 카드).
 const mockProduct = (
   type: ChatProductCard['type'],
   name: string,
   fee: number | null,
   specs: string[],
   highlights: string[],
-): ChatProductCard => ({ type, name, fee, specs, highlights })
+  plan: { network?: string; feeNote?: string } = {},
+): ChatProductCard => ({
+  type,
+  name,
+  fee,
+  specs,
+  highlights,
+  network: plan.network ?? null,
+  feeNote: plan.feeNote ?? null,
+})
 
-// BE PlanTools가 만드는 specs 순서를 따르지만, 화면은 순서에 기대지 않습니다.
+// 요금제 specs는 BE PlanTools가 만드는 데이터·음성/문자·테더링 세 줄입니다.
 const MOCK_PLAN_LITE = mockProduct(
   'PLAN',
   '5G 라이트',
   55_000,
   [
-    '5G',
-    '데이터 12GB(소진 후 최대 1Mbps)',
-    '음성·문자 기본 제공',
-    '테더링 12GB',
-    '선택약정 25% 할인 시 월 41,250원',
+    '월 데이터 12GB, 소진 후 최대 1Mbps',
+    '국내 일반 음성/문자 기본제공',
+    '테더링 월 12GB, 기본 데이터에서 함께 차감, 한도 소진 후 차단',
   ],
   ['가입 대상 만 19~34세', '만 35세가 되는 달 말일까지 이용 가능', '이후 일반형 변경 상담 안내'],
+  { network: '5G', feeNote: '선택약정 25% 할인 시 월 41,250원' },
 )
 const MOCK_ADDON = mockProduct(
   'ADDON',
@@ -348,55 +357,51 @@ function mockProductData(question: string): ChatProductData | null {
           '5G 스탠다드',
           75_000,
           [
-            '5G',
-            '데이터 150GB(소진 후 최대 5Mbps)',
-            '음성·문자 기본 제공',
-            '테더링 50GB',
-            '선택약정 25% 할인 시 월 56,250원',
+            '월 데이터 150GB, 소진 후 최대 5Mbps',
+            '국내 일반 음성/문자 기본제공',
+            '테더링 월 50GB, 기본 데이터에서 함께 차감, 한도 소진 후 차단',
           ],
-          ['통화·문자 기본 제공', '스마트기기 1회선 데이터 공유'],
+          ['스마트기기 1회선 데이터 공유'],
+          { network: '5G', feeNote: '선택약정 25% 할인 시 월 56,250원' },
         ),
+        // 고유 정보가 없는 요금제는 세 줄만 보입니다.
         mockProduct(
           'PLAN',
           '5G 프리미어 에센셜',
           85_000,
           [
-            '5G',
-            '데이터 무제한',
-            '음성·문자 기본 제공',
-            '테더링 70GB',
-            '선택약정 25% 할인 시 월 63,750원',
+            '월 고속 데이터 무제한',
+            '국내 일반 음성/문자 기본제공',
+            '테더링 월 70GB, 한도 소진 후 차단',
           ],
-          ['데이터 무제한'],
+          [],
+          { network: '5G', feeNote: '선택약정 25% 할인 시 월 63,750원' },
         ),
         mockProduct(
           'PLAN',
           '5G 시그니처 무제한 가족 공유 요금제',
           130_000,
           [
-            '5G',
-            '데이터 무제한',
-            '음성·문자 기본 제공',
-            '테더링 100GB',
-            '선택약정 25% 할인 시 월 97,500원',
+            '월 고속 데이터 무제한',
+            '국내 일반 음성/문자 기본제공',
+            '테더링 월 100GB, 한도 소진 후 차단',
           ],
           [
             '가족 회선과 데이터 나눠 쓰기 가능',
             '스마트기기 2회선 무료',
             'OTT 구독 중 하나 매달 제공',
+            '가입 후 6개월간 해지 시 혜택 회수',
           ],
+          { network: '5G', feeNote: '선택약정 25% 할인 시 월 97,500원' },
         ),
-        // 네트워크 항목이 없으면 요약 줄은 데이터 항목만 씁니다.
+        // 무약정 요금제는 약정가 문구가 없고, 요금이 없으면 요금 줄도 없습니다.
         mockProduct(
           'PLAN',
           '청소년 데이터',
           null,
-          [
-            '데이터 6GB(소진 후 최대 400kbps)',
-            '음성 100분, 문자 100건',
-            '선택약정 할인 미적용(무약정 요금제)',
-          ],
-          [],
+          ['월 데이터 6GB, 소진 후 최대 400Kbps', '국내 음성 100분, 문자 100건', '테더링 미제공'],
+          ['온라인 셀프개통 전용, 약정 없음'],
+          { network: 'LTE' },
         ),
       ],
     }
