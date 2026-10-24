@@ -20,7 +20,7 @@ export function StorePage({ active }: PageProps) {
             <br />
             종류별로 찾아보세요.
           </h1>
-          <p>요금제, 결합상품, 부가서비스, 로밍 상품을 살펴보세요.</p>
+          <p>요금제, 결합상품, 부가서비스, 로밍, 인터넷·IPTV 상품을 살펴보세요.</p>
         </div>
         <div className="standard-wrap">
           <div className="store-tabs" role="tablist" aria-label="상품 종류">

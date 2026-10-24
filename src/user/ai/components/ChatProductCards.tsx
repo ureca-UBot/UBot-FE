@@ -71,7 +71,7 @@ export function ChatProductCards({ productData }: ChatProductCardsProps) {
 async function findProduct(card: ChatProductCard): Promise<OpenDetail | null> {
   const kind = productCatalogKinds.find((item) => item.key === CATALOG_KEY[card.type])
   if (!kind) return null
-  const page = await kind.getCards({ keyword: card.name, country: '', page: 0 })
+  const page = await kind.getCards({ keyword: card.name, country: '', option: '', page: 0 })
   const found = page.content.find((item) => item.name === card.name)
   return found ? { kind, productId: found.id } : null
 }

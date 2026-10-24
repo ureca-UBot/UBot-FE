@@ -1,4 +1,4 @@
-/* Store: 상품 목록(요금제·결합상품·부가서비스·로밍)과 상세 */
+/* Store: 상품 목록(요금제·결합상품·부가서비스·로밍·인터넷/IPTV)과 상세 */
 .ubot-user-app .store-demo-note {
   margin: 0 0 16px;
   color: var(--subtle);
@@ -11,7 +11,8 @@
   margin-bottom: 22px
 }
 
-.ubot-user-app .product-catalog-search input {
+.ubot-user-app .product-catalog-search input,
+.ubot-user-app .product-catalog-search select {
   flex: 1;
   min-width: 0;
   min-height: 46px;
@@ -22,7 +23,8 @@
   font-size: 14px
 }
 
-.ubot-user-app .product-catalog-search .product-catalog-country {
+.ubot-user-app .product-catalog-search .product-catalog-country,
+.ubot-user-app .product-catalog-search .product-catalog-option {
   flex: 0 0 180px
 }
 
@@ -250,7 +252,8 @@
   }
 
   .ubot-user-app .product-catalog-search input,
-  .ubot-user-app .product-catalog-search .product-catalog-country {
+  .ubot-user-app .product-catalog-search .product-catalog-country,
+  .ubot-user-app .product-catalog-search .product-catalog-option {
     flex: 1 1 100%
   }
 

@@ -11,6 +11,9 @@ interface ProductTableProps<TDetail> {
   // 삭제된 상품 목록은 조회만 합니다. 복구 API가 없어서 관리 열을 두지 않습니다.
   deleted: boolean
   busyId: number | null
+  // 종류별 추가 동작 버튼입니다. 이름이 없으면 버튼을 두지 않습니다.
+  rowActionLabel?: string
+  onRowAction?: (product: AdminProduct<TDetail>) => void
   onEdit: (product: AdminProduct<TDetail>) => void
   onToggleStatus: (product: AdminProduct<TDetail>) => void
   onDelete: (product: AdminProduct<TDetail>) => void
@@ -21,6 +24,8 @@ export function ProductTable<TDetail>({
   products,
   deleted,
   busyId,
+  rowActionLabel,
+  onRowAction,
   onEdit,
   onToggleStatus,
   onDelete,
@@ -95,6 +100,16 @@ export function ProductTable<TDetail>({
                         >
                           수정
                         </button>
+                        {rowActionLabel && onRowAction && (
+                          <button
+                            className="table-action-button"
+                            disabled={busy}
+                            onClick={() => onRowAction(product)}
+                            type="button"
+                          >
+                            {rowActionLabel}
+                          </button>
+                        )}
                         <button
                           className="table-action-button"
                           disabled={busy}

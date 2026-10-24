@@ -2,6 +2,7 @@ import { formatDataAmount } from '../../product/utils/format'
 import type {
   ContractStatus,
   ContractType,
+  HomeSubscriptionStatus,
   InstallmentStatus,
   PaymentMethod,
   PaymentStatus,
@@ -9,6 +10,7 @@ import type {
   SimType,
   SubscriptionAddonStatus,
   SubscriptionBundleStatus,
+  SubscriptionRoaming,
   SubscriptionRoamingStatus,
   SubscriptionStatus,
   UsageRecord,
@@ -41,6 +43,11 @@ export const BUNDLE_STATUS_LABELS: Record<SubscriptionBundleStatus, string> = {
 export const ADDON_STATUS_LABELS: Record<SubscriptionAddonStatus, string> = {
   ACTIVE: '이용 중',
   CANCELED: '해지',
+}
+
+export const HOME_SUBSCRIPTION_STATUS_LABELS: Record<HomeSubscriptionStatus, string> = {
+  ACTIVE: '이용 중',
+  ENDED: '해지',
 }
 
 export const ROAMING_STATUS_LABELS: Record<SubscriptionRoamingStatus, string> = {
@@ -90,6 +97,12 @@ export const ROAMING_STATUS_TONES: Record<SubscriptionRoamingStatus, StatusTone>
   CANCELED: 'off',
 }
 
+export const CONTRACT_STATUS_TONES: Record<ContractStatus, StatusTone> = {
+  ACTIVE: 'on',
+  EXPIRED: 'off',
+  CANCELED: 'off',
+}
+
 export const PAYMENT_STATUS_TONES: Record<PaymentStatus, StatusTone> = {
   UNPAID: 'pending',
   PAID: 'on',
@@ -103,6 +116,35 @@ export function formatDate(value: string | null | undefined) {
 
 export function formatPeriod(start: string | null | undefined, end: string | null | undefined) {
   return `${formatDate(start)} ~ ${formatDate(end)}`
+}
+
+// 브라우저 시간대 기준 'yyyy-MM-dd'입니다. 날짜 입력칸의 값과 서버의 LocalDate가 같은 모양입니다.
+export function toLocalDateText(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+export function addDaysText(dateText: string, days: number) {
+  const [year, month, day] = dateText.split('-').map(Number)
+  return toLocalDateText(new Date(year, month - 1, day + days))
+}
+
+// 'yyyy-MM-dd' 두 날짜의 이용 일수입니다. 시작일과 종료일을 모두 셉니다.
+export function countDays(startText: string, endText: string) {
+  const [startYear, startMonth, startDay] = startText.split('-').map(Number)
+  const [endYear, endMonth, endDay] = endText.split('-').map(Number)
+  const start = Date.UTC(startYear, startMonth - 1, startDay)
+  const end = Date.UTC(endYear, endMonth - 1, endDay)
+  return Math.round((end - start) / 86_400_000) + 1
+}
+
+// 사용 시작 전(시작일이 오늘보다 뒤)인 예약만 취소할 수 있습니다. 백엔드 cancelRoaming과 같은 기준입니다.
+export function isCancelableRoaming(
+  roaming: Pick<SubscriptionRoaming, 'status' | 'startDate'>,
+  today: string,
+) {
+  return roaming.status === 'SCHEDULED' && roaming.startDate > today
 }
 
 // 'yyyy-MM' → 'yyyy년 M월'

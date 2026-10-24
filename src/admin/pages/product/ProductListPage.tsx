@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { ProductDeleteModal } from '../../product/components/ProductDeleteModal'
 import { ProductFormModal } from '../../product/components/ProductFormModal'
 import { ProductPagination } from '../../product/components/ProductPagination'
 import { ProductTable } from '../../product/components/ProductTable'
 import { useProductManagement } from '../../product/hooks/useProductManagement'
-import type { MasterStatus } from '../../product/types/product'
+import type { AdminProduct, MasterStatus } from '../../product/types/product'
 import type { ProductKind } from '../../product/types/productKind'
 
 export function ProductListPage<TDetail, TValues, TCreate, TUpdate>({
@@ -35,6 +36,9 @@ export function ProductListPage<TDetail, TValues, TCreate, TUpdate>({
     deleteProduct,
     closeDeleteAfterDelete,
   } = useProductManagement<TDetail, TValues, TCreate, TUpdate>({ kind })
+  // 종류별 추가 동작(예: 요금제 포함 부가서비스)을 연 상품입니다.
+  const [rowActionProduct, setRowActionProduct] = useState<AdminProduct<TDetail> | null>(null)
+  const RowActionModal = kind.rowAction?.Modal
   return (
     <>
       <div className="page-heading">
@@ -118,8 +122,10 @@ export function ProductListPage<TDetail, TValues, TCreate, TUpdate>({
               kind={kind}
               onDelete={setDeleteProduct}
               onEdit={(product) => void openEdit(product)}
+              onRowAction={setRowActionProduct}
               onToggleStatus={(product) => void toggleStatus(product)}
               products={result.content}
+              rowActionLabel={kind.rowAction?.label}
             />
             <ProductPagination onChange={setPage} page={page} totalPages={result.totalPages} />
           </>
@@ -132,6 +138,14 @@ export function ProductListPage<TDetail, TValues, TCreate, TUpdate>({
           onClose={() => setFormProduct(undefined)}
           onSaved={closeFormAfterSave}
           product={formProduct}
+        />
+      )}
+
+      {RowActionModal && rowActionProduct && (
+        <RowActionModal
+          onClose={() => setRowActionProduct(null)}
+          productId={kind.idOf(rowActionProduct.detail)}
+          productName={kind.nameOf(rowActionProduct.detail)}
         />
       )}
 

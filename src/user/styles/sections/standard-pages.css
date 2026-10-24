@@ -746,6 +746,46 @@
   margin-top: 14px
 }
 
+/* 가입 정보의 신청 버튼 줄 (회선 개통·요금제 변경·부가서비스 가입 등) */
+.ubot-user-app .my-sub-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px
+}
+
+.ubot-user-app .my-profile-head .my-sub-actions {
+  margin-top: 0
+}
+
+/* 목록 안의 해지·취소 버튼은 상태 배지 옆에 작게 둡니다. */
+.ubot-user-app .my-item-side .my-profile-ghost {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  white-space: nowrap
+}
+
+.ubot-user-app .my-profile .my-sub-notice {
+  margin: 0 0 18px;
+  color: var(--green)
+}
+
+.ubot-user-app .subscription-action-form .modal-desc {
+  line-height: 1.6
+}
+
+.ubot-user-app .subscription-action-form .my-profile-message {
+  margin: 0 0 4px
+}
+
+.ubot-user-app .subscription-action-form .modal-full:disabled,
+.ubot-user-app .subscription-action-form .modal-head button:disabled {
+  opacity: .45;
+  cursor: not-allowed
+}
+
 /* 내 방문 예약의 상태 배지(.reservation-status)와 같은 크기·색으로 맞춥니다. */
 .ubot-user-app .my-item-list .my-status {
   padding: 4px 9px;

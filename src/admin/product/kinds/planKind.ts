@@ -7,6 +7,7 @@ import {
 import type { PlanDetail } from '../../../shared/product/types'
 import { adminPlanApi } from '../api/productApi'
 import { PlanFormFields } from '../components/PlanFormFields'
+import { PlanIncludedAddonModal } from '../components/PlanIncludedAddonModal'
 import type { PlanCreateRequest, PlanFormValues, PlanUpdateRequest } from '../types/product'
 import type { ProductKind } from '../types/productKind'
 import {
@@ -138,4 +139,5 @@ export const planKind: ProductKind<
   toCreateRequest: (values) => ({ planCode: values.code.trim(), ...toUpdateRequest(values) }),
   toUpdateRequest,
   FormFields: PlanFormFields,
+  rowAction: { label: '포함 부가서비스', Modal: PlanIncludedAddonModal },
 }

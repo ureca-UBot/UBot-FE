@@ -217,6 +217,7 @@ async function installFixtures(context, role = null) {
         })
       if (
         p === '/api/subscriptions/me' ||
+        p === '/api/home-subscriptions/me' ||
         p === '/api/reservations/me' ||
         p === '/api/notifications/me'
       )
@@ -343,7 +344,11 @@ async function installFixtures(context, role = null) {
         if (body) Object.assign(state.settings, body)
         return ok(state.settings)
       }
-      if (/^\/api\/(admin\/)?(plans|bundle-products|addon-services|roaming-products)$/.test(p))
+      if (
+        /^\/api\/(admin\/)?(plans|bundle-products|addon-services|roaming-products|home-products)$/.test(
+          p,
+        )
+      )
         return ok(pageOf())
       unknown.push(p)
       return route.fulfill({

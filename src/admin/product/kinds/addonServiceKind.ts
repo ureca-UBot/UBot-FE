@@ -1,4 +1,4 @@
-import { formatWon } from '../../../shared/product/format'
+import { ADDON_CATEGORY_LABELS, formatWon } from '../../../shared/product/format'
 import type { AddonService } from '../../../shared/product/types'
 import { adminAddonServiceApi } from '../api/productApi'
 import { AddonServiceFormFields } from '../components/AddonServiceFormFields'
@@ -15,6 +15,7 @@ function toUpdateRequest(values: AddonServiceFormValues): AddonServiceUpdateRequ
     name: values.name.trim(),
     description: descriptionOrNull(values.description),
     monthlyFee: Number(values.monthlyFee),
+    category: values.category,
   }
 }
 
@@ -30,13 +31,17 @@ export const addonServiceKind: ProductKind<
   idOf: (detail) => detail.addonServiceId,
   codeOf: (detail) => detail.code,
   nameOf: (detail) => detail.name,
-  columns: [{ header: '월 이용료', text: (detail) => formatWon(detail.monthlyFee) }],
-  blankValues: { code: '', name: '', description: '', monthlyFee: '' },
+  columns: [
+    { header: '분류', text: (detail) => ADDON_CATEGORY_LABELS[detail.category] },
+    { header: '월 이용료', text: (detail) => formatWon(detail.monthlyFee) },
+  ],
+  blankValues: { code: '', name: '', description: '', monthlyFee: '', category: 'ETC' },
   valuesFrom: (detail) => ({
     code: detail.code,
     name: detail.name,
     description: detail.description ?? '',
     monthlyFee: String(detail.monthlyFee),
+    category: detail.category,
   }),
   validate: (values, isCreate) =>
     validateCommonValues(values, isCreate) ??

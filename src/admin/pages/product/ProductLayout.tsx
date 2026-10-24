@@ -5,6 +5,7 @@ const tabs = [
   ['결합상품', '/admin/products/bundle-products'],
   ['부가서비스', '/admin/products/addon-services'],
   ['로밍', '/admin/products/roaming-products'],
+  ['인터넷/IPTV', '/admin/products/home-products'],
 ]
 
 export function ProductLayout() {
