@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { chatApi } from '../ai/api/chatApi'
 import { useCustomerCounsel, counselStates } from '../../counsel/hooks/useCustomerCounsel'
 import { CounselConversation } from '../../counsel/components/CounselConversation'
@@ -55,6 +55,12 @@ export function AiPage({
   const historyBusy = useRef(false)
   const counsel = useCustomerCounsel(chat)
   const hasConversation = chat ? chat.turns.length > 0 : chatActive
+
+  useEffect(() => {
+    if (hasConversation && document.activeElement?.id === 'aiHeroInput') {
+      document.getElementById('aiChatInput')?.focus()
+    }
+  }, [hasConversation])
   const inputDisabled = chat
     ? isInitializing || chat.isPending || counsel.blocking || deletingId !== null || openingHistory
     : false
