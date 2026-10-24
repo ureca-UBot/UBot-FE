@@ -158,18 +158,19 @@ export function AiPage({
               <strong>AI 채팅</strong>
             </div>
             <button
-              className="ai-counsel-link"
+              className={`ai-counsel-link${loggedIn ? '' : ' open-login'}`}
               type="button"
-              onClick={() => void counsel.requestCounsel()}
+              onClick={loggedIn ? () => void counsel.requestCounsel() : undefined}
               disabled={
-                !counsel.enabled ||
                 isInitializing ||
-                deletingId !== null ||
-                openingHistory ||
-                chat?.isPending ||
-                counsel.loading ||
-                counsel.busy ||
-                Boolean(counsel.session && counsel.session.status !== 'ENDED')
+                (loggedIn &&
+                  (!counsel.enabled ||
+                    deletingId !== null ||
+                    openingHistory ||
+                    chat?.isPending ||
+                    counsel.loading ||
+                    counsel.busy ||
+                    Boolean(counsel.session && counsel.session.status !== 'ENDED')))
               }
               title={
                 !loggedIn
@@ -359,9 +360,6 @@ export function AiPage({
                           placeholder="궁금한 내용을 입력해 주세요."
                           aria-label="AI 채팅 입력"
                         ></textarea>
-                        <button className="voice" aria-label="음성 입력">
-                          ◉
-                        </button>
                         <button className="send-ai" aria-label="질문 보내기">
                           ↑
                         </button>
@@ -420,9 +418,6 @@ export function AiPage({
                             placeholder="궁금한 내용을 입력해 주세요."
                             aria-label="AI 채팅 입력"
                           ></textarea>
-                          <button className="voice" aria-label="음성 입력">
-                            ◉
-                          </button>
                           <button className="send-ai" aria-label="질문 보내기">
                             ↑
                           </button>
