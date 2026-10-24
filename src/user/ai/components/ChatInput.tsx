@@ -53,15 +53,6 @@ export function ChatInput({
         required
       />
       <button
-        className="voice"
-        type="button"
-        aria-label="음성 입력"
-        title="음성 입력 준비 중"
-        disabled
-      >
-        ◉
-      </button>
-      <button
         className="send-ai"
         type={isGenerating ? 'button' : 'submit'}
         aria-label={isGenerating ? '답변 생성 중단' : '질문 보내기'}

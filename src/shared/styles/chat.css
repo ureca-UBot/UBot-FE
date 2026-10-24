@@ -1,7 +1,7 @@
 /* 고객 채팅과 상담사 화면에서 함께 사용하는 말풍선·입력창 */
 .ubot-user-app .ai-searchbox {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 40px 40px;
+  grid-template-columns: minmax(0, 1fr) 40px;
   align-items: end;
   min-height: 58px;
   padding: 8px;
