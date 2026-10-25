@@ -1,0 +1,83 @@
+/* 페이지 제목을 읽는 영역과 배경 그림의 영역을 나눠 겹치지 않게 합니다. */
+.ubot-user-app .standard-hero.page-hero {
+  overflow: hidden;
+  padding: 0;
+  background: var(--hero-stores-bg);
+}
+
+.ubot-user-app .page-hero[data-hero='products'] {
+  background: var(--hero-products-bg);
+}
+.ubot-user-app .page-hero[data-hero='notices'] {
+  background: var(--hero-notices-bg);
+}
+.ubot-user-app .page-hero[data-hero='customer'] {
+  background: var(--hero-customer-bg);
+}
+.ubot-user-app .page-hero[data-hero='my'] {
+  background: var(--hero-my-bg);
+}
+
+.ubot-user-app .page-hero-inner {
+  display: grid;
+  width: min(calc(100% - 48px), 1120px);
+  min-height: 340px;
+  margin: 0 auto;
+  padding: 54px 0;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 28px;
+}
+
+.ubot-user-app .page-hero-copy {
+  min-width: 0;
+}
+
+.ubot-user-app .page-hero-eyebrow {
+  color: var(--pink-dark);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ubot-user-app .standard-hero.page-hero h1 {
+  font-size: clamp(32px, 3.2vw, 48px);
+  line-height: 1.25;
+}
+
+.ubot-user-app .page-hero-art {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.ubot-user-app .page-hero-art img {
+  display: block;
+  width: 100%;
+  max-height: 270px;
+  height: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 767px) {
+  .ubot-user-app .page-hero-inner {
+    width: calc(100% - 40px);
+    min-height: 0;
+    padding: 34px 0 18px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .ubot-user-app .page-hero-eyebrow {
+    font-size: 12px;
+  }
+
+  .ubot-user-app .standard-hero.page-hero h1 {
+    font-size: clamp(28px, 7.5vw, 34px);
+  }
+
+  .ubot-user-app .page-hero-art {
+    width: min(62%, 240px);
+    margin-left: auto;
+  }
+}

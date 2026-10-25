@@ -1,0 +1,124 @@
+/* 고객센터의 문의 목록·하단 작성 영역·FAQ 전용 스타일입니다. */
+.ubot-user-app .inquiry-form {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 22px;
+}
+.ubot-user-app .inquiry-workspace {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+.ubot-user-app .inquiry-workspace.is-writing {
+  grid-template-columns: minmax(0, 1fr);
+}
+.ubot-user-app .inquiry-workspace > .my-inquiries {
+  grid-column: 1;
+  grid-row: 1;
+}
+.ubot-user-app .inquiry-workspace > .inquiry-compose {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  scroll-margin-top: 100px;
+}
+.ubot-user-app .inquiry-compose .inquiry-form {
+  margin-bottom: 0;
+}
+.ubot-user-app .inquiry-compose textarea {
+  min-height: 320px;
+}
+.ubot-user-app .inquiry-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+.ubot-user-app .inquiry-form input,
+.ubot-user-app .inquiry-form textarea {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  resize: vertical;
+}
+.ubot-user-app .inquiry-form small {
+  color: var(--muted);
+}
+.ubot-user-app .inquiry-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ubot-user-app .inquiry-actions button:not(.my-profile-ghost) {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--pink);
+}
+.ubot-user-app .inquiry-card {
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+}
+.ubot-user-app .inquiry-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ubot-user-app .inquiry-card__head span {
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 13px;
+}
+.ubot-user-app .inquiry-card > small,
+.ubot-user-app .inquiry-reply small {
+  color: var(--muted);
+}
+.ubot-user-app .inquiry-card p,
+.ubot-user-app .inquiry-reply p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ubot-user-app .inquiry-reply {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--soft);
+}
+.ubot-user-app .inquiry-pages {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.ubot-user-app .inquiry-pages button {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.ubot-user-app .customer-faq details {
+  border-bottom: 1px solid var(--line);
+}
+.ubot-user-app .customer-faq summary {
+  padding: 18px 4px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ubot-user-app .customer-faq details[open] summary {
+  color: var(--pink-dark);
+}
+.ubot-user-app .customer-faq details p {
+  padding: 0 4px 18px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.75;
+  white-space: pre-wrap;
+}

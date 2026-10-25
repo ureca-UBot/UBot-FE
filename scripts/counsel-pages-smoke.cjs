@@ -149,7 +149,7 @@ async function checkCounselorLayout(browser, outDir, siteOrigin, viewport) {
       fullPage: true,
     })
     await page.getByRole('link', { name: '← UBot' }).click()
-    await page.locator('div.ubot-user-app').waitFor()
+    await page.locator('div.ubot-user-app > main').waitFor()
     await page.goBack()
     await assertCounselLayout(page, { overflowing: true })
     assert.deepEqual(errors, [])

@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { ChatSendIcon } from './ChatSendIcon'
 
 interface ChatInputProps {
   id: string
@@ -59,9 +60,8 @@ export function ChatInput({
         title={isGenerating ? '답변 생성 중단' : '질문 보내기'}
         onClick={isGenerating ? onCancel : undefined}
         disabled={buttonDisabled}
-        style={{ opacity: buttonDisabled ? 0.5 : 1 }}
       >
-        {isGenerating ? '■' : '↑'}
+        <ChatSendIcon stop={isGenerating} />
       </button>
     </form>
   )

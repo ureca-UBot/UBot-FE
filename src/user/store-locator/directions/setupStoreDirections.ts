@@ -11,6 +11,7 @@ import type {
   KakaoPolyline,
 } from '../types/kakao'
 import type { Store } from '../types/store'
+import { ROUTE_COLOR } from './colors'
 import { formatDistance, formatDuration, formatFare, formatTransitFare } from './format'
 import { createRouteIcon } from './icons'
 import { createOriginPicker } from './originPicker'
@@ -31,7 +32,6 @@ interface RouteLine {
   color: string
 }
 
-const ROUTE_COLOR = '#666666'
 // 같은 도로를 왕복(유턴)해도 두 선이 겹치지 않도록 진행 방향 오른쪽으로 미는 거리.
 const ROUTE_OFFSET_PX = 4
 const MARKER_Z = 3

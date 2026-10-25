@@ -5,9 +5,6 @@ import type { Subscription } from '../types/subscription'
 import { SubscriptionActionDialog } from './SubscriptionActionDialog'
 import { SubscriptionActions, type SubscriptionAction } from './SubscriptionActions'
 
-// 요금제를 새 회선으로 개통할 때 회선 선택 칸에 넣는 값입니다.
-const NEW_LINE = 'new'
-
 // 회선 단위 상품의 신청 이름입니다. 인터넷·IPTV는 사용자 단위라 회선을 고르지 않습니다.
 const LINE_ACTION_LABELS: Record<Exclude<ProductCatalogKey, 'home'>, string> = {
   plans: '요금제 가입',
@@ -68,7 +65,7 @@ interface LinePickerProps {
 function LinePicker({ kind, productId, productName, onClose, onPicked }: LinePickerProps) {
   const [lines, setLines] = useState<Subscription[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState<number | null>(null)
   const canOpenLine = kind === 'plans'
 
   useEffect(() => {
@@ -79,10 +76,6 @@ function LinePicker({ kind, productId, productName, onClose, onPicked }: LinePic
         if (cancelled) return
         const activeLines = next.filter((line) => line.status === 'ACTIVE')
         setLines(activeLines)
-        // 고를 회선이 하나뿐이면 미리 골라 둡니다.
-        const choosable = activeLines.filter((line) => !(canOpenLine && line.planId === productId))
-        if (choosable.length === 1) setValue(String(choosable[0].subscriptionId))
-        else if (canOpenLine && choosable.length === 0) setValue(NEW_LINE)
       })
       .catch((caught: unknown) => {
         if (!cancelled)
@@ -95,60 +88,84 @@ function LinePicker({ kind, productId, productName, onClose, onPicked }: LinePic
     }
   }, [canOpenLine, productId])
 
-  const noLine = lines !== null && lines.length === 0 && !canOpenLine
+  const selectedLine = lines?.find(
+    (line) => line.subscriptionId === value && !(canOpenLine && line.planId === productId),
+  )
 
   return (
     <SubscriptionActionDialog
       badge={productName}
-      canSubmit={value !== ''}
-      description={
-        noLine
-          ? '이용 중인 회선이 없어요. MY에서 회선을 먼저 개통해 주세요.'
-          : '이 상품을 가입할 회선을 골라 주세요.'
-      }
+      canSubmit={Boolean(selectedLine)}
+      description="회선을 골라주세요."
       onClose={onClose}
       onSubmit={async () => {
-        if (value === NEW_LINE) {
-          onPicked({ type: 'open', productId })
-          return
-        }
-        const line = lines?.find((item) => String(item.subscriptionId) === value)
-        if (!line) throw new Error('회선을 다시 골라 주세요.')
-        onPicked(await lineAction(kind, line, productId))
+        if (!selectedLine) throw new Error('회선을 다시 골라 주세요.')
+        onPicked(await lineAction(kind, selectedLine, productId))
       }}
       pendingLabel="확인 중..."
       submitLabel="다음"
       title={LINE_ACTION_LABELS[kind]}
     >
-      {!noLine && (
-        <label>
-          <span>회선</span>
-          <select
-            disabled={lines === null}
-            onChange={(event) => setValue(event.target.value)}
-            required
-            value={value}
+      <fieldset className={`subscription-line-picker${lines?.length ? '' : ' is-empty'}`}>
+        <legend className="sr-only-title">가입할 회선</legend>
+        {loadError ? (
+          <p className="my-profile-message error" role="alert">
+            {loadError}
+          </p>
+        ) : lines === null ? (
+          <p role="status">회선을 불러오는 중입니다.</p>
+        ) : lines.length === 0 ? (
+          <p>이용 중인 회선이 없어요.{!canOpenLine && ' MY에서 회선을 먼저 개통해 주세요.'}</p>
+        ) : (
+          lines.map((line) => {
+            const current = canOpenLine && line.planId === productId
+            return (
+              <label className="subscription-line-option" key={line.subscriptionId}>
+                <input
+                  type="radio"
+                  name="subscription-line"
+                  value={line.subscriptionId}
+                  checked={value === line.subscriptionId}
+                  disabled={current}
+                  onChange={() => setValue(line.subscriptionId)}
+                />
+                <span className="subscription-line-body">
+                  <span className="subscription-line-copy">
+                    <strong>{line.phoneNumber}</strong>
+                    <small>
+                      {line.planName}
+                      {current ? ' · 이용 중인 요금제' : ''}
+                    </small>
+                  </span>
+                  <span className="subscription-line-check" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" width="16" height="16">
+                      <path
+                        d="m5 10 3 3 7-7"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </label>
+            )
+          })
+        )}
+      </fieldset>
+      {canOpenLine && (
+        <div className="subscription-new-line">
+          <p>다른 번호로 이용하고 싶으신가요?</p>
+          <button
+            className="subscription-new-line-button"
+            type="button"
+            onClick={() => onPicked({ type: 'open', productId })}
           >
-            <option value="">
-              {loadError
-                ? '목록을 불러오지 못했어요'
-                : lines === null
-                  ? '불러오는 중...'
-                  : '회선을 골라 주세요'}
-            </option>
-            {lines?.map((line) => {
-              const current = canOpenLine && line.planId === productId
-              return (
-                <option disabled={current} key={line.subscriptionId} value={line.subscriptionId}>
-                  {line.phoneNumber} · {line.planName}
-                  {current ? ' (이용 중인 요금제)' : ''}
-                </option>
-              )
-            })}
-            {canOpenLine && lines !== null && <option value={NEW_LINE}>새 회선으로 개통</option>}
-          </select>
-          {loadError && <small className="my-profile-message error">{loadError}</small>}
-        </label>
+            <span aria-hidden="true">＋</span> 새 회선으로 개통
+          </button>
+        </div>
       )}
     </SubscriptionActionDialog>
   )

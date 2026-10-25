@@ -51,7 +51,7 @@ function lineLabel(subscription: Subscription) {
 // 사용률을 알 수 없으면(무제한·기록 없음·조회 실패) 빈 원으로 둡니다.
 function usageCircleStyle(percent: number | null): CSSProperties {
   const filled = percent ?? 0
-  return { background: `conic-gradient(var(--pink) ${filled}%, #36363a ${filled}%)` }
+  return { background: `conic-gradient(var(--pink) ${filled}%, var(--line) ${filled}%)` }
 }
 
 function loadedValue<T>(part: PartResult<T> | undefined) {
@@ -216,7 +216,7 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
             <h3 id="mySubscriptionTitle">가입 정보</h3>
             <div className="my-sub-actions">
               <button
-                className="my-profile-ghost"
+                className="my-profile-ghost my-profile-primary"
                 onClick={() => openAction({ type: 'open' })}
                 type="button"
               >
@@ -278,7 +278,7 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
             <h3 id="myHomeSubscriptionTitle">인터넷·IPTV</h3>
             {homes && activeHomeTypes.length < Object.keys(HOME_PRODUCT_TYPE_LABELS).length && (
               <button
-                className="my-profile-ghost"
+                className="my-profile-ghost my-profile-primary"
                 onClick={() => openAction({ type: 'subscribeHome', activeTypes: activeHomeTypes })}
                 type="button"
               >

@@ -13,6 +13,7 @@ export function useMyInquiries({ active }: { active: boolean }) {
   const [content, setContent] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!active) return
@@ -37,17 +38,18 @@ export function useMyInquiries({ active }: { active: boolean }) {
     setEditing(item)
     setTitle(item?.title ?? '')
     setContent(item?.content ?? '')
-    setError(null)
+    setFormError(null)
     setFormOpen(true)
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!title.trim() || !content.trim()) {
-      setError('제목과 내용을 입력해 주세요.')
+      setFormError('제목과 내용을 입력해 주세요.')
       return
     }
     setBusy(true)
+    setFormError(null)
     try {
       if (editing) await inquiryApi.update(editing.id, title.trim(), content.trim())
       else await inquiryApi.create(title.trim(), content.trim())
@@ -55,9 +57,9 @@ export function useMyInquiries({ active }: { active: boolean }) {
       setEditing(null)
       setPage(0)
       setRevision((current) => current + 1)
-      setError(null)
+      setFormError(null)
     } catch (caught) {
-      setError(errorText(caught))
+      setFormError(errorText(caught))
       setRevision((current) => current + 1)
     } finally {
       setBusy(false)
@@ -91,6 +93,7 @@ export function useMyInquiries({ active }: { active: boolean }) {
     busy,
     editing,
     error,
+    formError,
     result,
     remove,
     page,

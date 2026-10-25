@@ -1,0 +1,164 @@
+/* 매장 서비스 필터와 사용자 화면의 단일 선택 목록을 같은 모양으로 관리합니다. */
+:is(.ubot-user-app, .auth-page) select:not([multiple]),
+.ubot-user-app .store-region-search .store-service-toggle {
+  min-width: 0;
+  min-height: var(--select-height);
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--select-radius);
+  color: var(--ink);
+  background: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: translate var(--button-motion-duration) ease, border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+
+:is(.ubot-user-app, .auth-page) select:not([multiple]):hover:not(:disabled),
+.ubot-user-app .store-region-search .store-service-toggle:hover {
+  border-color: var(--pink);
+  background: var(--soft);
+  translate: 0 var(--button-hover-lift);
+}
+
+:is(.ubot-user-app, .auth-page) select:not([multiple]):focus,
+.ubot-user-app .store-service-toggle[aria-expanded="true"] {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgba(247, 37, 133, .09);
+}
+
+:is(.ubot-user-app, .auth-page) select:not([multiple]):focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: 3px;
+}
+
+:is(.ubot-user-app, .auth-page) select:not([multiple]):disabled {
+  color: var(--subtle);
+  background: var(--soft);
+  cursor: not-allowed;
+  translate: none;
+}
+
+.ubot-user-app .store-service-options {
+  padding: 7px;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--select-radius);
+  box-shadow: var(--shadow);
+}
+
+.ubot-user-app .store-service-options span {
+  min-height: 42px;
+  border-radius: 10px;
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ubot-user-app .store-service-options label:hover span {
+  color: var(--pink-dark);
+  background: var(--pink-soft);
+}
+
+/* 기본 select를 유지해 키보드·폼 검증·지역 옵션 갱신이 그대로 동작합니다. */
+@supports (appearance: base-select) {
+  :is(.ubot-user-app, .auth-page) select:not([multiple]),
+  :is(.ubot-user-app, .auth-page) select:not([multiple])::picker(select) {
+    appearance: base-select;
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]) {
+    align-items: center;
+    gap: 16px;
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple])::picker-icon {
+    margin-left: auto;
+    color: var(--subtle);
+    transition: rotate .18s ease;
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]):open {
+    border-color: var(--pink);
+    background: var(--soft);
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]):open::picker-icon {
+    rotate: 180deg;
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple])::picker(select) {
+    max-height: min(320px, 50dvh);
+    margin: 7px 0;
+    padding: 7px;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--select-radius);
+    background: #fff;
+    box-shadow: var(--shadow);
+    scrollbar-width: thin;
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]):open::picker(select) {
+    animation: user-select-open .15s ease-out;
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]) option {
+    display: flex;
+    min-height: 42px;
+    margin: 0 0 4px;
+    padding: 10px 11px;
+    align-items: center;
+    gap: 12px;
+    border-radius: 10px;
+    color: var(--muted);
+    background: var(--soft);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.5;
+    cursor: pointer;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    transition: background-color .15s ease, color .15s ease;
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]) option:last-child {
+    margin-bottom: 0;
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]) option:is(:hover, :focus, :checked):not(:disabled) {
+    color: var(--pink-dark);
+    background: var(--pink-soft);
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]) option::checkmark {
+    order: 1;
+    margin-left: auto;
+    color: var(--pink);
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]) option:disabled {
+    color: var(--subtle);
+    cursor: not-allowed;
+  }
+}
+
+@keyframes user-select-open {
+  from { opacity: 0; translate: 0 -4px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media(prefers-reduced-motion: reduce) {
+  :is(.ubot-user-app, .auth-page) select:not([multiple]),
+  :is(.ubot-user-app, .auth-page) select:not([multiple])::picker-icon,
+  :is(.ubot-user-app, .auth-page) select:not([multiple]) option {
+    transition: none;
+  }
+
+  :is(.ubot-user-app, .auth-page) select:not([multiple]):open::picker(select) {
+    animation: none;
+  }
+}

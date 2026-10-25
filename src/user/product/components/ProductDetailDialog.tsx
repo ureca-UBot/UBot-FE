@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../auth/hooks/useAuth'
 import { ProductSubscribeFlow } from '../../subscription/components/ProductSubscribeFlow'
 import type { ProductCatalogKind, ProductDetailView } from '../catalog'
+import { productArtwork } from '../artwork'
+import { productDescriptionItems } from '../utils/description'
+import { ProductName } from './ProductName'
 
 interface ProductDetailDialogProps {
   kind: ProductCatalogKind
@@ -20,6 +23,7 @@ export function ProductDetailDialog({ kind, productId, onClose }: ProductDetailD
   // 가입 신청 창을 열었는지와, 마지막 신청 결과 안내입니다.
   const [subscribing, setSubscribing] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
+  const descriptionItems = productDescriptionItems(detail?.description ?? null)
 
   // 가입은 로그인한 사용자만 신청할 수 있어, 로그인하지 않았으면 로그인 화면으로 보냅니다.
   function startSubscribe() {
@@ -64,9 +68,14 @@ export function ProductDetailDialog({ kind, productId, onClose }: ProductDetailD
         <div className="modal-head">
           <div>
             <small>{detail?.badge ?? kind.label}</small>
-            <h3>
-              {detail?.name ??
-                (error ? '상품 정보를 볼 수 없습니다' : '상품 정보를 불러오는 중입니다.')}
+            <h3 aria-label={detail?.name}>
+              {detail ? (
+                <ProductName name={detail.name} />
+              ) : error ? (
+                '상품 정보를 볼 수 없습니다'
+              ) : (
+                '상품 정보를 불러오는 중입니다.'
+              )}
             </h3>
           </div>
           <button value="cancel" aria-label="닫기">
@@ -82,22 +91,47 @@ export function ProductDetailDialog({ kind, productId, onClose }: ProductDetailD
 
         {detail && (
           <>
-            <div className="product-detail-price">
-              <span>{detail.priceLabel}</span>
-              <b>{detail.price}</b>
+            <div className="product-detail-overview">
+              <div className="product-detail-price">
+                <span>{detail.priceLabel}</span>
+                <b>{detail.price}</b>
+              </div>
+              <div className="product-detail-art" aria-hidden="true">
+                <img alt="" src={productArtwork[detail.artwork].src} width={960} height={640} />
+              </div>
             </div>
-            {detail.description && (
-              <p className="product-detail-description">{detail.description}</p>
-            )}
             {detail.rows.length > 0 && (
-              <dl className="product-detail-rows">
-                {detail.rows.map((row) => (
-                  <div key={row.label}>
-                    <dt>{row.label}</dt>
-                    <dd>{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
+              <section className="product-detail-section" aria-label="상품 제공 내용">
+                <h4>상품 제공 내용</h4>
+                <dl className="product-detail-rows">
+                  {detail.rows.map((row) => (
+                    <div key={row.label}>
+                      <dt>{row.label}</dt>
+                      <dd>
+                        {Array.isArray(row.value) ? (
+                          <ul className="product-detail-included">
+                            {row.value.map((value, index) => (
+                              <li key={`${value}-${index}`}>{value}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          row.value
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            )}
+            {descriptionItems.length > 0 && (
+              <section className="product-detail-section" aria-label="이용 안내">
+                <h4>이용 안내</h4>
+                <ul className="product-detail-benefits">
+                  {descriptionItems.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </section>
             )}
           </>
         )}

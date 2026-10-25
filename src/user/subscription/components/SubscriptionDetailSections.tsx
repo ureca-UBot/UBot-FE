@@ -51,11 +51,16 @@ const MAX_BUNDLE_LINES = 10
 interface ActionButtonProps {
   label: string
   onClick: () => void
+  primary?: boolean
 }
 
-function ActionButton({ label, onClick }: ActionButtonProps) {
+function ActionButton({ label, onClick, primary = false }: ActionButtonProps) {
   return (
-    <button className="my-profile-ghost" onClick={onClick} type="button">
+    <button
+      className={`my-profile-ghost${primary ? ' my-profile-primary' : ''}`}
+      onClick={onClick}
+      type="button"
+    >
       {label}
     </button>
   )
@@ -331,6 +336,7 @@ function BundleGroupContent({ subscription, group, canChange, onAction }: Bundle
         <BlockActions>
           <ActionButton
             label="결합 회선 추가"
+            primary
             onClick={() => onAction({ type: 'addBundleMember', subscription, group })}
           />
         </BlockActions>
@@ -419,6 +425,7 @@ export function SubscriptionDetailSections({
           <BlockActions>
             <ActionButton
               label="요금제 변경"
+              primary
               onClick={() => onAction({ type: 'changePlan', subscription })}
             />
           </BlockActions>
@@ -514,6 +521,7 @@ export function SubscriptionDetailSections({
                   <BlockActions>
                     <ActionButton
                       label="결합 가입"
+                      primary
                       onClick={() => onAction({ type: 'createBundle', subscription })}
                     />
                   </BlockActions>
@@ -567,6 +575,7 @@ export function SubscriptionDetailSections({
                 <BlockActions>
                   <ActionButton
                     label="부가서비스 가입"
+                    primary
                     onClick={() =>
                       onAction({
                         type: 'subscribeAddon',
@@ -632,6 +641,7 @@ export function SubscriptionDetailSections({
           <BlockActions>
             <ActionButton
               label="로밍 예약"
+              primary
               onClick={() => onAction({ type: 'scheduleRoaming', subscription })}
             />
           </BlockActions>

@@ -1,7 +1,11 @@
+@import '../../user/styles/sections/tokens.css';
+@import '../../user/styles/sections/buttons.css';
+@import '../../user/styles/sections/selection-controls.css';
+
 .auth-page {
-  --auth-accent: #df126c;
-  --auth-ink: #202126;
-  --auth-muted: #686b72;
+  --auth-accent: var(--pink-dark);
+  --auth-ink: var(--ink);
+  --auth-muted: var(--muted);
   min-height: 100vh;
   min-height: 100svh;
   padding-top: 72px;
@@ -198,7 +202,7 @@
 }
 
 .auth-submit:hover:not(:disabled) {
-  background: #c40e5e;
+  background: var(--pink-dark);
 }
 
 .auth-submit:disabled {

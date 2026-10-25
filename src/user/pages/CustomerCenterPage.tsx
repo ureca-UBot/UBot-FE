@@ -1,5 +1,8 @@
 import { useAuth } from '../../auth/hooks/useAuth'
 import { MyInquiryList } from '../inquiry/MyInquiryList'
+import { PageHero } from '../components/PageHero'
+import { useSearchParams } from 'react-router-dom'
+import { CustomerFaqList } from '../components/CustomerFaqList'
 
 interface PageProps {
   active: boolean
@@ -7,19 +10,41 @@ interface PageProps {
 
 export function CustomerCenterPage({ active }: PageProps) {
   const { user, isInitializing } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const faq = searchParams.get('section') === 'faq'
 
   return (
     <section className={`route page-standard${active ? ' active' : ''}`} data-page="customer">
-      <div className="standard-hero">
-        <span>고객센터</span>
-        <h1>
-          문의 내용을 확인하고
-          <br />새 문의를 남겨보세요.
-        </h1>
-        <p>접수한 문의와 고객센터 답변을 이곳에서 확인할 수 있습니다.</p>
-      </div>
+      <PageHero
+        image="customer"
+        eyebrow="고객센터"
+        description="접수한 문의와 고객센터 답변을 이곳에서 확인할 수 있습니다."
+      >
+        문의 내용을 확인하고
+        <br />새 문의를 남겨보세요.
+      </PageHero>
       <div className="standard-wrap">
-        {isInitializing ? (
+        <div className="store-tabs" aria-label="고객센터 항목">
+          <button
+            type="button"
+            className={!faq ? 'active' : undefined}
+            aria-pressed={!faq}
+            onClick={() => setSearchParams({ section: 'inquiry' })}
+          >
+            문의
+          </button>
+          <button
+            type="button"
+            className={faq ? 'active' : undefined}
+            aria-pressed={faq}
+            onClick={() => setSearchParams({ section: 'faq' })}
+          >
+            FAQ
+          </button>
+        </div>
+        {faq ? (
+          <CustomerFaqList active={active} />
+        ) : isInitializing ? (
           <p className="my-profile-message">로그인 상태를 확인하는 중입니다.</p>
         ) : user ? (
           <MyInquiryList active={active} />

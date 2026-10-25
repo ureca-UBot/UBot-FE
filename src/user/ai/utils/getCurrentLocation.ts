@@ -10,23 +10,36 @@ const GEOLOCATION_OPTIONS: PositionOptions = {
 /**
  * 브라우저의 현재 위치를 한 번 조회합니다.
  * 지원하지 않거나, 권한이 거부되거나, 시간이 초과되면 오류 대신 null을 돌려줍니다.
- * 호출하는 쪽은 null이면 위치 없이 검색을 이어갈지 안내할지 정합니다.
+ * 위치가 필요한 매장 검색은 null일 때 권한 허용 또는 지역명 입력을 안내합니다.
  */
-export function getCurrentLocation(): Promise<ChatLocation | null> {
+export function getCurrentLocation(signal?: AbortSignal): Promise<ChatLocation | null> {
   return new Promise((resolve) => {
+    if (signal?.aborted) {
+      resolve(null)
+      return
+    }
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       resolve(null)
       return
     }
 
+    let finished = false
+    const finish = (location: ChatLocation | null) => {
+      if (finished) return
+      finished = true
+      signal?.removeEventListener('abort', onAbort)
+      resolve(location)
+    }
+    const onAbort = () => finish(null)
+    signal?.addEventListener('abort', onAbort, { once: true })
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         const { latitude, longitude } = coords
-        resolve(
+        finish(
           Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : null,
         )
       },
-      () => resolve(null),
+      () => finish(null),
       GEOLOCATION_OPTIONS,
     )
   })

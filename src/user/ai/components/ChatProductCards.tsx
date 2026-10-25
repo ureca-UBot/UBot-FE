@@ -8,6 +8,7 @@ import { ProductDetailDialog } from '../../product/components/ProductDetailDialo
 import type { ChatProductCard, ChatProductData, ChatProductType } from '../types/chat'
 import { formatWon } from '../utils/userDataFormat'
 import '../../styles/sections/chat-user-data.css'
+import { ProductName } from '../../product/components/ProductName'
 
 interface ChatProductCardsProps {
   productData?: ChatProductData | null
@@ -99,8 +100,8 @@ function ProductCard({
   return (
     <div className="chat-card ud-card pd-card">
       <div className="chat-card-pad">
-        <h4 className="pd-name" title={card.name}>
-          {card.name}
+        <h4 className="pd-name" title={card.name} aria-label={card.name}>
+          <ProductName name={card.name} />
         </h4>
         {card.fee !== null && (
           <p className="pd-fee">

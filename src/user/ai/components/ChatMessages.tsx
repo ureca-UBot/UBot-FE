@@ -9,12 +9,12 @@ import {
   type ChatResearch,
   type ChatTurn,
 } from '../types/chat'
-import { storeMapKey } from '../utils/storeMaps'
 import { AnswerFeedback } from './AnswerFeedback'
 import { ChatProductCards } from './ChatProductCards'
 import { ChatStoreCards } from './ChatStoreCards'
 import { ChatUserDataCards } from './ChatUserDataCards'
 import { ResearchIntentButtons } from './ResearchIntentButtons'
+import { Mascot } from '../../mascot/Mascot'
 
 interface ChatMessagesProps {
   active: boolean
@@ -23,8 +23,8 @@ interface ChatMessagesProps {
   // 로그인한 회원에게만 의도 선택 버튼을 보여줍니다.
   canResearch: boolean
   onResearch: (turnId: number, intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
-  // 답변의 매장 지도를 열고 고른 매장을 보여 줍니다. 키는 storeMapKey로 만듭니다.
-  onOpenMap?: (key: string, storeId: number) => void
+  onNavigateToStore?: () => void
+  onRequestLocation?: (turnId: number) => void
 }
 
 // BE 연동 가이드의 처리 단계별 안내 문구입니다.
@@ -79,11 +79,11 @@ function ProgressLine({
 function ResearchResult({
   research,
   question,
-  onOpenMap,
+  onNavigateToStore,
 }: {
   research: ChatResearch
   question: string
-  onOpenMap?: (storeId: number) => void
+  onNavigateToStore?: () => void
 }) {
   const label = CHAT_INTENT_LABELS[research.intent]
 
@@ -109,7 +109,7 @@ function ResearchResult({
           <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
             {getAnswerText(research.response?.answer)}
           </div>
-          <ChatStoreCards store={research.response?.store} onOpenMap={onOpenMap} />
+          <ChatStoreCards store={research.response?.store} onNavigateToStore={onNavigateToStore} />
           <ChatUserDataCards userData={research.response?.userData} />
           <ChatProductCards productData={research.response?.productData} />
           {research.response?.status === 'SUCCESS' && (
@@ -133,7 +133,8 @@ export function ChatMessages({
   disabled,
   canResearch,
   onResearch,
-  onOpenMap,
+  onNavigateToStore,
+  onRequestLocation,
 }: ChatMessagesProps) {
   const thread = useRef<HTMLDivElement>(null)
 
@@ -158,12 +159,22 @@ export function ChatMessages({
             </div>
           </div>
           <div className="msg ai">
-            <div className="msg-avatar">AI</div>
+            <div className="msg-avatar ubot-mascot-avatar">
+              <Mascot
+                size={44}
+                state={turn.isPending ? 'thinking' : turn.error ? 'fail' : 'done'}
+              />
+            </div>
             <div className="msg-body">
               {turn.isCancelling ? (
                 <ProgressLine progress={null} message="답변 중단을 요청하고 있습니다." />
               ) : turn.isCancelled ? (
                 <ProgressLine progress={null} message="답변 생성을 중단했습니다." />
+              ) : turn.isLocating ? (
+                <ProgressLine
+                  progress={null}
+                  message="주변 매장을 찾기 위해 위치 허용을 기다리고 있습니다."
+                />
               ) : turn.isPending ? (
                 <>
                   <ProgressLine
@@ -191,7 +202,9 @@ export function ChatMessages({
                   </div>
                   <ChatStoreCards
                     store={turn.response?.store}
-                    onOpenMap={onOpenMap && ((storeId) => onOpenMap(storeMapKey(turn.id), storeId))}
+                    onNavigateToStore={onNavigateToStore}
+                    onRequestLocation={onRequestLocation && (() => onRequestLocation(turn.id))}
+                    disabled={disabled}
                   />
                   <ChatUserDataCards userData={turn.response?.userData} />
                   <ChatProductCards productData={turn.response?.productData} />
@@ -217,10 +230,7 @@ export function ChatMessages({
                       key={research.intent}
                       research={research}
                       question={turn.question}
-                      onOpenMap={
-                        onOpenMap &&
-                        ((storeId) => onOpenMap(storeMapKey(turn.id, research.intent), storeId))
-                      }
+                      onNavigateToStore={onNavigateToStore}
                     />
                   ))}
                 </>

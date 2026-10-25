@@ -44,7 +44,10 @@ export function ResearchIntentButtons({
       try {
         const found = await getCurrentLocation()
         if (found) location = found
-        else setLocationNote('현재 위치를 확인하지 못해 위치 없이 검색합니다.')
+        else {
+          setLocationNote('위치 권한을 허용하거나 지역명을 포함해 다시 질문해 주세요.')
+          return
+        }
       } finally {
         setIsLocating(false)
       }

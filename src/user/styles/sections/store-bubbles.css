@@ -66,13 +66,13 @@
 }
 
 .ubot-user-app .store-map-info-directions {
-  border: 1px solid var(--ink);
+  border: 1px solid var(--pink);
   color: #fff;
-  background: var(--map-gray)
+  background: var(--pink)
 }
 
 .ubot-user-app .store-map-info-directions:hover {
-  background: #555
+  background: var(--pink-dark)
 }
 
 .ubot-user-app .store-map-info-reserve {

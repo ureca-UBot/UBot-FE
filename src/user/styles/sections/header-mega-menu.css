@@ -1,0 +1,59 @@
+/* 32c542c의 전체 너비·열 구분 메뉴를 현재 단일 행 헤더에 맞춰 복원합니다. */
+@media (min-width: 768px) {
+  .ubot-user-app .simple-header .gnb-item {
+    position: static;
+  }
+  .ubot-user-app .desktop-header.simple-header .header-mega-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    border-color: var(--line);
+    background: #fff;
+    box-shadow: var(--shadow-lg);
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
+  .ubot-user-app .header-mega-menu[hidden] {
+    display: none !important;
+  }
+  .ubot-user-app .header-mega-menu .mega-menu-grid {
+    width: min(calc(100% - 64px), 1240px);
+    min-height: 0;
+    padding: 30px 0 36px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .ubot-user-app .header-mega-menu .mega-column {
+    border-color: var(--line);
+  }
+  .ubot-user-app .header-mega-menu .mega-column strong {
+    color: var(--ink);
+  }
+  .ubot-user-app .header-mega-menu a {
+    display: flex;
+    min-height: 37px;
+    align-items: center;
+    padding: 5px 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 650;
+    text-decoration: none;
+    transition:
+      color 0.18s ease,
+      translate 0.18s ease;
+  }
+  .ubot-user-app .header-mega-menu a:hover {
+    color: var(--pink-dark);
+    translate: 0 var(--button-hover-lift);
+  }
+  .ubot-user-app .header-mega-menu a:focus-visible {
+    outline: 2px solid var(--pink);
+    outline-offset: 3px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ubot-user-app .header-mega-menu a {
+    transition: none;
+  }
+}

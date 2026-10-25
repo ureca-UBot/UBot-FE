@@ -1,0 +1,158 @@
+.ubot-user-app .subscription-action-fields {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ubot-user-app .subscription-action-form {
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+}
+
+.ubot-user-app .subscription-line-picker {
+  display: grid;
+  min-width: 0;
+  padding: 0;
+  margin: 18px 0;
+  gap: 10px;
+  border: 0;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.ubot-user-app .subscription-line-picker.is-empty {
+  padding: 20px;
+  border-radius: var(--r-md);
+  background: var(--soft);
+}
+
+.ubot-user-app .subscription-line-picker.is-empty p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ubot-user-app .modal .subscription-line-option {
+  position: relative;
+  display: block;
+  min-width: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.ubot-user-app .subscription-line-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  border: 0;
+}
+
+.ubot-user-app .subscription-line-option .subscription-line-body {
+  display: flex;
+  min-height: 72px;
+  padding: 14px 20px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  color: var(--map-gray);
+  background: #fff;
+  transition: border-color .18s ease, background-color .18s ease, translate .18s ease;
+}
+
+.ubot-user-app .subscription-line-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.ubot-user-app .subscription-line-copy strong {
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ubot-user-app .subscription-line-copy small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.ubot-user-app .subscription-line-check {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: transparent;
+}
+
+.ubot-user-app .subscription-line-option input:checked+.subscription-line-body {
+  border-color: var(--pink);
+  color: var(--pink-dark);
+  background: var(--pink-soft);
+}
+
+.ubot-user-app .subscription-line-option input:checked+.subscription-line-body .subscription-line-check {
+  border-color: var(--pink);
+  color: #fff;
+  background: var(--pink);
+}
+
+.ubot-user-app .subscription-line-option:has(input:not(:disabled)):hover .subscription-line-body {
+  translate: 0 var(--button-hover-lift);
+  border-color: var(--pink);
+}
+
+.ubot-user-app .subscription-line-option input:focus-visible+.subscription-line-body {
+  outline: 2px solid var(--pink);
+  outline-offset: -3px;
+}
+
+.ubot-user-app .subscription-line-option input:disabled+.subscription-line-body {
+  color: var(--subtle);
+  background: var(--soft);
+  cursor: not-allowed;
+}
+
+.ubot-user-app .subscription-new-line {
+  margin: 22px 0 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.ubot-user-app .subscription-new-line p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ubot-user-app .subscription-new-line-button {
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media(prefers-reduced-motion:reduce) {
+  .ubot-user-app .subscription-line-option .subscription-line-body {
+    transition: none;
+  }
+
+}

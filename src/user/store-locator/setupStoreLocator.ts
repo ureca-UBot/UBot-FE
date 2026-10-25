@@ -57,8 +57,6 @@ export interface StoreLocatorController {
   showResult(result: StoreSearchResult): void
   // 목록의 매장을 골라 말풍선을 띄운다. 그리는 중인 결과가 있으면 다 그린 뒤에 고른다.
   focusStore(storeId: number): void
-  // 현재 위치(확인할 수 없으면 기본 위치) 주변 매장을 조회한다.
-  showNearby(): void
   // 지도를 담은 영역이 숨겨졌다가 다시 보일 때 크기를 다시 잰다.
   relayout(): void
   dispose(): void
@@ -67,14 +65,13 @@ export interface StoreLocatorController {
 const NOOP_CONTROLLER: StoreLocatorController = {
   showResult: () => {},
   focusStore: () => {},
-  showNearby: () => {},
   relayout: () => {},
   dispose: () => {},
 }
 
 // page: 매장 찾기 페이지. 페이지에 들어오면 기본 위치 주변을 조회한다.
-// drawer: 채팅 지도 드로어. 채팅 답변의 결과를 받을 때만 조회 결과를 그린다.
-export type StoreLocatorMode = 'page' | 'drawer'
+// result: 선택한 매장의 검색 결과를 받을 때까지 기본 위치 조회를 시작하지 않는다.
+export type StoreLocatorMode = 'page' | 'result'
 
 export function setupStoreLocator(
   scope: LocatorScope,
@@ -690,8 +687,8 @@ export function setupStoreLocator(
           if (disposed) return
           suppressViewportUntil = Date.now() + 600
           createdMap.relayout()
-          // 드로어는 채팅 결과를 직접 그리므로 기본 위치를 조회하지 않는다.
-          if (mode === 'drawer') return
+          // 선택 매장으로 진입했으면 전달받은 검색 결과를 그대로 그립니다.
+          if (mode === 'result') return
           createdMap.setCenter(
             new loadedMaps.LatLng(DEFAULT_LOCATION.latitude, DEFAULT_LOCATION.longitude),
           )
@@ -883,7 +880,9 @@ export function setupStoreLocator(
         // 기준 위치도 화면에 들어오도록 매장들과 함께 범위를 잡는다.
         const center = new currentMaps.LatLng(result.center.latitude, result.center.longitude)
         suppressViewportUntil = Date.now() + 600
-        if (result.stores.length) {
+        if (result.stores.length === 1) {
+          fitMapToStores(result.stores)
+        } else if (result.stores.length) {
           const bounds = new currentMaps.LatLngBounds()
           bounds.extend(center)
           result.stores.forEach((store) =>
@@ -913,30 +912,6 @@ export function setupStoreLocator(
     })
   }
 
-  const showNearby = () => {
-    directionsController.close()
-    const requestId = ++resultRequestId
-    searchInput.value = ''
-    const show = (latitude: number, longitude: number, label: string) => {
-      if (disposed || requestId !== resultRequestId) return
-      searchInput.value = label
-      void focusMap(latitude, longitude, label)
-    }
-    const showDefault = () =>
-      show(DEFAULT_LOCATION.latitude, DEFAULT_LOCATION.longitude, DEFAULT_LOCATION.label)
-
-    if (!navigator.geolocation) {
-      showDefault()
-      return
-    }
-    setStatus('현재 위치를 확인하고 있습니다.')
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => show(coords.latitude, coords.longitude, '현재 위치'),
-      showDefault,
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
-    )
-  }
-
   const relayout = () => {
     if (!map) return
     suppressViewportUntil = Date.now() + 600
@@ -963,7 +938,7 @@ export function setupStoreLocator(
     if (sidoSelect) void loadSigungus(sidoSelect.value)
   }
   const handleDocumentClick = (event: MouseEvent) => {
-    // 페이지와 드로어에 필터가 하나씩 있으므로, 이 화면의 필터 바깥을 눌렀을 때만 닫는다.
+    // 이 화면의 필터 바깥을 눌렀을 때만 닫는다.
     const serviceFilter = serviceToggle?.closest('.store-service-filter')
     if (!(event.target instanceof Node) || !serviceFilter?.contains(event.target)) {
       closeServicePanel()
@@ -1004,8 +979,8 @@ export function setupStoreLocator(
 
   loadSidos()
 
-  if (mode === 'drawer') {
-    setStatus('채팅 답변의 매장 조회 결과를 기다리고 있습니다.')
+  if (mode === 'result') {
+    setStatus('선택한 매장 정보를 불러오고 있습니다.')
   } else if (document.body.dataset.route === 'stores') {
     ensureMap().catch(() => {})
   } else {
@@ -1046,5 +1021,5 @@ export function setupStoreLocator(
     document.removeEventListener('ubot:route-change', handleRouteChange)
   }
 
-  return { showResult, focusStore, showNearby, relayout, dispose }
+  return { showResult, focusStore, relayout, dispose }
 }

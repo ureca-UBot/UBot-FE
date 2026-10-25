@@ -1,0 +1,64 @@
+.ubot-user-app .ubot-mascot {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto
+}
+
+.ubot-user-app .ubot-mascot img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 220ms ease
+}
+
+.ubot-user-app .ubot-mascot img.is-active {
+  opacity: 1
+}
+
+.ubot-user-app .ubot-mascot--idle {
+  animation: ubotMascotBreathe 3.2s ease-in-out infinite
+}
+
+.ubot-user-app .ubot-mascot--thinking {
+  animation: ubotMascotSway 2.6s ease-in-out infinite
+}
+
+.ubot-user-app .ubot-mascot--done {
+  animation: ubotMascotHop 700ms ease-out
+}
+
+.ubot-user-app .msg.ai .msg-avatar.ubot-mascot-avatar {
+  width: 48px;
+  height: 48px;
+  flex-basis: 48px;
+  border-radius: 0;
+  background: none
+}
+
+@keyframes ubotMascotBreathe {
+  0%, 100% { transform: translateY(0) }
+  50% { transform: translateY(-1.5px) }
+}
+
+@keyframes ubotMascotSway {
+  0%, 100% { transform: rotate(0) }
+  25% { transform: rotate(-6deg) }
+  75% { transform: rotate(6deg) }
+}
+
+@keyframes ubotMascotHop {
+  0%, 100% { transform: translateY(0) scale(1) }
+  40% { transform: translateY(-4px) scale(1.06) }
+  70% { transform: translateY(0) scale(0.97) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ubot-user-app .ubot-mascot,
+  .ubot-user-app .ubot-mascot img {
+    animation: none;
+    transition: none
+  }
+}

@@ -181,7 +181,13 @@ test('자동 재시도 계약', { timeout: 150000 }, async (group) => {
           await input.fill('요금제 변경 방법을 알려주세요')
           await input.press('Enter')
           if (item.succeeded) await page.getByText('정상 답변 확인 완료', { exact: true }).waitFor()
-          else await page.getByRole('heading', { name: '답변을 완료하지 못했습니다.' }).waitFor()
+          else {
+            const expectedError =
+              item.createError || item.retryError
+                ? '검증용 통신 오류'
+                : item.states.at(-1).errorMessage || '답변을 완료하지 못했습니다.'
+            await page.locator('.msg.ai .answer-text').filter({ hasText: expectedError }).waitFor()
+          }
           await page.waitForTimeout(120)
           assert.equal(calls.length, item.calls)
           assert.equal(
