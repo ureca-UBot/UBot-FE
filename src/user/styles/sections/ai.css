@@ -920,7 +920,7 @@
   position: relative;
   display: flex;
   min-height: 0;
-  padding: 0 17px 12px;
+  padding: 0 17px 6px;
   overflow: hidden;
   flex-direction: column;
   background: linear-gradient(135deg, rgba(255, 245, 250, .72), rgba(255, 255, 255, .45));
@@ -941,8 +941,8 @@
 
 .ubot-user-app .ranking-sidebar__section-head {
   display: flex;
-  min-height: 48px;
-  flex: 0 0 48px;
+  min-height: 42px;
+  flex: 0 0 42px;
   align-items: center;
   justify-content: space-between;
   background: transparent
@@ -996,15 +996,11 @@
   scrollbar-width: thin
 }
 
-.ubot-user-app .ranking-sidebar__section li+li {
-  border-top: 1px solid #ededef
-}
-
 .ubot-user-app .ranking-sidebar__section li button {
   display: grid;
   width: 100%;
-  min-height: 38px;
-  padding: 5px 6px;
+  min-height: 30px;
+  padding: 3px 6px;
   align-items: center;
   grid-template-columns: 20px minmax(0, 1fr);
   border: 0;
@@ -1041,14 +1037,6 @@
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap
-}
-
-.ubot-user-app .ranking-sidebar__section li em {
-  grid-column: 2;
-  margin-top: 2px;
-  color: var(--subtle);
-  font-size: 9px;
-  font-style: normal
 }
 
 .ubot-user-app .ranking-sidebar__section li button:not(:disabled):hover {

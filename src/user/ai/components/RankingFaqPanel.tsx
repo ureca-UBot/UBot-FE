@@ -94,11 +94,6 @@ function getSido(residenceArea?: string | null): RegionSido {
   return matchingAlias ? REGION_SIDO_ALIASES[matchingAlias] : 'SEOUL'
 }
 
-function getMetric(item: RankingItem): string {
-  if ('trendRatio' in item) return `↑ ${item.trendRatio.toFixed(1)}배`
-  return `${item.currentCount}회`
-}
-
 function formatCalculatedAt(calculatedAt?: string): string | null {
   if (!calculatedAt) return null
 
@@ -168,7 +163,6 @@ function RankingSection({
               >
                 <strong>{faq.rank}</strong>
                 <span>{faq.question}</span>
-                <em>{getMetric(faq)}</em>
               </button>
             </li>
           ))}
