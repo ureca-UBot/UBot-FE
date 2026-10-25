@@ -29,6 +29,9 @@ export function FaqDetailPage() {
       <p>
         <strong>답변:</strong> {faq.answer}
       </p>
+      <p>
+        <strong>의도:</strong> {faq.intent}
+      </p>
       <section className="faq-similar" aria-label="유사표현">
         <div className="faq-similar__header">
           <h2>유사표현 {faq.similarQuestions?.length ?? 0}개</h2>
