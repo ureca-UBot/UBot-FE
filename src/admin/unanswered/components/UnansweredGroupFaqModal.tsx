@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useModalFocus } from '../../../shared/hooks/useModalFocus'
 import { useFaqCategories } from '../../faq/hooks/useFaqCategories'
 import type { FaqIntent } from '../../faq/types/faq'
+import { SimilarQuestionsEditor } from '../../faq/components/SimilarQuestionsEditor'
 import { adminUnansweredApi } from '../api/unansweredApi'
 import type { UnansweredGroupDetailResponse } from '../types/unanswered'
 
@@ -33,8 +34,10 @@ export function UnansweredGroupFaqModal({
     group.suggestedCategoryId ? String(group.suggestedCategoryId) : '',
   )
   const [intent, setIntent] = useState<FaqIntent>('GENERAL')
-  const [question, setQuestion] = useState('')
+  const [question, setQuestion] = useState(group.representativeQuestion)
   const [answer, setAnswer] = useState('')
+  const [cacheable, setCacheable] = useState(false)
+  const [similarQuestions, setSimilarQuestions] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -53,6 +56,8 @@ export function UnansweredGroupFaqModal({
         question: question.trim(),
         answer: answer.trim(),
         intent,
+        cacheable,
+        similarQuestions,
       })
       onCreated()
     } catch (caught) {
@@ -68,7 +73,7 @@ export function UnansweredGroupFaqModal({
         ref={modalFocusRef}
         aria-labelledby="unanswered-faq-title"
         aria-modal="true"
-        className="faq-modal unanswered-modal"
+        className="faq-modal faq-form-modal unanswered-modal"
         onSubmit={(event) => void submit(event)}
         role="dialog"
       >
@@ -101,22 +106,38 @@ export function UnansweredGroupFaqModal({
         <label>
           질문
           <input
+            disabled={submitting}
             maxLength={1000}
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder={group.representativeQuestion}
+            required
             value={question}
           />
-          <small className="unanswered-hint">비워 두면 대표 질문으로 등록됩니다.</small>
         </label>
         <label>
           답변
           <textarea
             autoFocus
+            disabled={submitting}
             maxLength={1000}
             onChange={(event) => setAnswer(event.target.value)}
             required
             value={answer}
           />
+        </label>
+        <SimilarQuestionsEditor
+          disabled={submitting}
+          onChange={setSimilarQuestions}
+          question={question}
+          value={similarQuestions}
+        />
+        <label className="faq-cacheable">
+          <input
+            checked={cacheable}
+            disabled={submitting}
+            onChange={(event) => setCacheable(event.target.checked)}
+            type="checkbox"
+          />
+          답변 캐시 허용
         </label>
         {error && <p className="login-error">{error}</p>}
         <div className="faq-modal__actions">

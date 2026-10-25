@@ -39,6 +39,8 @@ export function FaqDetailModal({ faq, onClose }: { faq: FaqTableRow; onClose: ()
           <dd>{faq.question}</dd>
           <dt>답변</dt>
           <dd>{faq.answer}</dd>
+          <dt>의도</dt>
+          <dd>{faq.intent}</dd>
           <dt>답변 캐시</dt>
           <dd>{faq.cacheable ? '허용' : '사용 안 함'}</dd>
         </dl>

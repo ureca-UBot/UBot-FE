@@ -53,6 +53,8 @@ export interface UnansweredGroupFaqCreateRequest {
   question: string
   answer: string
   intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
 }
 
 export interface UnansweredGroupListParams {
