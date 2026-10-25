@@ -1,0 +1,99 @@
+/* 사용자 화면·인증·포털 모달의 공통 버튼 규칙. 색과 움직임은 tokens.css에서 관리합니다. */
+:is(.ubot-user-app, .auth-page, .chat-feedback-dialog) button {
+  cursor: pointer;
+  transition:
+    translate var(--button-motion-duration) ease,
+    transform var(--button-motion-duration) ease,
+    background-color var(--button-motion-duration) ease,
+    border-color var(--button-motion-duration) ease,
+    color var(--button-motion-duration) ease,
+    filter var(--button-motion-duration) ease !important;
+}
+
+:is(.ubot-user-app, .auth-page, .chat-feedback-dialog) button:hover:not(:disabled) {
+  translate: 0 var(--button-hover-lift);
+  filter: brightness(.97);
+  /* 개별 화면에 남아 있는 검정·보라 테두리 hover도 이 규칙으로 통일합니다. */
+  border-color: var(--button-hover-border) !important;
+  outline-color: var(--button-hover-border) !important;
+}
+
+:is(.ubot-user-app, .auth-page, .chat-feedback-dialog) button:active:not(:disabled) {
+  translate: 0 var(--button-press-offset);
+}
+
+:is(.ubot-user-app, .auth-page, .chat-feedback-dialog) button:focus-visible {
+  outline: 2px solid var(--pink) !important;
+  outline-offset: 3px;
+}
+
+:is(.ubot-user-app, .auth-page, .chat-feedback-dialog) button:disabled {
+  cursor: not-allowed;
+  translate: none;
+  filter: none;
+}
+
+.ubot-user-app :is(
+  .black-btn, .my-profile-primary, .product-detail, .reserve-main, .network-detail-card>button,
+  .product-catalog-search>button, .store-search-submit, .store-region-submit,
+  .direction-search-button, .retry-btn,
+  .answer-actions .primary, .quick-choices .primary,
+  .inquiry-actions>button:not(.my-profile-ghost), .header-tools .demo-pill
+),
+.auth-page .auth-submit,
+.chat-feedback-dialog .chat-feedback-submit:not(:disabled) {
+  color: #fff;
+  border-color: var(--button-primary);
+  background: var(--button-primary) !important;
+  box-shadow: none;
+}
+
+.ubot-user-app :is(
+  .product-card-open, .outline-wide, .my-profile-ghost:not(.my-profile-primary),
+  .pd-detail, .pd-nav, .product-catalog-more,
+  .product-catalog-status>button, .subscription-new-line-button
+) {
+  border-color: var(--line);
+  color: var(--button-secondary);
+  background: #fff;
+}
+
+.ubot-user-app :is(
+  .store-tabs .active, .notice-tab--active,
+  .notice-pagination .notice-pagination__active, .ranking-faq__tabs button.active,
+  .my-line-tabs button.active
+) {
+  border-color: var(--pink);
+  color: #fff;
+  background: var(--pink);
+}
+
+.ubot-user-app :is(
+  .map-filter button.active, .direction-mode-tabs button.active,
+  .chat-feedback-vote[aria-pressed='true']
+),
+.chat-feedback-dialog .chat-feedback-reasons button[aria-pressed='true'] {
+  border-color: var(--pink);
+  color: var(--pink-dark);
+  background: var(--pink-soft);
+}
+
+.ubot-user-app :is(.gnb, .header-tools, .mobile-actions) button {
+  color: var(--ink);
+}
+
+.ubot-user-app :is(.gnb, .header-tools, .mobile-actions) button:hover,
+.ubot-user-app .gnb button.active {
+  color: var(--pink-dark);
+}
+
+.ubot-user-app .header-action-icon svg [stroke] {
+  stroke: currentColor;
+}
+
+@media(prefers-reduced-motion:reduce) {
+  :is(.ubot-user-app, .auth-page, .chat-feedback-dialog) button {
+    transition-duration: 0s !important;
+  }
+
+}

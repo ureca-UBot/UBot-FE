@@ -412,6 +412,11 @@ test('사용자 문의 등록·수정과 관리자 답변의 기존 요청 형�
     await goto('/customer-center')
     await page.getByRole('button', { name: '문의하기', exact: true }).click()
     const form = page.locator('.inquiry-form')
+    const listBounds = await page.locator('.my-inquiries').boundingBox()
+    const composeBounds = await page.locator('.inquiry-compose').boundingBox()
+    assert.ok(composeBounds.y >= listBounds.y + listBounds.height)
+    assert.equal(composeBounds.width, listBounds.width)
+    assert.equal(await page.getByRole('dialog').count(), 0)
     await form.getByLabel('제목').fill('등록 문의')
     await form.getByLabel('내용').fill('문의 내용')
     await form.getByRole('button', { name: '등록하기' }).click()
@@ -508,6 +513,7 @@ test('상품 검색 조건은 유지하고 더 보기·실패한 페이지 재�
         maxAge: null,
       }),
     )
+    await context.route('**/api/plans/1/included-addons', (route) => ok(route, []))
     await goto('/store')
     const catalog = page.locator('.product-catalog')
     const input = page.getByRole('textbox', { name: '요금제 검색어', exact: true })
@@ -551,13 +557,328 @@ test('상품 검색 조건은 유지하고 더 보기·실패한 페이지 재�
   })
 })
 
-test('로밍 검색어·국가 조건은 메뉴 이동 후 유지하고 상품 종류 변경 시 초기화한다', async () => {
+async function installProductFlowFixtures(context, lines = []) {
+  const plan = {
+    planId: 1,
+    planCode: 'UBOT_BASIC_10',
+    name: 'Ubot 베이직 10GB',
+    networkType: 'FIVE_G',
+    targetGroup: 'GENERAL',
+    monthlyFee: 50000,
+    dataAmountMb: 10240,
+    dataUnlimited: false,
+    exhaustedSpeedKbps: 400,
+    voiceMinutes: null,
+    voiceUnlimited: true,
+    smsCount: null,
+    smsUnlimited: true,
+  }
+  const detail = {
+    summary: plan,
+    description:
+      '월 데이터 10GB. 소진 후 최대 0.4Mbps로 계속 이용. 테더링 한도 소진 후 차단. 금융 손해 배상은 제공하지 않습니다.',
+    tetheringAmountMb: 10240,
+    minAge: null,
+    maxAge: null,
+  }
+  await context.route('**/api/plans?**', (route) => ok(route, pageOf([plan])))
+  await context.route('**/api/plans/1', (route) => ok(route, detail))
+  await context.route('**/api/plans/1/included-addons', (route) =>
+    ok(route, [
+      {
+        addonServiceId: 1,
+        code: 'PHISHING',
+        name: 'Ubot 피싱가드',
+        category: 'SAFETY',
+        monthlyFee: 2200,
+        description: null,
+      },
+      {
+        addonServiceId: 2,
+        code: 'DEVICE',
+        name: 'Ubot 디바이스 케어',
+        category: 'SAFETY',
+        monthlyFee: 4400,
+        description: null,
+      },
+    ]),
+  )
+  await context.route('**/api/subscriptions/me', (route) => ok(route, lines))
+  return { plan, detail }
+}
+
+test('상단 어느 메뉴에 올려도 전체 하위 목록이 열리고 상품 분류 버튼은 서버 필터로 연결한다', async () => {
+  await withPage('USER', async ({ page, context, goto }) => {
+    await installProductFlowFixtures(context)
+    let category
+    await context.route('**/api/addon-services?**', (route) => {
+      category = new URL(route.request().url()).searchParams.get('category')
+      return ok(route, pageOf([]))
+    })
+    await goto('/store')
+    const trigger = page.locator('.gnb button[data-route="store"]')
+    await trigger.hover()
+    const menu = page.locator('#header-menu-all')
+    await menu.waitFor({ state: 'visible' })
+    const links = await menu.getByRole('link').allTextContents()
+    for (const button of await page.locator('.gnb > .gnb-item > button').all()) {
+      await button.hover()
+      await menu.waitFor({ state: 'visible' })
+      assert.deepEqual(await menu.getByRole('link').allTextContents(), links)
+    }
+    await menu.getByRole('link', { name: '부가서비스', exact: true }).click()
+    const filters = page.getByRole('group', { name: '부가서비스 분류', exact: true })
+    const response = page.waitForResponse(
+      (item) =>
+        item.url().includes('/api/addon-services?') && item.url().includes('category=SAFETY'),
+    )
+    await filters.getByRole('button', { name: '안심·보호', exact: true }).click()
+    await response
+    assert.equal(category, 'SAFETY')
+    assert.equal(
+      await filters
+        .getByRole('button', { name: '안심·보호', exact: true })
+        .getAttribute('aria-pressed'),
+      'true',
+    )
+    assert.match(page.url(), /category=addons/)
+    await trigger.hover()
+    await menu.waitFor({ state: 'visible' })
+    await page.keyboard.press('Escape')
+    await menu.waitFor({ state: 'hidden' })
+    assert.equal(await trigger.getAttribute('aria-expanded'), 'false')
+  })
+})
+
+test('고객센터 하위 메뉴와 공개 FAQ는 실제 질문·답변 및 상담 버튼으로 연결한다', async () => {
+  await withPage(null, async ({ page, goto }) => {
+    await goto('/customer-center?section=faq')
+    const question = page.locator('.customer-faq summary').filter({ hasText: faq.question })
+    await question.click()
+    await page.locator('.customer-faq').getByText(faq.answer, { exact: true }).waitFor()
+    await page.locator('.gnb button[data-route="customer"]').hover()
+    const menu = page.locator('#header-menu-all .mega-column[aria-label="고객센터"]')
+    assert.deepEqual(await menu.getByRole('link').allTextContents(), [
+      '문의',
+      '상담사 연결',
+      'AI 챗봇',
+      'FAQ',
+    ])
+    await menu.getByRole('link', { name: '상담사 연결', exact: true }).click()
+    await page.waitForFunction(() => document.activeElement?.classList.contains('ai-counsel-link'))
+    assert.match(page.url(), /ai\?focus=counsel/)
+  })
+})
+
+test('우측 하단 Ubot은 모바일 크기로 열리고 전체 채팅과 같은 대화를 유지한다', async () => {
+  await withPage('USER', async ({ page, goto }) => {
+    await goto('/customer-center')
+    await page.getByRole('button', { name: 'Ubot 챗봇 열기', exact: true }).click()
+    const panel = page.getByRole('dialog', { name: 'Ubot 채팅', exact: true })
+    await panel.getByLabel('AI 채팅 입력', { exact: true }).fill('모의 질문')
+    await panel.getByRole('button', { name: '질문 보내기', exact: true }).click()
+    await panel.getByText('검증용 AI 답변입니다.', { exact: true }).waitFor()
+    const bounds = await panel.boundingBox()
+    assert.ok(bounds.width > 400 && bounds.width <= 520)
+    await panel.getByRole('link', { name: '통합 채팅', exact: true }).click()
+    await page
+      .locator('.ai-chat-view:visible')
+      .getByText('검증용 AI 답변입니다.', { exact: true })
+      .waitFor()
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.getByRole('button', { name: 'Ubot 챗봇 열기', exact: true }).click()
+    await panel.waitFor({ state: 'visible' })
+    const mobileBounds = await panel.boundingBox()
+    assert.ok(mobileBounds.x >= 0 && mobileBounds.x + mobileBounds.width <= 390)
+    await page.keyboard.press('Escape')
+    await panel.waitFor({ state: 'hidden' })
+    assert.equal(
+      await page
+        .getByRole('button', { name: 'Ubot 챗봇 열기' })
+        .evaluate((item) => item === document.activeElement),
+      true,
+    )
+  })
+})
+
+test('상품명은 5GB·소수 용량·Gbps를 나누지 않고 5G 통신망과 구분한다', async () => {
+  await withPage(null, async ({ page, context, goto }) => {
+    const { plan } = await installProductFlowFixtures(context)
+    const amounts = ['5GB', '15GB', '0.5GB', '5Gbps', '5gb']
+    const names = amounts.map((amount) => `Ubot 데이터 ${amount}`)
+    names.push('Ubot 5G 베이직')
+    await context.route('**/api/plans?**', (route) =>
+      ok(route, pageOf(names.map((name, index) => ({ ...plan, planId: index + 1, name })))),
+    )
+    await goto('/store')
+    await page.getByRole('heading', { name: names.at(-1), exact: true }).waitFor()
+    for (const [index, amount] of amounts.entries()) {
+      const heading = page.getByRole('heading', { name: names[index], exact: true })
+      assert.equal(await heading.locator('.product-name-amount').textContent(), amount)
+      assert.equal(await heading.locator('.product-name-network').count(), 0)
+      assert.equal(await heading.textContent(), names[index])
+    }
+    const network = page.getByRole('heading', { name: 'Ubot 5G 베이직', exact: true })
+    assert.equal(await network.locator('.product-name-network').textContent(), '5G')
+  })
+})
+
+test('로밍 등급은 같은 보라색으로 강조하고 카드 이미지 클릭과 키보드로 상세를 연다', async () => {
+  await withPage(null, async ({ page, context, goto }) => {
+    const products = ['베이직', '플러스', '맥스'].map((tier, index) => ({
+      roamingProductId: index + 1,
+      code: `ROAMING_${index}`,
+      name: `Ubot 로밍 ${tier}`,
+      description: '로밍 상세 안내',
+      country: '일본',
+      dailyFee: 10000,
+      dataAmountMb: 1024,
+    }))
+    await context.route('**/api/roaming-products?**', (route) => ok(route, pageOf(products)))
+    await context.route('**/api/roaming-products/1', (route) => ok(route, products[0]))
+    await goto('/store?category=roaming')
+    const cards = page.locator('.product-card')
+    await cards.last().waitFor()
+    assert.deepEqual(await cards.locator('.product-name-tier').allTextContents(), [
+      '베이직',
+      '플러스',
+      '맥스',
+    ])
+    assert.deepEqual(
+      await cards
+        .locator('.product-name-tier')
+        .evaluateAll((items) => items.map((item) => getComputedStyle(item).color)),
+      Array(3).fill('rgb(111, 85, 221)'),
+    )
+    const cover = cards.first().locator('.product-card-cover')
+    await cover.scrollIntoViewIfNeeded()
+    const bounds = await cover.boundingBox()
+    await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
+    const detail = page.getByRole('dialog')
+    await detail.getByText('로밍 상세 안내', { exact: true }).waitFor()
+    await detail.getByRole('button', { name: '닫기', exact: true }).click()
+    await cards.first().getByRole('button', { name: '자세히 보기' }).focus()
+    await page.keyboard.press('Enter')
+    await detail.getByText('로밍 상세 안내', { exact: true }).waitFor()
+  })
+})
+
+test('상품 상세는 제공 항목과 포함 서비스를 나누고 소수점·제외 조건을 보존한다', async () => {
+  await withPage(null, async ({ page, context, goto }) => {
+    await installProductFlowFixtures(context)
+    await goto('/store')
+    await page.locator('.product-card').getByRole('button', { name: '자세히 보기' }).click()
+    const detail = page.locator('.product-detail-dialog')
+    await detail.getByRole('heading', { name: 'Ubot 베이직 10GB', exact: true }).waitFor()
+    assert.equal(await detail.locator('.product-detail-included li').count(), 2)
+    assert.equal(await detail.locator('.product-detail-benefits li').count(), 4)
+    await detail.getByText('소진 후 최대 0.4Mbps로 계속 이용.', { exact: true }).waitFor()
+    await detail.getByText('금융 손해 배상은 제공하지 않습니다.', { exact: true }).waitFor()
+    assert.equal(await detail.locator('.product-detail-rows > div').count(), 7)
+  })
+})
+
+test('상품 가입은 실제 회선만 선택하고 현재 요금제를 제외해 고른 회선으로 변경한다', async () => {
+  await withPage('USER', async ({ page, context, goto }) => {
+    const { detail } = await installProductFlowFixtures(context, [
+      {
+        subscriptionId: 11,
+        phoneNumber: '010-1111-2222',
+        planId: 1,
+        planName: '현재 요금제',
+        status: 'ACTIVE',
+      },
+      {
+        subscriptionId: 12,
+        phoneNumber: '010-3333-4444',
+        planId: 2,
+        planName: '다른 요금제',
+        status: 'ACTIVE',
+      },
+      {
+        subscriptionId: 13,
+        phoneNumber: '010-5555-6666',
+        planId: 3,
+        planName: '정지 회선',
+        status: 'SUSPENDED',
+      },
+    ])
+    let changed
+    await context.route('**/api/subscriptions/me/12/plan', (route) => {
+      changed = { method: route.request().method(), body: route.request().postDataJSON() }
+      return ok(route, detail)
+    })
+    await goto('/store')
+    await page.locator('.product-card').getByRole('button', { name: '자세히 보기' }).click()
+    await page
+      .locator('.product-detail-dialog')
+      .getByRole('button', { name: '가입하기', exact: true })
+      .click()
+    const picker = page.locator('.subscription-action-form')
+    await picker.getByText('회선을 골라주세요.', { exact: true }).waitFor()
+    await picker.getByRole('radio').last().waitFor({ state: 'attached' })
+    assert.equal(await picker.getByRole('radio').count(), 2)
+    assert.equal(await picker.locator('select').count(), 0)
+    assert.equal(await picker.getByRole('radio').first().isDisabled(), true)
+    assert.equal(await picker.getByRole('button', { name: '다음', exact: true }).isDisabled(), true)
+    assert.equal(
+      await picker.locator('.subscription-line-picker').getByText('새 회선으로 개통').count(),
+      0,
+    )
+    await picker.getByText('010-3333-4444', { exact: true }).click()
+    assert.equal(await picker.getByRole('radio').nth(1).isChecked(), true)
+    await picker.getByRole('button', { name: '다음', exact: true }).click()
+    const change = page.locator('.subscription-action-form')
+    await change.getByRole('heading', { name: '요금제 변경', exact: true }).waitFor()
+    await change.getByRole('button', { name: '요금제 변경', exact: true }).click()
+    await page
+      .locator('.product-detail-dialog')
+      .getByText(/요금제를 .*바꿨습니다/)
+      .waitFor()
+    assert.deepEqual(changed, { method: 'PATCH', body: { planId: 1 } })
+  })
+})
+
+test('회선이 없으면 자동 선택 없이 별도 새 회선 개통 버튼으로 개통한다', async () => {
+  await withPage('USER', async ({ page, context, goto }) => {
+    await installProductFlowFixtures(context)
+    let created
+    await context.route('**/api/subscriptions/me', (route) => {
+      if (route.request().method() === 'POST') {
+        created = route.request().postDataJSON()
+        return ok(route, { subscriptionId: 20, phoneNumber: '010-7777-8888' })
+      }
+      return ok(route, [])
+    })
+    await goto('/store')
+    await page.locator('.product-card').getByRole('button', { name: '자세히 보기' }).click()
+    await page
+      .locator('.product-detail-dialog')
+      .getByRole('button', { name: '가입하기', exact: true })
+      .click()
+    const picker = page.locator('.subscription-action-form')
+    await picker.getByText('이용 중인 회선이 없어요.', { exact: true }).waitFor()
+    assert.equal(await picker.getByRole('radio').count(), 0)
+    assert.equal(await picker.getByRole('button', { name: '다음', exact: true }).isDisabled(), true)
+    await picker.getByRole('button', { name: '새 회선으로 개통' }).click()
+    const open = page.locator('.subscription-action-form')
+    await open.getByRole('heading', { name: '회선 개통', exact: true }).waitFor()
+    await open.getByRole('button', { name: '개통 신청', exact: true }).click()
+    await page
+      .locator('.product-detail-dialog')
+      .getByText(/010-7777-8888 회선을 개통했습니다/)
+      .waitFor()
+    assert.deepEqual(created, { planId: 1 })
+  })
+})
+
+test('로밍 국가 버튼은 실제 국가를 표시하고 검색 조건을 유지하며 상품 종류 변경 시 초기화한다', async () => {
   await withPage(null, async ({ page, context, goto }) => {
     const calls = []
     await context.route('**/api/roaming-products?**', (route) => {
       const query = new URL(route.request().url()).searchParams
       const country = query.get('country')
-      calls.push({ keyword: query.get('keyword'), country })
+      if (query.get('size') !== '100') calls.push({ keyword: query.get('keyword'), country })
       return ok(
         route,
         pageOf([
@@ -576,13 +897,13 @@ test('로밍 검색어·국가 조건은 메뉴 이동 후 유지하고 상품 �
     await goto('/store')
     await page.getByRole('tab', { name: '로밍', exact: true }).click()
     const input = page.getByRole('textbox', { name: '로밍 검색어', exact: true })
-    const country = page.getByRole('textbox', { name: '이용 국가', exact: true })
+    const countries = page.getByRole('group', { name: '이용 국가', exact: true })
     await input.fill('하루 로밍')
-    await country.fill('일본')
     await page
       .locator('.product-catalog')
       .getByRole('button', { name: '검색', exact: true })
       .click()
+    await countries.getByRole('button', { name: '일본', exact: true }).click()
     await page.getByRole('heading', { name: '일본 로밍 검색 결과', exact: true }).waitFor()
     const beforeLeaving = calls.length
     const menu = page.getByRole('navigation', { name: '주요 메뉴', exact: true })
@@ -592,7 +913,12 @@ test('로밍 검색어·국가 조건은 메뉴 이동 후 유지하고 상품 �
     await menu.getByRole('button', { name: '상품 정보', exact: true }).click()
     await page.getByRole('heading', { name: '일본 로밍 검색 결과', exact: true }).waitFor()
     assert.equal(await input.inputValue(), '하루 로밍')
-    assert.equal(await country.inputValue(), '일본')
+    assert.equal(
+      await countries
+        .getByRole('button', { name: '일본', exact: true })
+        .getAttribute('aria-pressed'),
+      'true',
+    )
     assert.deepEqual(calls.at(-1), { keyword: '하루 로밍', country: '일본' })
     await page.getByRole('tab', { name: '로밍', exact: true }).click()
     assert.equal(await input.inputValue(), '하루 로밍')
@@ -600,7 +926,12 @@ test('로밍 검색어·국가 조건은 메뉴 이동 후 유지하고 상품 �
     await page.getByRole('tab', { name: '로밍', exact: true }).click()
     await page.getByRole('heading', { name: '전체 로밍 상품', exact: true }).waitFor()
     assert.equal(await input.inputValue(), '')
-    assert.equal(await country.inputValue(), '')
+    assert.equal(
+      await countries
+        .getByRole('button', { name: '전체 국가', exact: true })
+        .getAttribute('aria-pressed'),
+      'true',
+    )
     assert.deepEqual(calls.at(-1), { keyword: null, country: null })
   })
 })

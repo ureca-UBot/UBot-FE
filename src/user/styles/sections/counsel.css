@@ -1,22 +1,26 @@
 .ubot-user-app .ai-app-head { gap: 12px; }
 .ubot-user-app .ai-app-head > div:first-child { flex-shrink: 0; }
-.ubot-user-app .ai-counsel-link {
-  display: inline-flex;
+.ubot-user-app .ai-support-actions {
+  display: grid;
+  gap: 7px;
+}
+.ubot-user-app .ai-support-actions > button {
+  display: flex;
+  width: 100%;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
   color: var(--ink);
-  background: #fff;
-  font-size: 13px;
+  background: var(--soft);
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
-.ubot-user-app .ai-counsel-link:not(:disabled):hover { border-color: var(--pink-dark); }
-.ubot-user-app .ai-counsel-link:disabled {
+.ubot-user-app .ai-support-actions > button:disabled {
   border-color: var(--line);
   color: var(--subtle);
   background: var(--soft);
@@ -26,3 +30,20 @@
 .ubot-user-app .history-block .history-preview { color: var(--muted); font-size: 12px; font-weight: 400; }
 .ubot-user-app .ai-mobile-history { padding: 0 18px; border-bottom: 1px solid var(--line); }
 .ubot-user-app .ai-mobile-history summary { padding: 10px 0; color: var(--muted); font-size: 13px; cursor: pointer; }
+
+@media(max-width:767px) {
+  .ubot-user-app .ai-mobile-support {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ubot-user-app .ai-route .ai-chat-view {
+    height: calc(100dvh - 328px);
+    min-height: 280px;
+  }
+
+  .ubot-user-app .ai-route .ai-counsel-session {
+    height: calc(100dvh - 336px - env(safe-area-inset-bottom));
+    min-height: 280px;
+  }
+}

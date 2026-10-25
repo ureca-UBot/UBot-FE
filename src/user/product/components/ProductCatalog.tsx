@@ -1,13 +1,19 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { ProductCard, ProductCatalogKind } from '../catalog'
 import { ProductDetailDialog } from './ProductDetailDialog'
+import { ProductCardCover } from './ProductCardCover'
+import { ProductCatalogFilters } from './ProductCatalogFilters'
 
 // 한 종류의 상품 목록입니다. 종류가 바뀌면 key로 새로 마운트해 검색어와 목록을 처음 상태로 돌립니다.
-export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
+export function ProductCatalog({
+  kind,
+  initialOption = '',
+}: {
+  kind: ProductCatalogKind
+  initialOption?: string
+}) {
   const [keywordInput, setKeywordInput] = useState('')
-  const [countryInput, setCountryInput] = useState('')
-  const [optionInput, setOptionInput] = useState('')
-  const [filter, setFilter] = useState({ keyword: '', country: '', option: '' })
+  const [filter, setFilter] = useState({ keyword: '', country: '', option: initialOption })
   const [page, setPage] = useState(0)
   const [cards, setCards] = useState<ProductCard[]>([])
   const [totalElements, setTotalElements] = useState(0)
@@ -46,14 +52,18 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
 
   function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setFilter({ keyword: keywordInput.trim(), country: countryInput.trim(), option: optionInput })
+    setFilter((current) => ({ ...current, keyword: keywordInput.trim() }))
     setPage(0)
   }
 
   // 분류는 고르는 즉시 적용합니다. 검색어는 입력 중인 값이 아니라 마지막으로 검색한 값을 유지합니다.
   function changeOption(option: string) {
-    setOptionInput(option)
     setFilter((current) => ({ ...current, option }))
+    setPage(0)
+  }
+
+  function changeCountry(country: string) {
+    setFilter((current) => ({ ...current, country }))
     setPage(0)
   }
 
@@ -66,6 +76,13 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
 
   return (
     <div className="product-catalog">
+      <ProductCatalogFilters
+        kind={kind}
+        option={filter.option}
+        country={filter.country}
+        onOptionChange={changeOption}
+        onCountryChange={changeCountry}
+      />
       <form className="product-catalog-search" onSubmit={search} role="search">
         <input
           aria-label={`${kind.label} 검색어`}
@@ -74,31 +91,6 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
           placeholder={kind.searchPlaceholder}
           value={keywordInput}
         />
-        {kind.filtersByCountry && (
-          <input
-            aria-label="이용 국가"
-            className="product-catalog-country"
-            maxLength={100}
-            onChange={(event) => setCountryInput(event.target.value)}
-            placeholder="국가 (예: 일본)"
-            value={countryInput}
-          />
-        )}
-        {kind.filter && (
-          <select
-            aria-label={kind.filter.label}
-            className="product-catalog-option"
-            onChange={(event) => changeOption(event.target.value)}
-            value={optionInput}
-          >
-            <option value="">{kind.filter.allLabel}</option>
-            {kind.filter.options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        )}
         <button type="submit">검색</button>
       </form>
 
@@ -125,27 +117,29 @@ export function ProductCatalog({ kind }: { kind: ProductCatalogKind }) {
           <div className="product-catalog-grid">
             {cards.map((card) => (
               <article className="product-card" key={card.id}>
-                <small>{card.badge}</small>
-                <h3>{card.name}</h3>
-                {card.summary && <p>{card.summary}</p>}
-                {card.specs.length > 0 && (
-                  <ul>
-                    {card.specs.map((spec) => (
-                      <li key={spec}>{spec}</li>
-                    ))}
-                  </ul>
-                )}
-                <div className="product-card-price">
-                  <span>{card.priceLabel}</span>
-                  <b>{card.price}</b>
+                <ProductCardCover artwork={card.artwork} name={card.name} feature={card.feature} />
+                <div className="product-card-body">
+                  <small>{card.badge}</small>
+                  {card.summary && <p>{card.summary}</p>}
+                  {card.specs.length > 0 && (
+                    <ul>
+                      {card.specs.map((spec) => (
+                        <li key={spec}>{spec}</li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="product-card-price">
+                    <span>{card.priceLabel}</span>
+                    <b>{card.price}</b>
+                  </div>
+                  <button
+                    className="product-card-open"
+                    onClick={() => setDetailId(card.id)}
+                    type="button"
+                  >
+                    자세히 보기
+                  </button>
                 </div>
-                <button
-                  className="product-card-open"
-                  onClick={() => setDetailId(card.id)}
-                  type="button"
-                >
-                  자세히 보기
-                </button>
               </article>
             ))}
           </div>

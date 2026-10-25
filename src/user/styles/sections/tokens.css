@@ -7,7 +7,9 @@
   display: block
 }
 
-.ubot-user-app {
+.ubot-user-app,
+.auth-page,
+.chat-feedback-dialog {
   --pink: #f72585;
   --pink-dark: #d91370;
   --pink-soft: #fff0f7;
@@ -17,9 +19,24 @@
   --line: #e5e6e9;
   --soft: #f6f7f8;
   --purple: #6f55dd;
+  /* 페이지 배너: 사용자 요청에 따라 연분홍부터 연보라까지 항목별로 구분합니다. */
+  --hero-stores-bg: var(--pink-soft);
+  --hero-products-bg: color-mix(in srgb, var(--purple) 5%, var(--pink-soft));
+  --hero-notices-bg: color-mix(in srgb, var(--purple) 7%, #fff);
+  --hero-customer-bg: color-mix(in srgb, var(--purple) 10%, #fff);
+  --hero-my-bg: color-mix(in srgb, var(--pink-soft) 50%, var(--hero-customer-bg));
   --green: #16825d;
   /* 지도·길찾기: 누를 것·고른 것·목적지는 핑크, 경로·출발 같은 보조 정보는 이 회색을 쓴다. */
   --map-gray: #666;
+  --button-primary: var(--pink);
+  --button-secondary: var(--ink);
+  --button-hover-border: var(--pink);
+  --button-motion-duration: 180ms;
+  --button-hover-lift: -2px;
+  --button-press-offset: 1px;
+  --select-radius: 14px;
+  --select-height: 46px;
+  --font-product: 'SUITE Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --max: 1200px;
   --r-sm: 12px;
   --r-md: 20px;

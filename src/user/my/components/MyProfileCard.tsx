@@ -136,7 +136,7 @@ export function MyProfileCard({ active }: { active: boolean }) {
       <div className="my-profile-head">
         <h3 id="myProfileTitle">회원 정보</h3>
         {profile && !form && (
-          <button className="my-profile-ghost" onClick={startEdit} type="button">
+          <button className="my-profile-ghost my-profile-primary" onClick={startEdit} type="button">
             수정
           </button>
         )}

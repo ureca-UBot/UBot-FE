@@ -89,7 +89,8 @@ function scenario(name, options, check) {
       const input = page.getByRole('textbox', { name: 'AI 채팅 입력' }).first()
       await input.fill(question)
       await input.press('Enter')
-      if (options.guard) await page.locator('.error-card').waitFor()
+      if (options.guard)
+        await page.getByText('검사 후 제공할 수 있는 답변이 없습니다.', { exact: true }).waitFor()
       else if (options.pending)
         await page.getByText('답변을 생성하고 있습니다.', { exact: true }).waitFor()
       else await page.getByRole('group', { name: '답변 의견', exact: true }).last().waitFor()
@@ -242,7 +243,8 @@ scenario(
   async ({ page, posts, thumbs, dialog }) => {
     await thumbs().getByRole('button', { name: '이 답변 별로예요', exact: true }).click()
     await dialog().getByRole('button', { name: '로그인하고 의견 보내기', exact: true }).click()
-    await page.getByRole('heading', { name: 'UBot 로그인', exact: true }).waitFor()
+    await page.waitForURL('**/#/auth/login')
+    await page.getByRole('heading', { name: '로그인', exact: true }).waitFor()
     assert.equal(posts.length, 0)
   },
 )

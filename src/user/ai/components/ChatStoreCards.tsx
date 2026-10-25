@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { ChatInlineStoreMap } from './ChatInlineStoreMap'
 import type { ChatStore, ChatStoreItem } from '../types/chat'
 
 const MAX_STORE_CARDS = 3
@@ -12,12 +14,30 @@ function openReservation(item: ChatStoreItem) {
 
 interface ChatStoreCardsProps {
   store?: ChatStore | null
-  // 이 답변의 지도를 열고 고른 매장을 지도에서 보여 줍니다.
-  onOpenMap?: (storeId: number) => void
+  onNavigateToStore?: () => void
+  onRequestLocation?: () => void
+  disabled?: boolean
 }
 
-export function ChatStoreCards({ store, onOpenMap }: ChatStoreCardsProps) {
+export function ChatStoreCards({
+  store,
+  onNavigateToStore,
+  onRequestLocation,
+  disabled = false,
+}: ChatStoreCardsProps) {
+  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null)
   const map = store?.map
+  if (store?.locationRequired)
+    return (
+      <div className="chat-location-prompt">
+        <p>주변 매장을 찾으려면 현재 위치를 허용해 주세요. 지역명을 입력해서 찾을 수도 있어요.</p>
+        {onRequestLocation && (
+          <button type="button" disabled={disabled} onClick={onRequestLocation}>
+            위치 허용하고 매장 찾기
+          </button>
+        )}
+      </div>
+    )
   if (!map) return null
   const stores = map.stores.slice(0, MAX_STORE_CARDS)
 
@@ -36,13 +56,20 @@ export function ChatStoreCards({ store, onOpenMap }: ChatStoreCardsProps) {
               <button className="primary" onClick={() => openReservation(item)} type="button">
                 방문 예약
               </button>
-              {onOpenMap && (
-                <button onClick={() => onOpenMap(item.storeId)} type="button">
-                  지도에서 보기
-                </button>
-              )}
+              <button
+                aria-expanded={selectedStoreId === item.storeId}
+                onClick={() =>
+                  setSelectedStoreId((current) => (current === item.storeId ? null : item.storeId))
+                }
+                type="button"
+              >
+                {selectedStoreId === item.storeId ? '지도 접기' : '지도에서 보기'}
+              </button>
             </div>
           </div>
+          {selectedStoreId === item.storeId && (
+            <ChatInlineStoreMap result={map} selectedStore={item} onNavigate={onNavigateToStore} />
+          )}
         </div>
       ))}
     </div>

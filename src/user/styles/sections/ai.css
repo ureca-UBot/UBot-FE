@@ -1053,7 +1053,6 @@
 
 .ubot-user-app .ranking-sidebar__section li button:not(:disabled):hover {
   background: rgba(255, 255, 255, .82);
-  transform: translateX(2px)
 }
 
 .ubot-user-app .ranking-sidebar__section li button:not(:disabled):hover span {

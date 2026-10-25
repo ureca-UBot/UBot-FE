@@ -7,6 +7,9 @@ export interface ChatJobCancellation {
 export interface ChatRequest {
   question: string
   conversationId?: string
+  latitude?: number
+  longitude?: number
+  useMyLocation?: boolean
 }
 
 // 화면에서 쓰는 답변 결과입니다. 작업 상태 조회의 최종 결과(SUCCEEDED·FAILED)를 이 형식으로 바꿔 씁니다.
@@ -263,6 +266,7 @@ export interface ChatTurn {
   question: string
   faqId?: number
   isPending: boolean
+  isLocating?: boolean
   isCancelled?: boolean
   isCancelling?: boolean
   cancelError?: string | null
@@ -275,7 +279,7 @@ export interface ChatTurn {
   researches: ChatResearch[]
 }
 
-// 브라우저 위치 조회 결과입니다. 매장 의도 재검색에만 사용합니다.
+// 브라우저 위치 조회 결과입니다. 주변 매장 질문과 매장 의도 재검색에 사용합니다.
 export interface ChatLocation {
   latitude: number
   longitude: number

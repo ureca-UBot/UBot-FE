@@ -245,7 +245,6 @@
   .ubot-user-app .mega-column button:hover,
   .ubot-user-app .mega-column button:focus-visible {
     color: #d0146b;
-    transform: translateX(3px);
     outline: 0
   }
 

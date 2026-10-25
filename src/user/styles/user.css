@@ -18,10 +18,20 @@
 @import './sections/directions.css';
 @import './sections/directions-detail.css';
 @import './sections/products.css';
-@import './sections/chat-map-drawer.css';
+@import './sections/chat-inline-map.css';
 @import './sections/notice-banners.css';
 @import './sections/notices.css';
 @import './sections/notifications.css';
 
 @import './sections/chat-feedback.css';
 @import './sections/admin-navigation.css';
+@import './sections/page-heroes.css';
+@import './sections/buttons.css';
+@import './sections/subscription-picker.css';
+@import './sections/selection-controls.css';
+@import './sections/my-page.css';
+@import './sections/chat-input.css';
+@import './sections/header-mega-menu.css';
+@import './sections/ai-theme.css';
+@import './sections/customer-center.css';
+@import './sections/floating-chat.css';

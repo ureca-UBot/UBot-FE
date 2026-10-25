@@ -78,6 +78,7 @@
 
 .ubot-user-app .direction-guide-item.hovered .direction-guide-no.step,
 .ubot-user-app .direction-guide-item.active .direction-guide-no.step {
+  border-color: var(--pink);
   color: #fff;
   background: var(--pink)
 }
@@ -178,8 +179,9 @@
 .ubot-user-app .direction-guide-marker:hover,
 .ubot-user-app .direction-guide-marker.hovered,
 .ubot-user-app .direction-guide-marker.active {
+  border-color: var(--pink);
   color: #fff;
-  background: var(--map-gray);
+  background: var(--pink);
   transform: scale(1.4)
 }
 

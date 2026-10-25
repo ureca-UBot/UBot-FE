@@ -1,37 +1,61 @@
 .ubot-user-app .admin-screen-link {
-  display: inline-flex;
+  display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  margin-right: 8px;
-  padding: 8px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  color: #374151;
-  background: #fff;
-  font-size: 12px;
+  min-width: 56px;
+  height: 64px;
+  padding: 7px 6px;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--ink);
+  background: transparent;
+  font-size: 10.5px;
   font-weight: 700;
-  line-height: 1.4;
+  line-height: 1;
   text-decoration: none;
   white-space: nowrap;
-  transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+  transition:
+    translate var(--button-motion-duration) ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .ubot-user-app .admin-screen-link:hover {
-  border-color: #c7d2fe;
-  color: #4338ca;
-  background: #eef2ff;
+  color: var(--pink-dark);
+  background: var(--pink-soft);
+  translate: 0 var(--button-hover-lift);
 }
 
 .ubot-user-app .admin-screen-link:focus-visible {
-  outline: 3px solid #c7d2fe;
+  outline: 2px solid var(--pink);
   outline-offset: 2px;
 }
 
 @media (max-width: 1100px) {
   .ubot-user-app .admin-screen-link {
-    margin-right: 0;
-    padding-inline: 10px;
+    min-width: 40px;
+    height: 40px;
+    padding: 5px;
+  }
+  .ubot-user-app .admin-screen-label {
+    display: none;
+  }
+}
+
+.ubot-user-app .admin-screen-link img {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+.ubot-user-app .header-action-icon img {
+  display: block;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ubot-user-app .admin-screen-link {
+    transition: none;
   }
 }

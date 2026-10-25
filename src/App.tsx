@@ -2,12 +2,14 @@ import { lazy, Suspense } from 'react'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { RequireAdmin } from './admin/routes/RequireAdmin'
 import './App.css'
+import './user/styles/sections/typography.css'
 import { AuthProvider } from './auth/context/AuthProvider'
 import { LoginPage } from './auth/pages/LoginPage'
 import { ChatProvider } from './user/ai/context/ChatProvider'
 import { UserSignupPage } from './user/auth/pages/UserSignupPage'
 import { MyProfileProvider } from './user/my/context/MyProfileProvider'
 import { NotificationUnreadProvider } from './user/notification/context/NotificationUnreadProvider'
+import { FloatingChatGate } from './user/ai/components/FloatingChat'
 
 const AdminApp = lazy(() => import('./admin/AdminApp'))
 const UserApp = lazy(() => import('./user/UserApp'))
@@ -21,6 +23,7 @@ function App() {
     <HashRouter>
       <AuthProvider>
         <ChatProvider>
+          <FloatingChatGate />
           <Suspense fallback={null}>
             <Routes>
               <Route path="/auth/login" element={<LoginPage />} />

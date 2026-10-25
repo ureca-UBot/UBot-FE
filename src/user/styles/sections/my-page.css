@@ -1,0 +1,66 @@
+.ubot-user-app .my-member .member-summary {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--ink);
+  background: var(--pink-soft);
+}
+
+.ubot-user-app .my-member .member-summary :is(small, span) {
+  color: var(--muted);
+}
+
+.ubot-user-app .my-member .usage-circle {
+  background: conic-gradient(var(--pink) 54%, var(--line) 54%);
+}
+
+.ubot-user-app .my-member .usage-circle:after {
+  background: #fff;
+}
+
+.ubot-user-app :is(.my-profile, .my-guest) {
+  border-radius: var(--r-md);
+}
+
+.ubot-user-app .my-profile-head {
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ubot-user-app .my-profile-form input {
+  min-height: var(--select-height);
+  padding: 11px 13px;
+  border-color: var(--line);
+  border-radius: var(--select-radius);
+}
+
+.ubot-user-app .my-profile-form input:focus {
+  border-color: var(--pink);
+}
+
+.ubot-user-app .my-profile-list dd {
+  min-width: 0;
+}
+
+.ubot-user-app .my-item-list li {
+  flex-wrap: wrap;
+}
+
+.ubot-user-app .my-sub-actions {
+  row-gap: 10px;
+}
+
+@media(max-width:767px) {
+  .ubot-user-app .my-member .member-summary {
+    grid-template-columns: minmax(0, 1fr) 82px;
+    gap: 12px;
+  }
+
+  .ubot-user-app .member-summary h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .ubot-user-app .my-item-side {
+    flex-wrap: wrap;
+  }
+}

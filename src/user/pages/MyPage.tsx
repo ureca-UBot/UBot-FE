@@ -4,6 +4,7 @@ import { MyProfileCard } from '../my/components/MyProfileCard'
 import { MyNotificationList } from '../notification/components/MyNotificationList'
 import { MyReservationList } from '../reservation/components/MyReservationList'
 import { MySubscriptionInfo } from '../subscription/components/MySubscriptionInfo'
+import { PageHero } from '../components/PageHero'
 
 interface PageProps {
   active: boolean
@@ -18,25 +19,25 @@ export function MyPage({ active, loggedIn: demoLoggedIn }: PageProps) {
   return (
     <>
       <section className={`route page-standard${active ? ' active' : ''}`} data-page="my">
-        <div className="standard-hero my-hero">
-          <span>MY</span>
-          <h1 id="myHeroTitle">
-            {loggedIn ? (
-              <>
-                내 통신 생활,
-                <br />
-                필요한 정보만 한눈에.
-              </>
-            ) : (
-              <>
-                로그인하면 내 통신 생활을
-                <br />
-                한눈에 확인할 수 있어요.
-              </>
-            )}
-          </h1>
-          <p id="myHeroDesc">요금, 사용량, 결합 정보와 개인 혜택을 확인합니다.</p>
-        </div>
+        <PageHero
+          image="my"
+          eyebrow="내 정보"
+          description="요금, 사용량, 결합 정보와 개인 혜택을 확인합니다."
+        >
+          {loggedIn ? (
+            <>
+              내 통신 생활,
+              <br />
+              필요한 정보만 한눈에.
+            </>
+          ) : (
+            <>
+              로그인하면 내 통신 생활을
+              <br />
+              한눈에 확인할 수 있어요.
+            </>
+          )}
+        </PageHero>
         <div className="standard-wrap">
           <div className={`my-guest${loggedIn ? ' hidden' : ''}`} id="myGuest">
             <h2>현재 비회원입니다.</h2>

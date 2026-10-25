@@ -82,7 +82,11 @@ export function SubscriptionActionDialog({
           </button>
         </div>
         {description && <div className="modal-desc">{description}</div>}
-        {children}
+        {children && (
+          <fieldset className="subscription-action-fields" disabled={pending}>
+            {children}
+          </fieldset>
+        )}
         {error && (
           <p className="my-profile-message error" role="alert">
             {error}

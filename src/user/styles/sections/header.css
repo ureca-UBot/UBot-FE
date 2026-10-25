@@ -153,7 +153,6 @@
 
 .ubot-user-app .gnb-item>button:hover {
   color: var(--pink-dark);
-  transform: translateY(-1px)
 }
 
 .ubot-user-app .gnb-item>button:after {
@@ -336,7 +335,6 @@
 
 .ubot-user-app .mega-feature:hover {
   box-shadow: 0 18px 38px rgba(23, 23, 26, .16);
-  transform: translateY(-3px)
 }
 
 .ubot-user-app .mega-feature>span,
@@ -424,7 +422,6 @@
 .ubot-user-app .header-tools .round-tool:hover {
   border-color: #d5d6da;
   box-shadow: 0 8px 18px rgba(23, 23, 26, .08);
-  transform: translateY(-2px)
 }
 
 .ubot-user-app .header-cart {
@@ -446,7 +443,6 @@
 
 .ubot-user-app .header-tools .demo-pill:hover {
   background: var(--pink-dark);
-  transform: translateY(-1px)
 }
 
 

@@ -87,7 +87,6 @@
 .ubot-user-app .store-list-footer .reserve-main:hover {
   background: linear-gradient(135deg, #ff68ad, #e91875);
   box-shadow: 0 10px 21px rgba(247, 37, 133, .28);
-  transform: translateY(-1px)
 }
 
 .ubot-user-app button.store-search-submit:disabled,

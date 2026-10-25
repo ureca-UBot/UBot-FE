@@ -75,8 +75,14 @@ export const ROUTE_ICON_PATHS: Record<RouteIconType, { paths: string[]; filled?:
     ],
   },
   search: { paths: ['M11 18a7 7 0 1 1 0-14a7 7 0 1 1 0 14z', 'M20 20l-4-4'] },
-  // 현재 위치: 내 위치를 가리키는 화살표
-  locate: { paths: ['M20 4 3.5 11.2l7 2.3 2.3 7z'] },
+  // 현재 위치: 중심점과 사방 조준선으로 위치 기능을 분명하게 표시합니다.
+  locate: {
+    paths: [
+      'M12 19a7 7 0 1 1 0-14a7 7 0 1 1 0 14z',
+      'M12 14a2 2 0 1 1 0-4a2 2 0 1 1 0 4z',
+      'M12 2v3M12 19v3M2 12h3M19 12h3',
+    ],
+  },
   recent: { paths: ['M12 21a9 9 0 1 1 0-18a9 9 0 1 1 0 18z', 'M12 7.5V12l3 2'] },
   chevron: { paths: ['M6 9l6 6 6-6'] },
   prev: { paths: ['M15 6l-6 6 6 6'] },

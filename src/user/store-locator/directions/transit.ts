@@ -1,7 +1,7 @@
 import type { DirectionsStep } from '../types/directions'
 import type { RouteIconType } from './icons'
+import { ROUTE_COLOR } from './colors'
 
-export const WALK_COLOR = '#9aa0a6'
 // 환승할 때마다 다음 버스 색을 쓴다. 수도권 지하철 노선 색과 겹치지 않도록 고른 색이며, 5번째 이후는 처음부터 반복한다.
 const BUS_COLORS = ['#1677ff', '#7048e8', '#343a40', '#7f4f24', '#a61e4d']
 const SUBWAY_FALLBACK_COLOR = '#5b6b7a'
@@ -54,7 +54,7 @@ export function stepColors(steps: DirectionsStep[]) {
   return steps.map((step) => {
     if (step.type === 'SUBWAY') return subwayLineColor(step)
     if (step.type === 'BUS') return BUS_COLORS[busCount++ % BUS_COLORS.length]
-    return WALK_COLOR
+    return ROUTE_COLOR
   })
 }
 

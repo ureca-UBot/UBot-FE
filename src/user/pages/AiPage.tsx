@@ -1,24 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { chatApi } from '../ai/api/chatApi'
 import { useCustomerCounsel, counselStates } from '../../counsel/hooks/useCustomerCounsel'
 import { CounselConversation } from '../../counsel/components/CounselConversation'
 import { ConversationTimeline } from '../../counsel/components/ConversationTimeline'
 import '../../counsel/styles/counsel.css'
 import { ChatInput } from '../ai/components/ChatInput'
+import { ChatSendIcon } from '../ai/components/ChatSendIcon'
 import { ChatMessages } from '../ai/components/ChatMessages'
-import { ChatStoreMapDrawer, type ChatMapView } from '../ai/components/ChatStoreMapDrawer'
 import { ConversationHistory } from '../ai/components/ConversationHistory'
 import { RankingFaqPanel } from '../ai/components/RankingFaqPanel'
 import type { useChat } from '../ai/hooks/useChat'
-import { collectStoreMaps } from '../ai/utils/storeMaps'
-
-interface StoreMapState {
-  // 드로어에 보여 줄 지도입니다. 지도를 새로 열어 달라고 할 때마다 새 객체로 바꿔 드로어가 다시 그리게 합니다.
-  shown: { key: string; storeId?: number } | null
-  open: boolean
-  // 이미 자동으로 열었거나 화면에 들어올 때 있던 지도입니다. 새 답변의 지도만 자동으로 엽니다.
-  seenKeys: string[]
-}
+import logo from '../assets/ubot-logo.png'
+import { useSearchParams } from 'react-router-dom'
 
 export interface AiMessage {
   id: number
@@ -54,6 +47,15 @@ export function AiPage({
   const [historyVersion, setHistoryVersion] = useState(0)
   const historyBusy = useRef(false)
   const counsel = useCustomerCounsel(chat)
+  const [searchParams] = useSearchParams()
+  const focusCounsel = searchParams.get('focus') === 'counsel'
+  useEffect(() => {
+    if (!active || !focusCounsel || isInitializing) return
+    const button = [...document.querySelectorAll<HTMLButtonElement>('.ai-counsel-link')].find(
+      (item) => item.offsetParent !== null,
+    )
+    button?.focus({ preventScroll: true })
+  }, [active, focusCounsel, isInitializing])
   const hasConversation = chat ? chat.turns.length > 0 : chatActive
 
   useEffect(() => {
@@ -117,33 +119,36 @@ export function AiPage({
     }
   }
 
-  const turns = chat?.turns
-  const storeMaps = useMemo(() => (turns ? collectStoreMaps(turns) : []), [turns])
-  const [mapState, setMapState] = useState<StoreMapState>(() => ({
-    shown: null,
-    open: false,
-    seenKeys: storeMaps.map(({ key }) => key),
-  }))
-  // 매장 지도가 담긴 새 답변이 오면 그 지도로 드로어를 엽니다.
-  const unseenMaps = storeMaps.filter(({ key }) => !mapState.seenKeys.includes(key))
-  if (unseenMaps.length > 0) {
-    setMapState({
-      shown: { key: unseenMaps[unseenMaps.length - 1].key },
-      open: true,
-      seenKeys: storeMaps.map(({ key }) => key),
-    })
-  }
-  // 새 대화를 시작하면 답변의 지도도 함께 사라집니다.
-  const { shown } = mapState
-  const shownMap = storeMaps.find(({ key }) => key === shown?.key)?.map ?? null
-  const mapView = useMemo<ChatMapView | null>(
-    () => (shownMap ? { kind: 'answer', map: shownMap, storeId: shown?.storeId } : null),
-    [shown, shownMap],
+  const supportActions = (
+    <div className="ai-support-actions">
+      <button data-route="customer" type="button">
+        고객센터 문의
+      </button>
+      <button
+        className={`ai-counsel-link${loggedIn ? '' : ' open-login'}`}
+        type="button"
+        onClick={loggedIn ? () => void counsel.requestCounsel() : undefined}
+        disabled={
+          isInitializing ||
+          (loggedIn &&
+            (!counsel.enabled ||
+              deletingId !== null ||
+              openingHistory ||
+              chat?.isPending ||
+              counsel.loading ||
+              counsel.busy ||
+              Boolean(counsel.session && counsel.session.status !== 'ENDED')))
+        }
+        title={
+          !loggedIn
+            ? '로그인 후 상담사를 호출할 수 있습니다.'
+            : '현재 대화 내역을 상담사에게 공유하고 연결합니다.'
+        }
+      >
+        {counsel.busy ? '연결 요청 중…' : counsel.uncertain ? '상담 요청 확인' : '상담사 호출'}
+      </button>
+    </div>
   )
-  const mapOpen = active && mapState.open && mapView !== null
-  const openMap = (key: string, storeId?: number) =>
-    setMapState((current) => ({ ...current, shown: { key, storeId }, open: true }))
-  const closeMap = () => setMapState((current) => ({ ...current, open: false }))
 
   return (
     <>
@@ -151,40 +156,15 @@ export function AiPage({
         className={`route ai-route${active ? ' active' : ''}`}
         data-page="ai"
         data-live-chat={chat ? '' : undefined}
+        data-counsel-focus={focusCounsel ? '' : undefined}
       >
         <div className="ai-app">
           <div className="ai-app-head">
             <div>
-              <strong>AI 채팅</strong>
+              <img className="ai-brand-logo" src={logo} alt="Ubot" width={90} height={45} />
             </div>
-            <button
-              className={`ai-counsel-link${loggedIn ? '' : ' open-login'}`}
-              type="button"
-              onClick={loggedIn ? () => void counsel.requestCounsel() : undefined}
-              disabled={
-                isInitializing ||
-                (loggedIn &&
-                  (!counsel.enabled ||
-                    deletingId !== null ||
-                    openingHistory ||
-                    chat?.isPending ||
-                    counsel.loading ||
-                    counsel.busy ||
-                    Boolean(counsel.session && counsel.session.status !== 'ENDED')))
-              }
-              title={
-                !loggedIn
-                  ? '로그인 후 상담사를 호출할 수 있습니다.'
-                  : '현재 대화 내역을 상담사에게 공유하고 연결합니다.'
-              }
-            >
-              {counsel.busy
-                ? '연결 요청 중…'
-                : counsel.uncertain
-                  ? '상담 요청 확인'
-                  : '상담사 호출'}
-            </button>
           </div>
+          <div className="ai-mobile-support mobile-only">{supportActions}</div>
 
           <div className="ai-layout">
             {chat && (
@@ -208,14 +188,6 @@ export function AiPage({
               </details>
             )}
             <aside className="ai-left desktop-only">
-              <button
-                className="new-chat"
-                id="newChat"
-                disabled={inputDisabled}
-                onClick={startNewChat}
-              >
-                ＋ 새 대화
-              </button>
               {chat && (
                 <ConversationHistory
                   loggedIn={loggedIn && !isInitializing}
@@ -240,9 +212,17 @@ export function AiPage({
                   </button>
                 </div>
               )}
+              <button
+                className="new-chat"
+                id="newChat"
+                disabled={inputDisabled}
+                onClick={startNewChat}
+              >
+                ＋ 새 대화
+              </button>
               <div className="ai-left-bottom">
                 {!loggedIn && <button className="open-login">로그인</button>}
-                <button data-route="customer">고객센터 문의</button>
+                {supportActions}
               </div>
             </aside>
 
@@ -338,7 +318,13 @@ export function AiPage({
                     id="aiHomeView"
                   >
                     <div className="ai-greeting">
-                      <small>AI 채팅</small>
+                      <img
+                        className="ai-greeting-logo"
+                        src={logo}
+                        alt="Ubot"
+                        width={120}
+                        height={60}
+                      />
                       <h1>무엇을 찾고 계세요?</h1>
                       <p>상품, 요금제, 혜택, 매장, 고객지원 정보를 대화하듯 찾아보세요.</p>
                     </div>
@@ -361,7 +347,7 @@ export function AiPage({
                           aria-label="AI 채팅 입력"
                         ></textarea>
                         <button className="send-ai" aria-label="질문 보내기">
-                          ↑
+                          <ChatSendIcon />
                         </button>
                       </div>
                     )}
@@ -378,7 +364,7 @@ export function AiPage({
                         disabled={inputDisabled}
                         canResearch={loggedIn && !isInitializing}
                         onResearch={chat.researchAnswer}
-                        onOpenMap={openMap}
+                        onRequestLocation={(turnId) => void chat.requestStoreLocation(turnId)}
                       />
                     ) : (
                       <div className="chat-thread" id="chatThread">
@@ -419,7 +405,7 @@ export function AiPage({
                             aria-label="AI 채팅 입력"
                           ></textarea>
                           <button className="send-ai" aria-label="질문 보내기">
-                            ↑
+                            <ChatSendIcon />
                           </button>
                         </div>
                       )}
@@ -450,9 +436,6 @@ export function AiPage({
           </div>
         </div>
       </section>
-
-      {/* 방문 예약 버튼은 UserApp의 클릭 위임으로 처리되므로 채팅 영역(data-live-chat) 밖에 둡니다. */}
-      {chat && <ChatStoreMapDrawer open={mapOpen} view={mapView} onClose={closeMap} />}
 
       {/*ADMIN*/}
     </>

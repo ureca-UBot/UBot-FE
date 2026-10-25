@@ -1,5 +1,6 @@
 import type { PageResponse } from '../../shared/types/api'
 import { productApi } from './api/productApi'
+import { addonArtwork, planArtwork, type ProductArtworkKey } from './artwork'
 import type {
   AddonCategory,
   AddonService,
@@ -32,6 +33,8 @@ import {
 // 목록·상세 컴포넌트는 종류를 구분하지 않습니다.
 export interface ProductCard {
   id: number
+  artwork: ProductArtworkKey
+  feature?: { label: string; value: string }
   badge: string
   name: string
   summary: string | null
@@ -41,12 +44,13 @@ export interface ProductCard {
 }
 
 export interface ProductDetailView {
+  artwork: ProductArtworkKey
   badge: string
   name: string
   description: string | null
   priceLabel: string
   price: string
-  rows: { label: string; value: string }[]
+  rows: { label: string; value: string | string[] }[]
 }
 
 export interface ProductCatalogQuery {
@@ -57,7 +61,7 @@ export interface ProductCatalogQuery {
   page: number
 }
 
-// 검색창 옆에 두는 분류 선택입니다.
+// 상위 카테고리 아래에 두는 텍스트 분류 버튼입니다.
 export interface ProductCatalogFilter {
   label: string
   allLabel: string
@@ -73,12 +77,28 @@ export interface ProductCatalogKind {
   emptyMessage: string
   // 로밍만 국가로 좁혀 볼 수 있습니다.
   filtersByCountry: boolean
+  getCountries?: () => Promise<string[]>
   filter?: ProductCatalogFilter
   getCards: (query: ProductCatalogQuery) => Promise<PageResponse<ProductCard>>
   getDetail: (id: number) => Promise<ProductDetailView>
 }
 
 const PAGE_SIZE = 12
+
+// 별도의 국가 목록 API가 없어 판매 중인 로밍 상품의 실제 국가를 모읍니다.
+async function roamingCountries() {
+  const countries = new Set<string>()
+  let page = 0
+  while (true) {
+    const result = await productApi.getRoamingProductList({ page, size: 100 })
+    for (const product of result.content) {
+      if (product.country.trim()) countries.add(product.country.trim())
+    }
+    if (result.last || result.content.length === 0) break
+    page += 1
+  }
+  return [...countries].sort((left, right) => left.localeCompare(right, 'ko'))
+}
 
 function mapPage<TItem>(
   page: PageResponse<TItem>,
@@ -103,6 +123,8 @@ function planBadge(plan: PlanSummary) {
 function planCard(plan: PlanSummary): ProductCard {
   return {
     id: plan.planId,
+    artwork: planArtwork(plan),
+    feature: { label: '데이터', value: formatPlanData(plan) },
     badge: planBadge(plan),
     name: plan.name,
     summary: null,
@@ -124,7 +146,9 @@ function planDetailView(
     plan.exhaustedSpeedKbps === null
       ? formatPlanData(plan)
       : `${formatPlanData(plan)} (소진 후 최대 ${formatSpeed(plan.exhaustedSpeedKbps)})`
-  const rows = [
+  const rows: ProductDetailView['rows'] = [
+    { label: '통신망', value: NETWORK_TYPE_LABELS[plan.networkType] },
+    { label: '가입 대상', value: PLAN_TARGET_GROUP_LABELS[plan.targetGroup] },
     { label: '데이터', value: data },
     { label: '음성', value: formatPlanVoice(plan) },
     { label: '문자', value: formatPlanSms(plan) },
@@ -138,10 +162,11 @@ function planDetailView(
   if (includedAddons.length > 0)
     rows.push({
       label: '기본 제공',
-      value: includedAddons.map((addon) => addon.name).join(', '),
+      value: includedAddons.map((addon) => addon.name),
     })
 
   return {
+    artwork: planArtwork(plan),
     badge: planBadge(plan),
     name: plan.name,
     description,
@@ -156,9 +181,13 @@ function bundleView(
   product: BundleProduct,
   homeProduct: HomeProduct | null = null,
 ): ProductDetailView {
-  const rows = [{ label: '회선 수', value: formatLineCount(product.lineCount) }]
+  const rows = [
+    { label: '결합 종류', value: BUNDLE_TYPE_LABELS[product.bundleType] },
+    { label: '회선 수', value: formatLineCount(product.lineCount) },
+  ]
   if (homeProduct) rows.push({ label: '필요 인터넷', value: homeProductName(homeProduct) })
   return {
+    artwork: 'bundle',
     badge: BUNDLE_TYPE_LABELS[product.bundleType],
     name: product.name,
     description: product.description,
@@ -170,17 +199,19 @@ function bundleView(
 
 function addonView(service: AddonService): ProductDetailView {
   return {
+    artwork: addonArtwork(service),
     badge: ADDON_CATEGORY_LABELS[service.category],
     name: service.name,
     description: service.description,
     priceLabel: '월 이용료',
     price: service.monthlyFee === 0 ? '무료' : formatWon(service.monthlyFee),
-    rows: [],
+    rows: [{ label: '서비스 분류', value: ADDON_CATEGORY_LABELS[service.category] }],
   }
 }
 
 function roamingView(product: RoamingProduct): ProductDetailView {
   return {
+    artwork: 'roaming',
     badge: product.country,
     name: product.name,
     description: product.description,
@@ -201,30 +232,39 @@ function homeProductName(product: HomeProduct) {
 
 function homeView(product: HomeProduct): ProductDetailView {
   return {
+    artwork: product.productType === 'IPTV' ? 'iptv' : 'home',
     badge: HOME_PRODUCT_TYPE_LABELS[product.productType],
     name: product.name,
     description: product.description,
     priceLabel: '월 요금',
     price: formatWon(product.monthlyFee),
-    rows:
-      product.speedMbps === null
+    rows: [
+      { label: '상품 종류', value: HOME_PRODUCT_TYPE_LABELS[product.productType] },
+      ...(product.speedMbps === null
         ? []
-        : [{ label: '최대 속도', value: formatMbps(product.speedMbps) }],
+        : [{ label: '최대 속도', value: formatMbps(product.speedMbps) }]),
+    ],
   }
 }
 
 // 결합·부가·로밍·인터넷은 목록과 단건의 모양이 같아서 상세 모양에서 카드를 만듭니다.
 function cardFrom(id: number, view: ProductDetailView): ProductCard {
+  const feature = view.rows.find(
+    (row): row is { label: string; value: string } =>
+      typeof row.value === 'string' && (row.label === '데이터' || row.label === '최대 속도'),
+  )
   return {
     id,
+    artwork: view.artwork,
+    feature,
     badge: view.badge,
     name: view.name,
     summary: view.description,
     priceLabel: view.priceLabel,
     price: view.price,
     specs: view.rows
-      .filter((row) => row.label !== '이용 국가')
-      .map((row) => `${row.label} ${row.value}`),
+      .filter((row) => !['이용 국가', '서비스 분류', '상품 종류', '결합 종류'].includes(row.label))
+      .map((row) => `${row.label} ${Array.isArray(row.value) ? row.value.join(', ') : row.value}`),
   }
 }
 
@@ -306,6 +346,7 @@ export const productCatalogKinds: ProductCatalogKind[] = [
     searchPlaceholder: '로밍 상품 이름으로 검색',
     emptyMessage: '판매 중인 로밍 상품이 없습니다.',
     filtersByCountry: true,
+    getCountries: roamingCountries,
     getCards: async ({ keyword, country, page }) =>
       mapPage(
         await productApi.getRoamingProductList({ keyword, country, page, size: PAGE_SIZE }),

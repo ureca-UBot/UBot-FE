@@ -22,6 +22,7 @@ import type {
 } from '../types/chat'
 import { ChatContext, type ChatContextValue } from './ChatContext'
 import { ChatSendContext } from './ChatSendContext'
+import { locationAwareQuestion } from '../utils/locationAwareQuestion'
 
 const MAX_CHAT_ATTEMPTS = 3
 
@@ -32,6 +33,7 @@ interface ActiveRequest {
   jobId?: number
   cancelRequested?: boolean
   cancelInFlight?: Promise<void>
+  waitingForLocation?: boolean
 }
 
 interface ChatState {
@@ -59,8 +61,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const activeRequest = useRef<ActiveRequest | null>(null)
   const pendingFaq = useRef<FaqSelectionRequest | null>(null)
   const conversationLocked = useRef(false)
+  const [isConversationLocked, setIsConversationLocked] = useState(false)
   const setConversationLocked = useCallback((locked: boolean) => {
     conversationLocked.current = locked
+    setIsConversationLocked(locked)
   }, [])
 
   // 로그아웃하거나 계정이 바뀐 렌더에서는 이전 사용자의 대화를 화면에 전달하지 않습니다.
@@ -147,7 +151,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const runRequest = useCallback(
     async (
-      turn: Pick<ChatTurn, 'id' | 'question'>,
+      turn: Pick<ChatTurn, 'id' | 'question'> & Partial<Pick<ChatTurn, 'researches'>>,
       request: (options: ChatWaitOptions) => Promise<ChatResponse>,
     ): Promise<boolean> => {
       if (activeRequest.current || conversationLocked.current) return false
@@ -171,6 +175,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       const pendingTurn: ChatTurn = {
         ...turn,
         isPending: true,
+        isLocating: false,
         isCancelled: false,
         isCancelling: false,
         cancelError: null,
@@ -178,8 +183,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         response: null,
         error: null,
         errorCode: null,
-        // 재검색은 답변이 성공한 뒤에만 가능하고, 재시도 대상은 실패한 답변뿐이라 항상 비어 있습니다.
-        researches: [],
+        // 위치 허용 후 같은 질문을 이어갈 때는 기존 의도별 결과를 유지합니다.
+        researches: turn.researches ?? [],
       }
       setState((current) => ({
         ...current,
@@ -254,6 +259,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             ? {
                 ...item,
                 isPending: false,
+                isLocating: false,
                 isCancelling: false,
                 progress: null,
                 response,
@@ -272,6 +278,26 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const request = activeRequest.current
     if (request?.turnId === undefined) return
     request.cancelRequested = true
+    if (request.waitingForLocation) {
+      activeRequest.current = null
+      request.controller?.abort()
+      setState((current) => ({
+        ...current,
+        turns: current.turns.map((turn) =>
+          turn.id === request.turnId
+            ? {
+                ...turn,
+                isPending: false,
+                isLocating: false,
+                isCancelled: true,
+                isCancelling: false,
+                progress: null,
+              }
+            : turn,
+        ),
+      }))
+      return
+    }
     setState((current) => ({
       ...current,
       turns: current.turns.map((turn) =>
@@ -282,15 +308,69 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     void cancelServerRequest(request)
   }, [cancelServerRequest])
 
+  const locationQuestion = useCallback(
+    (
+      question: string,
+      turnId: number,
+      conversationId: string | undefined,
+      options: ChatWaitOptions,
+      previous?: ChatResponse,
+    ) => {
+      const request = activeRequest.current
+      return locationAwareQuestion(
+        { question, conversationId },
+        options,
+        (locating) => {
+          if (activeRequest.current !== request) return
+          if (request) {
+            request.waitingForLocation = locating
+            if (locating) request.jobId = undefined
+          }
+          setState((current) => ({
+            ...current,
+            turns: current.turns.map((turn) =>
+              turn.id === turnId
+                ? { ...turn, isLocating: locating, progress: locating ? null : turn.progress }
+                : turn,
+            ),
+          }))
+        },
+        previous,
+      )
+    },
+    [],
+  )
+
   const sendQuestion = useCallback(
     (rawQuestion: string, targetConversationId?: string) => {
       const question = rawQuestion.trim()
       const conversationId = targetConversationId ?? state.conversationId ?? undefined
-      return runRequest({ id: ++nextTurnId.current, question }, (options) =>
-        chatApi.createQuestion({ question, conversationId }, options),
+      const id = ++nextTurnId.current
+      return runRequest({ id, question }, (options) =>
+        locationQuestion(question, id, conversationId, options),
       )
     },
-    [runRequest, state.conversationId],
+    [runRequest, state.conversationId, locationQuestion],
+  )
+
+  const requestStoreLocation = useCallback(
+    (turnId: number) => {
+      const turn = state.turns.find((item) => item.id === turnId)
+      const previous = turn?.response
+      if (!turn || !previous?.store?.locationRequired) return Promise.resolve(false)
+      return runRequest(
+        { id: turn.id, question: turn.question, researches: turn.researches },
+        (options) =>
+          locationQuestion(
+            turn.question,
+            turn.id,
+            previous.conversationId ?? state.conversationId ?? undefined,
+            options,
+            previous,
+          ),
+      )
+    },
+    [state.turns, state.conversationId, runRequest, locationQuestion],
   )
 
   // 회원의 FAQ 선택은 서버에 저장한 원문을 표시함. 비회원은 화면에서만 확인함
@@ -500,11 +580,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     () => ({
       turns: state.turns,
       conversationId: state.conversationId,
+      isConversationLocked,
       isPending: state.turns.some(
         (turn) => turn.isPending || turn.researches.some((item) => item.isPending),
       ),
       error: state.error,
       sendQuestion,
+      requestStoreLocation,
       sendFaqAnswer,
       cancelQuestion,
       researchAnswer,
@@ -517,9 +599,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       openConversation,
       setConversationLocked,
       researchAnswer,
+      isConversationLocked,
       resetConversation,
       sendFaqAnswer,
       sendQuestion,
+      requestStoreLocation,
       state.conversationId,
       state.error,
       state.turns,
