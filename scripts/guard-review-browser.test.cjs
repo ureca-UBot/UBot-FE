@@ -27,6 +27,7 @@ async function pageFixture(mobile = false, options = {}) {
   await installFixtures(context, 'ADMIN')
   const requests = []
   const state = {
+    capabilities: { checkMultiSelect: true, checkSelectionAnalysis: true },
     settings: {
       enabled: false,
       intervalMinutes: 1440,
@@ -117,6 +118,43 @@ async function pageFixture(mobile = false, options = {}) {
         last: (page + 1) * size >= items.length,
       })
     }
+    if (p.endsWith('/checks') && method === 'GET') {
+      return ok({
+        content: [
+          {
+            id: 501,
+            attemptId: 1,
+            origin: 'OUTPUT_LLM',
+            outcome: url.searchParams.get('outcome') ?? 'REJECTED',
+            reasons: ['POLICY_CONTRADICTION'],
+            question: '요금은 얼마예요?',
+            answerPreview: '무료입니다',
+            createdAt: '2026-10-25T12:00:00',
+            detailsRetained: true,
+          },
+        ],
+        page: 0,
+        size: 20,
+        totalElements: 1,
+        totalPages: 1,
+      })
+    }
+    if (p.endsWith('/checks/501'))
+      return ok({
+        check: {
+          id: 501,
+          origin: 'OUTPUT_LLM',
+          outcome: 'REJECTED',
+          question: '요금은 얼마예요?',
+          detailsRetained: true,
+        },
+        answer: '무료입니다',
+        finalAnswer: null,
+        explanation: '근거와 모순되는지 검토가 필요합니다.',
+        context: {
+          provided_faqs: [{ faqId: 7, question: '요금 안내', answer: '월 5000원입니다.' }],
+        },
+      })
     if (p.endsWith('/notifications/8/read')) {
       alerts[0].read = true
       return ok(null)
@@ -246,6 +284,61 @@ async function pageFixture(mobile = false, options = {}) {
   return { context, page, state, requests, failures }
 }
 
+test('출력 LLM 통과·차단 필터와 당시 FAQ 원문을 보여준다', async () => {
+  const { context, page, requests, failures } = await pageFixture()
+  try {
+    await page
+      .getByRole('navigation', { name: '관리자 메뉴' })
+      .getByRole('link', { name: '금지·위험 표현 관리', exact: true })
+      .click()
+    await page
+      .getByRole('navigation', { name: '금지어·AI 검토 메뉴' })
+      .getByRole('link', { name: '가드 검사 기록', exact: true })
+      .click()
+    await page.getByRole('button', { name: '출력 LLM 통과 답변만', exact: true }).click()
+    await page.getByText('총 1건 · 질문 수가 아닌 검사 횟수입니다.').waitFor()
+    assert.equal(
+      requests.some(
+        (r) =>
+          r.p.endsWith('/checks') &&
+          r.query.includes('origin=OUTPUT_LLM') &&
+          r.query.includes('outcome=PASS'),
+      ),
+      true,
+    )
+    await page.getByRole('button', { name: '출력 LLM 차단 답변만', exact: true }).click()
+    await page.getByRole('button', { name: '원문·근거', exact: true }).click()
+    await page.getByText('월 5000원입니다.', { exact: true }).waitFor()
+    assert.equal(
+      requests.some((r) => r.p.endsWith('/checks') && r.query.includes('outcome=REJECTED')),
+      true,
+    )
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('출력 LLM과 문장을 함께 선택하면 후보 요청에 출처가 유지된다', async () => {
+  const { context, page, requests } = await pageFixture()
+  try {
+    await page.getByLabel('검사 출처').selectOption('OUTPUT_LLM')
+    await page.getByLabel('표현 유형').selectOption('WARNING')
+    await page.getByText('전체 경고 1건', { exact: true }).waitFor()
+    assert.equal(
+      requests.some(
+        (r) =>
+          r.p.endsWith('/candidates') &&
+          r.query.includes('kind=WARNING') &&
+          r.query.includes('origin=OUTPUT_LLM'),
+      ),
+      true,
+    )
+  } finally {
+    await context.close()
+  }
+})
+
 test('검토 API 준비 전에는 안내하고 기존 금지어 관리로 돌아갈 수 있다', async () => {
   const { context, page, requests, failures } = await pageFixture(false, { apiUnavailable: true })
   try {
@@ -332,82 +425,6 @@ test('주기 분석 범위를 표시하고 만료된 실패 실행의 재개는 
     await page.getByText('대화 분석 · 신규·변경분', { exact: true }).waitFor()
     await page.getByText('상세 보관 만료 · 재검사 필요').waitFor()
     assert.equal(await page.getByRole('button', { name: '실패 건 재개' }).count(), 0)
-    assert.deepEqual(failures, [])
-  } finally {
-    await context.close()
-  }
-})
-
-test('분석 실행의 재시도 대기와 중단 사유·건수를 실행 이력에 표시한다', async () => {
-  const { context, page, state, failures } = await pageFixture()
-  try {
-    await page.getByRole('link', { name: '분석 설정', exact: true }).click()
-    state.runs.push(
-      {
-        id: 31,
-        kind: 'ANALYSIS',
-        analysisMode: 'FULL',
-        status: 'RUNNING',
-        detailsRetained: true,
-        processed: 4,
-        total: 10,
-        result: {
-          consecutiveFailures: 2,
-          retryAt: '2026-10-23T09:00:30',
-          errorCode: 'LLM_TIMEOUT',
-          completed: 4,
-          failed: 0,
-          pending: 6,
-        },
-      },
-      {
-        id: 32,
-        kind: 'ANALYSIS',
-        analysisMode: 'INCREMENTAL',
-        status: 'FAILED',
-        detailsRetained: true,
-        processed: 5,
-        total: 10,
-        result: {
-          error: 'REVIEW_FAILED',
-          errorCode: 'LLM_SERVICE_UNAVAILABLE',
-          completed: 4,
-          failed: 1,
-          pending: 5,
-        },
-      },
-    )
-    await page.getByText('자동 재시도 대기', { exact: false }).waitFor()
-    await page.getByText('모델 응답 시간 초과 (2/3회 실패)', { exact: false }).waitFor()
-    await page.getByText('최종 실패 · 분석 중단', { exact: false }).waitFor()
-    await page.getByRole('columnheader', { name: '처리(실패 포함) / 전체' }).waitFor()
-    await page.getByText('이후 재시도', { exact: false }).waitFor()
-    await page.getByText('모델 서버에 연결하지 못함', { exact: false }).waitFor()
-    await page.getByText('완료 4건 · 실패 1건 · 남음 5건', { exact: false }).waitFor()
-    assert.equal(await page.getByRole('button', { name: '실패 건 재개' }).count(), 1)
-    assert.deepEqual(failures, [])
-  } finally {
-    await context.close()
-  }
-})
-
-test('상세 보관이 만료된 실패 실행에는 재개 안내를 표시하지 않는다', async () => {
-  const { context, page, state, failures } = await pageFixture()
-  try {
-    await page.getByRole('link', { name: '분석 설정', exact: true }).click()
-    state.runs.push({
-      id: 33,
-      kind: 'ANALYSIS',
-      analysisMode: 'FULL',
-      status: 'FAILED',
-      detailsRetained: false,
-      processed: 2,
-      total: 3,
-      result: { error: 'REVIEW_FAILED', completed: 2, failed: 1, pending: 0 },
-    })
-    await page.getByText('상세 보관 만료 · 재검사 필요').waitFor()
-    await page.getByText('최종 실패 · 분석 중단', { exact: false }).waitFor()
-    assert.equal(await page.getByText('재개하면', { exact: false }).count(), 0)
     assert.deepEqual(failures, [])
   } finally {
     await context.close()
@@ -988,6 +1005,82 @@ test('후보 수정 뒤 늦게 도착한 이전 사례 응답으로 결과 화�
     assert.deepEqual(failures, [])
   } finally {
     releaseResponse()
+    await context.close()
+  }
+})
+
+test('분석 실행의 재시도 대기와 중단 사유·건수를 실행 이력에 표시한다', async () => {
+  const { context, page, state, failures } = await pageFixture()
+  try {
+    await page.getByRole('link', { name: '분석 설정', exact: true }).click()
+    state.runs.push(
+      {
+        id: 31,
+        kind: 'ANALYSIS',
+        analysisMode: 'FULL',
+        status: 'RUNNING',
+        detailsRetained: true,
+        processed: 4,
+        total: 10,
+        result: {
+          consecutiveFailures: 2,
+          retryAt: '2026-10-23T09:00:30',
+          errorCode: 'LLM_TIMEOUT',
+          completed: 4,
+          failed: 0,
+          pending: 6,
+        },
+      },
+      {
+        id: 32,
+        kind: 'ANALYSIS',
+        analysisMode: 'INCREMENTAL',
+        status: 'FAILED',
+        detailsRetained: true,
+        processed: 5,
+        total: 10,
+        result: {
+          error: 'REVIEW_FAILED',
+          errorCode: 'LLM_SERVICE_UNAVAILABLE',
+          completed: 4,
+          failed: 1,
+          pending: 5,
+        },
+      },
+    )
+    await page.getByText('자동 재시도 대기', { exact: false }).waitFor()
+    await page.getByText('모델 응답 시간 초과 (2/3회 실패)', { exact: false }).waitFor()
+    await page.getByText('최종 실패 · 분석 중단', { exact: false }).waitFor()
+    await page.getByRole('columnheader', { name: '처리(실패 포함) / 전체' }).waitFor()
+    await page.getByText('이후 재시도', { exact: false }).waitFor()
+    await page.getByText('모델 서버에 연결하지 못함', { exact: false }).waitFor()
+    await page.getByText('완료 4건 · 실패 1건 · 남음 5건', { exact: false }).waitFor()
+    assert.equal(await page.getByRole('button', { name: '실패 건 재개' }).count(), 1)
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('상세 보관이 만료된 실패 실행에는 재개 안내를 표시하지 않는다', async () => {
+  const { context, page, state, failures } = await pageFixture()
+  try {
+    await page.getByRole('link', { name: '분석 설정', exact: true }).click()
+    state.runs.push({
+      id: 33,
+      kind: 'ANALYSIS',
+      analysisMode: 'FULL',
+      status: 'FAILED',
+      detailsRetained: false,
+      processed: 2,
+      total: 3,
+      result: { error: 'REVIEW_FAILED', completed: 2, failed: 1, pending: 0 },
+    })
+    await page.getByText('상세 보관 만료 · 재검사 필요').waitFor()
+    await page.getByText('최종 실패 · 분석 중단', { exact: false }).waitFor()
+    assert.equal(await page.getByText('재개하면', { exact: false }).count(), 0)
+    assert.deepEqual(failures, [])
+  } finally {
     await context.close()
   }
 })

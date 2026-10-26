@@ -12,7 +12,7 @@ const menuItems = [
   { label: '매장 예약 관리', to: '/admin/reservations' },
   { label: '고객문의', to: '/admin/inquiries' },
   { label: '공지·장애 관리', to: '/admin/notices' },
-  { label: '금지어 관리', to: '/admin/forbidden-words' },
+  { label: '금지·위험 표현 관리', to: '/admin/forbidden-words' },
   { label: '미응답 질문 관리', to: '/admin/unanswered-groups' },
   { label: '게스트 채팅 설정', to: '/admin/guest-chat-settings' },
   { label: '임베딩 백필', to: '/admin/embedding-backfill' },

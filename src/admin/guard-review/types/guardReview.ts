@@ -66,6 +66,7 @@ export interface History {
   createdAt: string
 }
 export interface Overview {
+  capabilities?: { checkMultiSelect: boolean; checkSelectionAnalysis: boolean }
   settings: ReviewSettings
   runs: ReviewRun[]
   history: History[]
@@ -76,10 +77,54 @@ export interface Finding {
   sourceKey: string
   stage: string
   category?: string
+  createdAt?: string
   question: string | null
   answer: string | null
   detailsRetained?: boolean
-  createdAt?: string
+  origin?: GuardOrigin
+  guardOutcome?: GuardOutcome
+  guardReasons?: string[]
+  context?: Record<string, unknown>
+  finalAnswer?: string | null
+}
+export type GuardOrigin = 'INPUT_CODE' | 'INPUT_LLM' | 'OUTPUT_CODE' | 'OUTPUT_LLM' | 'UNKNOWN'
+export type GuardOutcome =
+  | 'PASS'
+  | 'FILTERED'
+  | 'REJECTED'
+  | 'REVIEW'
+  | 'ERROR'
+  | 'SKIPPED'
+  | 'UNKNOWN'
+export interface GuardFilters {
+  origin?: GuardOrigin
+  outcome?: GuardOutcome
+  origins?: GuardOrigin[]
+  outcomes?: GuardOutcome[]
+}
+export interface GuardCheck {
+  id: number
+  attemptId: number | null
+  origin: GuardOrigin
+  outcome: GuardOutcome
+  reasons: string[]
+  question: string | null
+  answerPreview: string | null
+  createdAt: string
+  detailsRetained: boolean
+  skippedOrigins?: GuardOrigin[]
+}
+export interface GuardCheckDetail {
+  check: GuardCheck
+  answer: string | null
+  finalAnswer: string | null
+  explanation: string | null
+  context: Record<string, unknown>
+  reassessments?: {
+    runId: number
+    status: string
+    result: { verdict: string; reason: string } | null
+  }[]
 }
 export interface ReviewNotification {
   id: number

@@ -9,14 +9,18 @@ import type {
   ReviewRun,
   ReviewSettings,
   Selection,
+  GuardFilters,
+  GuardCheck,
+  GuardCheckDetail,
 } from '../types/guardReview'
+import { filterQuery } from '../utils/filters'
 
 const BASE = '/api/admin/guard-review'
 export const guardReviewApi = {
   overview: () => apiClient.get<Overview>(BASE),
-  candidates: (kind: 'WORD' | 'WARNING', page: number, size: number) =>
+  candidates: (kind: 'WORD' | 'WARNING', page: number, size: number, filters: GuardFilters = {}) =>
     apiClient.get<PageResponse<Candidate>>(
-      `${BASE}/candidates?kind=${kind}&page=${page}&size=${size}`,
+      `${BASE}/candidates?kind=${kind}&page=${page}&size=${size}${filterQuery(filters)}`,
     ),
   settings: ({ enabled, intervalMinutes, groupingThreshold, revision }: ReviewSettings) =>
     apiClient.patch<ReviewSettings>(`${BASE}/settings`, {
@@ -26,8 +30,11 @@ export const guardReviewApi = {
       revision,
     }),
   analyze: () => apiClient.post<number>(`${BASE}/analysis`, {}),
+  analyzeChecks: (checkIds: number[]) =>
+    apiClient.post<number>(`${BASE}/checks/analysis`, { checkIds }),
   resume: (id: number) => apiClient.post<void>(`${BASE}/runs/${id}/resume`, {}),
-  run: (id: number) => apiClient.get<ReviewRun>(`${BASE}/runs/${id}`),
+  run: (id: number, signal?: AbortSignal) =>
+    apiClient.get<ReviewRun>(`${BASE}/runs/${id}`, { signal }),
   cases: (id: number, page: number, size: number, signal?: AbortSignal) =>
     apiClient.get<PageResponse<CaseResult>>(`${BASE}/runs/${id}/cases?page=${page}&size=${size}`, {
       signal,
@@ -46,7 +53,15 @@ export const guardReviewApi = {
       revision: candidate.revision,
       action,
     }),
-  findings: (id: number) => apiClient.get<Finding[]>(`${BASE}/candidates/${id}/findings`),
+  findings: (id: number, filters: GuardFilters = {}) =>
+    apiClient.get<Finding[]>(`${BASE}/candidates/${id}/findings?${filterQuery(filters).slice(1)}`),
+  checks: (page: number, size: number, filters: GuardFilters = {}, signal?: AbortSignal) =>
+    apiClient.get<PageResponse<GuardCheck>>(
+      `${BASE}/checks?page=${page}&size=${size}${filterQuery(filters)}`,
+      { signal },
+    ),
+  check: (id: number, signal?: AbortSignal) =>
+    apiClient.get<GuardCheckDetail>(`${BASE}/checks/${id}`, { signal }),
   notifications: () => apiClient.get<ReviewNotification[]>(`${BASE}/notifications`),
   read: (id: number) => apiClient.patch<void>(`${BASE}/notifications/${id}/read`, {}),
 }

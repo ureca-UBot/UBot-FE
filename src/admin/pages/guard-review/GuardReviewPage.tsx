@@ -1,6 +1,11 @@
 import { GuardReviewEditModal } from '../../guard-review/components/GuardReviewEditModal'
+import { ReviewSourceFilters } from '../../guard-review/components/ReviewSourceFilters'
+import { ReviewChecks } from '../../guard-review/components/ReviewChecks'
+import { ReviewEvidence } from '../../guard-review/components/ReviewEvidence'
+import { originLabel, outcomeLabel } from '../../guard-review/utils/filters'
 import { ReviewValidationCases } from '../../guard-review/components/ReviewValidationCases'
 import { RunStatusNote } from '../../guard-review/components/RunStatusNote'
+import { shortSourceKey } from '../../guard-review/utils/runStatus'
 import { ApiRequestError } from '../../../shared/api/client'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -12,7 +17,6 @@ import { canApprove, parseValidation } from '../../guard-review/utils/validation
 import { ReviewNavigation, type ReviewView } from '../../guard-review/components/ReviewNavigation'
 import { ReviewSettingsForm } from '../../guard-review/components/ReviewSettingsForm'
 import { displayReviewTime, intervalLabel } from '../../guard-review/utils/format'
-import { shortSourceKey } from '../../guard-review/utils/runStatus'
 import type {
   Candidate,
   Finding,
@@ -21,15 +25,17 @@ import type {
   Selection,
   Validation,
   ReviewSettings,
+  GuardFilters,
 } from '../../guard-review/types/guardReview'
 import '../../guard-review/guard-review.css'
 
-type Tab = '설정·진행' | '금칙어 후보' | '위험 문장 경고' | '적용 이력'
+type Tab = '설정·진행' | '금칙어 후보' | '위험 문장 경고' | '적용 이력' | '검사 기록'
 const views: Record<string, Tab> = {
   settings: '설정·진행',
   candidates: '금칙어 후보',
   warnings: '위험 문장 경고',
   history: '적용 이력',
+  checks: '검사 기록',
 }
 
 const labels: Record<string, string> = {
@@ -56,6 +62,11 @@ const labels: Record<string, string> = {
   EXPLOITATION: '착취',
   SELF_HARM: '자해 조장',
   MANIPULATION: '답변 조작',
+  FALSE_EXECUTION: '근거 없는 처리 완료',
+  POLICY_CONTRADICTION: '근거와 모순',
+  UNSUPPORTED_CLAIM: '근거 없는 단정',
+  WRONG_SERVICE: '다른 업무의 근거',
+  CONDITION_DISTORTION: '조건·수치 왜곡',
 }
 const label = (value: string) => labels[value] ?? value
 
@@ -66,6 +77,8 @@ export function GuardReviewPage() {
   const [wordPage, setWordPage] = useState(0)
   const [warningPage, setWarningPage] = useState(0)
   const [pageSize, setPageSize] = useState(20)
+  const [filters, setFilters] = useState<GuardFilters>({})
+  const latestFilters = useRef(filters)
   const [notifications, setNotifications] = useState<ReviewNotification[]>([])
   const [search, setSearch] = useSearchParams()
   const view = search.get('view') ?? 'candidates'
@@ -94,14 +107,15 @@ export function GuardReviewPage() {
     const [next, alerts, nextWords, nextWarnings] = await Promise.all([
       api.overview(),
       api.notifications(),
-      api.candidates('WORD', wordPage, pageSize),
-      api.candidates('WARNING', warningPage, pageSize),
+      api.candidates('WORD', wordPage, pageSize, filters),
+      api.candidates('WARNING', warningPage, pageSize, filters),
     ])
+    if (latestFilters.current !== filters) return
     setData(next)
     setNotifications(alerts)
     setWords(nextWords)
     setWarnings(nextWarnings)
-  }, [wordPage, warningPage, pageSize])
+  }, [wordPage, warningPage, pageSize, filters])
   useEffect(() => {
     let active = true
     let refreshing = false
@@ -112,8 +126,8 @@ export function GuardReviewPage() {
         const [next, alerts, nextWords, nextWarnings] = await Promise.all([
           api.overview(),
           api.notifications(),
-          api.candidates('WORD', wordPage, pageSize),
-          api.candidates('WARNING', warningPage, pageSize),
+          api.candidates('WORD', wordPage, pageSize, filters),
+          api.candidates('WARNING', warningPage, pageSize, filters),
         ])
         if (active) {
           setData(next)
@@ -179,7 +193,7 @@ export function GuardReviewPage() {
       active = false
       window.clearInterval(timer)
     }
-  }, [testRun, wordPage, warningPage, pageSize, expireValidation])
+  }, [testRun, wordPage, warningPage, pageSize, expireValidation, filters])
   async function action(task: () => Promise<unknown>) {
     setBusy(true)
     setError('')
@@ -233,6 +247,37 @@ export function GuardReviewPage() {
         </Link>
       </div>
       <ReviewNavigation active={activeView} />
+      {(tab === '금칙어 후보' || tab === '위험 문장 경고') && (
+        <>
+          <div className="review-source-filters">
+            <label>
+              표현 유형
+              <select
+                value={view === 'warnings' ? 'WARNING' : 'WORD'}
+                onChange={(event) =>
+                  setSearch({ view: event.target.value === 'WORD' ? 'candidates' : 'warnings' })
+                }
+              >
+                <option value="WORD">단어</option>
+                <option value="WARNING">문장</option>
+              </select>
+            </label>
+          </div>
+          <ReviewSourceFilters
+            value={filters}
+            onChange={(value) => {
+              latestFilters.current = value
+              setFilters(value)
+              setWords(null)
+              setWarnings(null)
+              changeWordPage(0)
+              setWarningPage(0)
+              setFindings(null)
+            }}
+          />
+          <p>출처·유형·결과를 모두 만족하는 발견만 표시합니다. 횟수도 현재 조건 기준입니다.</p>
+        </>
+      )}
       {error && (
         <p role="alert" className="page-message--error">
           {error}
@@ -242,37 +287,40 @@ export function GuardReviewPage() {
         !error && <p role="status">검토 목록을 불러오는 중입니다.</p>
       ) : (
         <>
-          <div className="review-overview" aria-label="AI 검토 현황">
-            <button type="button" onClick={() => setSearch({ view: 'candidates' })}>
-              <span>금칙어 후보</span>
-              <strong>
-                {words?.totalElements ?? 0}
-                <small>건</small>
-              </strong>
-              <span>검사 후 승인하는 표현</span>
-            </button>
-            <button type="button" onClick={() => setSearch({ view: 'warnings' })}>
-              <span>위험 문장 경고</span>
-              <strong>
-                {warnings?.totalElements ?? 0}
-                <small>건</small>
-              </strong>
-              <span>관리자 검토 전용 · 자동 차단 안 함</span>
-            </button>
-            <button type="button" onClick={() => setSearch({ view: 'settings' })}>
-              <span>자동 분석</span>
-              <strong className="review-overview-frequency">
-                {data.settings.enabled
-                  ? intervalLabel(data.settings.intervalMinutes)
-                  : '사용 안 함'}
-              </strong>
-              <span>
-                {data.settings.enabled
-                  ? `다음 실행 ${displayReviewTime(data.settings.nextRunAt)}`
-                  : '분석 설정에서 주기를 선택하세요'}
-              </span>
-            </button>
-          </div>
+          {tab === '검사 기록' && <ReviewChecks />}
+          {tab !== '검사 기록' && (
+            <div className="review-overview" aria-label="AI 검토 현황">
+              <button type="button" onClick={() => setSearch({ view: 'candidates' })}>
+                <span>금칙어 후보</span>
+                <strong>
+                  {words?.totalElements ?? 0}
+                  <small>건</small>
+                </strong>
+                <span>검사 후 승인하는 표현</span>
+              </button>
+              <button type="button" onClick={() => setSearch({ view: 'warnings' })}>
+                <span>위험 문장 경고</span>
+                <strong>
+                  {warnings?.totalElements ?? 0}
+                  <small>건</small>
+                </strong>
+                <span>관리자 검토 전용 · 자동 차단 안 함</span>
+              </button>
+              <button type="button" onClick={() => setSearch({ view: 'settings' })}>
+                <span>자동 분석</span>
+                <strong className="review-overview-frequency">
+                  {data.settings.enabled
+                    ? intervalLabel(data.settings.intervalMinutes)
+                    : '사용 안 함'}
+                </strong>
+                <span>
+                  {data.settings.enabled
+                    ? `다음 실행 ${displayReviewTime(data.settings.nextRunAt)}`
+                    : '분석 설정에서 주기를 선택하세요'}
+                </span>
+              </button>
+            </div>
+          )}
           {tab === '설정·진행' && (
             <>
               <ReviewSettingsForm settings={data.settings} busy={busy} onSave={saveSettings} />
@@ -468,7 +516,9 @@ export function GuardReviewPage() {
                             type="button"
                             disabled={busy}
                             onClick={() =>
-                              void action(async () => setFindings(await api.findings(c.id)))
+                              void action(async () =>
+                                setFindings(await api.findings(c.id, filters)),
+                              )
                             }
                           >
                             발견 사례
@@ -532,7 +582,9 @@ export function GuardReviewPage() {
                     type="button"
                     disabled={busy}
                     onClick={() =>
-                      void action(async () => setFindings(await api.findings(n.candidateId)))
+                      void action(async () =>
+                        setFindings(await api.findings(n.candidateId, filters)),
+                      )
                     }
                   >
                     경고 사례 보기
@@ -570,7 +622,9 @@ export function GuardReviewPage() {
                   <button
                     type="button"
                     disabled={busy}
-                    onClick={() => void action(async () => setFindings(await api.findings(c.id)))}
+                    onClick={() =>
+                      void action(async () => setFindings(await api.findings(c.id, filters)))
+                    }
                   >
                     전체 사례 보기
                   </button>
@@ -630,12 +684,14 @@ export function GuardReviewPage() {
           <button type="button" onClick={() => setFindings(null)}>
             사례 닫기
           </button>
+          {findings.length === 0 && <p>현재 필터와 일치하는 발견 사례가 없습니다.</p>}
           {findings.map((f) => (
             <article key={f.id}>
               <small>
                 원본 {shortSourceKey(f.sourceKey)} · {f.stage}
                 {f.category && ` · ${label(f.category)}`}
                 {f.createdAt && ` · ${displayReviewTime(f.createdAt)}`}
+                {` · ${originLabel(f.origin)} · ${outcomeLabel(f.guardOutcome)}`}
               </small>
               <h3>질문</h3>
               <pre>
@@ -643,6 +699,7 @@ export function GuardReviewPage() {
                   ? '상세 자료 보관기간이 만료됐습니다.'
                   : (f.question ?? '원본 기록이 삭제됐습니다.')}
               </pre>
+              {f.detailsRetained !== false && <ReviewEvidence context={f.context} />}
               <h3>답변</h3>
               <pre>
                 {f.detailsRetained === false
