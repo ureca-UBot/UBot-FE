@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { productCatalogKinds, type ProductCatalogKey } from '../product/catalog'
 import { ProductCatalog } from '../product/components/ProductCatalog'
+import { ProductDetailDialog } from '../product/components/ProductDetailDialog'
 import { PageHero } from '../components/PageHero'
 
 interface PageProps {
@@ -16,6 +17,8 @@ export function StorePage({ active }: PageProps) {
     ? (requested as ProductCatalogKey)
     : savedTab
   const catalogKind = productCatalogKinds.find((kind) => kind.key === tab)
+  const productId = Number(searchParams.get('productId'))
+  const hasLinkedProduct = active && Number.isSafeInteger(productId) && productId > 0
   const option = catalogKind?.filter?.options.some(
     (item) => item.value === searchParams.get('option'),
   )
@@ -64,7 +67,23 @@ export function StorePage({ active }: PageProps) {
         </div>
       </section>
 
-      {/*PRODUCT DETAIL*/}
+      {catalogKind && hasLinkedProduct && (
+        <ProductDetailDialog
+          key={`${catalogKind.key}:${productId}`}
+          kind={catalogKind}
+          productId={productId}
+          onClose={() =>
+            setSearchParams(
+              (current) => {
+                const next = new URLSearchParams(current)
+                next.delete('productId')
+                return next
+              },
+              { replace: true },
+            )
+          }
+        />
+      )}
     </>
   )
 }

@@ -271,6 +271,7 @@ scenario(
   '재검색 답변도 원래 답변과 구분해 선택한 내용과 의도를 보낸다',
   {},
   async ({ page, posts, thumbs, dialog }) => {
+    await page.getByRole('button', { name: '질문 의도 변경', exact: true }).click()
     await page
       .getByRole('group', { name: '질문 의도 선택', exact: true })
       .getByRole('button', { name: '내 정보 확인', exact: true })

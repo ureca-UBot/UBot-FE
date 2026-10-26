@@ -370,210 +370,270 @@
   font-weight: 800
 }
 
-/* 채팅 상품 카드: ChatProductCards가 위 카드 스타일을 그대로 쓰고 요금 줄·상세 버튼·가로 목록만 더합니다. */
-.ubot-user-app .chat-user-data {
-  /* 여러 개일 때 카드 너비입니다. 세로는 이 값의 1.6배(가로:세로 10:16)를 최소로 둡니다. */
-  --pd-card-width: 170px
+/* 상품 조건은 단계별로 고르고, 요약 카드는 오른쪽으로 넘겨 봅니다. */
+.ubot-user-app .chat-product-data,
+.ubot-user-app .chat-product-data .pd-list,
+.ubot-user-app .chat-product-data .pd-carousel,
+.ubot-user-app .chat-product-data .pd-refine {
+  min-width: 0
 }
 
-.ubot-user-app .chat-user-data .pd-name {
-  margin: 0;
-  overflow-wrap: anywhere
+.ubot-user-app .chat-product-data .pd-refine,
+.ubot-user-app .chat-product-data .pd-filter-results {
+  display: grid;
+  gap: 12px
 }
 
-.ubot-user-app .chat-user-data .pd-fee {
+.ubot-user-app .chat-product-data .pd-refine-heading {
   display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px
+}
+
+.ubot-user-app .chat-product-data .pd-refine-heading h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800
+}
+
+.ubot-user-app .chat-product-data .pd-refine-heading > span {
+  color: var(--muted);
+  font-size: 12px
+}
+
+.ubot-user-app .chat-product-data .pd-filter-step {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0
+}
+
+.ubot-user-app .chat-product-data .pd-filter-step legend {
+  margin-bottom: 10px;
+  padding: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700
+}
+
+.ubot-user-app .chat-product-data .pd-filter-options,
+.ubot-user-app .chat-product-data .pd-chosen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px
+}
+
+.ubot-user-app .chat-product-data .pd-filter-options button,
+.ubot-user-app .chat-product-data .pd-chosen button,
+.ubot-user-app .chat-product-data .pd-keyword,
+.ubot-user-app .chat-product-data .pd-reset,
+.ubot-user-app .chat-product-data .pd-filter-status button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--ink);
+  background: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  cursor: pointer
+}
+
+.ubot-user-app .chat-product-data .pd-filter-options button[aria-pressed="true"] {
+  border-color: var(--pink);
+  color: var(--pink-dark);
+  background: var(--pink-soft)
+}
+
+.ubot-user-app .chat-product-data .pd-filter-options button:disabled {
+  color: var(--muted);
+  background: var(--soft);
+  cursor: not-allowed
+}
+
+.ubot-user-app .chat-product-data .pd-filter-options small,
+.ubot-user-app .chat-product-data .pd-chosen span:first-child {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400
+}
+
+.ubot-user-app .chat-product-data .pd-chosen button,
+.ubot-user-app .chat-product-data .pd-keyword {
+  font-size: 12px
+}
+
+.ubot-user-app .chat-product-data button:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: 2px
+}
+
+.ubot-user-app .chat-product-data .pd-filter-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6
+}
+
+.ubot-user-app .chat-product-data .pd-filter-status p {
+  margin: 0 0 8px
+}
+
+.ubot-user-app .chat-product-data .pd-filter-status[role="alert"] {
+  color: var(--pink-dark)
+}
+
+.ubot-user-app .chat-product-data .pd-result-count {
+  margin: 0;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700
+}
+
+.ubot-user-app .chat-product-data .pd-result-count span {
+  color: var(--muted);
+  font-weight: 400
+}
+
+.ubot-user-app .chat-product-data .pd-card .pd-name {
+  display: -webkit-box;
+  min-height: 44px;
+  max-height: 44px;
+  margin: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2
+}
+
+.ubot-user-app .chat-product-data .pd-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 4px 2px 8px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent
+}
+
+.ubot-user-app .chat-product-data .pd-list:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: 2px
+}
+
+.ubot-user-app .chat-product-data .pd-card {
+  flex: 0 0 min(220px, 88%);
+  min-width: 0;
+  scroll-snap-align: start
+}
+
+.ubot-user-app .chat-product-data .pd-card .chat-card-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 12px
+}
+
+.ubot-user-app .chat-product-data .pd-list-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 2px
+}
+
+.ubot-user-app .chat-product-data .pd-list-controls span {
+  margin-right: 2px;
+  color: var(--muted);
+  font-size: 12px
+}
+
+.ubot-user-app .chat-product-data .pd-list-controls button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  background: #fff
+}
+
+.ubot-user-app .chat-product-data .pd-list-controls button:disabled {
+  color: var(--subtle);
+  cursor: default
+}
+
+.ubot-user-app .chat-product-data .pd-fee {
+  display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 6px;
-  margin: 10px 0 0;
+  margin: 0;
   color: var(--ink);
   font-variant-numeric: tabular-nums
 }
 
-.ubot-user-app .chat-user-data .pd-fee-label {
+.ubot-user-app .chat-product-data .pd-fee-label {
   color: var(--muted);
   font-size: 13px
 }
 
-.ubot-user-app .chat-user-data .pd-fee strong {
+.ubot-user-app .chat-product-data .pd-fee strong {
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -.02em
 }
 
-.ubot-user-app .chat-user-data .pd-network {
-  align-self: flex-start;
+.ubot-user-app .chat-product-data .pd-network {
   display: inline-block;
-  width: fit-content;
-  margin-top: 8px;
+  align-self: flex-start;
   padding: 2px 8px;
-  border: 1px solid var(--purple);
+  border: 1px solid var(--pink);
   border-radius: 999px;
-  color: var(--purple);
+  color: var(--pink-dark);
   font-size: 12px;
   font-weight: 700
 }
 
-.ubot-user-app .chat-user-data .pd-fee-note,
-.ubot-user-app .chat-user-data .pd-specs,
-.ubot-user-app .chat-user-data .pd-highlights {
-  margin: 8px 0 0;
+.ubot-user-app .chat-product-data .pd-summary {
+  display: -webkit-box;
+  min-height: 39px;
+  max-height: 39px;
+  margin: 0;
+  overflow: hidden;
   color: var(--muted);
-  font-size: 12px;
-  line-height: 1.6;
-  overflow-wrap: anywhere
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2
 }
 
-.ubot-user-app .chat-user-data .pd-specs,
-.ubot-user-app .chat-user-data .pd-highlights {
-  display: grid;
-  gap: 6px;
-  padding-left: 16px;
-  list-style: disc
+.ubot-user-app .chat-product-data .pd-actions {
+  margin-top: auto;
+  padding-top: 4px
 }
 
-.ubot-user-app .chat-user-data .pd-specs {
-  color: var(--ink);
-  font-weight: 700
-}
-
-.ubot-user-app .chat-user-data .pd-specs + .pd-highlights {
-  padding-top: 10px;
-  border-top: 1px solid var(--line)
-}
-
-.ubot-user-app .chat-user-data .pd-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  margin-top: 12px
-}
-
-.ubot-user-app .chat-user-data .pd-detail {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 32px;
-  padding: 0 12px;
-  border: 1px solid #d6d7db;
-  border-radius: 999px;
-  color: var(--ink);
-  background: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer
-}
-
-.ubot-user-app .chat-user-data .pd-detail:hover {
-  border-color: var(--ink)
-}
-
-.ubot-user-app .chat-user-data .pd-detail:disabled {
-  color: var(--muted);
-  cursor: progress
-}
-
-.ubot-user-app .chat-user-data .pd-lookup-note {
+.ubot-user-app .chat-product-data .pd-lookup-note {
   color: var(--pink-dark);
   font-size: 12px
-}
-
-.ubot-user-app .chat-user-data .pd-carousel {
-  /* 그리드 칸보다 넓어지지 않아야 목록 안에서 가로로 넘어갑니다. */
-  min-width: 0;
-  position: relative
-}
-
-.ubot-user-app .chat-user-data .pd-track {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  cursor: grab
-}
-
-.ubot-user-app .chat-user-data .pd-track::-webkit-scrollbar {
-  display: none
-}
-
-/* 끄는 동안에는 칸 맞춤을 꺼 두고, 놓으면 가까운 카드에 맞춥니다. */
-.ubot-user-app .chat-user-data .pd-track.is-dragging {
-  scroll-snap-type: none;
-  cursor: grabbing;
-  user-select: none
-}
-
-/* 가로:세로 10:16의 세로로 긴 카드입니다. 설명은 자르지 않으므로 길면 카드가 더 길어지고,
-   같은 줄의 카드는 가장 긴 카드에 맞춰 높이를 같게 둡니다. */
-.ubot-user-app .chat-user-data .pd-track .pd-card {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  width: var(--pd-card-width);
-  min-height: calc(var(--pd-card-width) * 1.6);
-  margin-top: 0;
-  scroll-snap-align: start
-}
-
-.ubot-user-app .chat-user-data .pd-track .chat-card-pad {
-  display: flex;
-  flex: 1;
-  flex-direction: column
-}
-
-/* 폭이 좁아 큰 금액은 앞말 아래로 내려갑니다. */
-.ubot-user-app .chat-user-data .pd-track .pd-fee {
-  flex-wrap: wrap;
-  row-gap: 0
-}
-
-.ubot-user-app .chat-user-data .pd-track .pd-actions {
-  margin-top: auto;
-  padding-top: 12px
-}
-
-.ubot-user-app .chat-user-data .pd-nav {
-  position: absolute;
-  top: 50%;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: 1px solid #d6d7db;
-  border-radius: 50%;
-  color: var(--ink);
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(23, 23, 26, .12);
-  cursor: pointer;
-  transform: translateY(-50%);
-  transition: opacity .15s
-}
-
-.ubot-user-app .chat-user-data .pd-nav.prev {
-  left: -10px
-}
-
-.ubot-user-app .chat-user-data .pd-nav.next {
-  right: -10px
-}
-
-.ubot-user-app .chat-user-data .pd-nav:hover {
-  border-color: var(--ink)
-}
-
-.ubot-user-app .chat-user-data .pd-nav:focus-visible,
-.ubot-user-app .chat-user-data .pd-detail:focus-visible {
-  outline: 2px solid var(--pink);
-  outline-offset: 2px
-}
-
-/* 끝에 닿은 쪽 버튼은 숨깁니다. */
-.ubot-user-app .chat-user-data .pd-nav:disabled {
-  opacity: 0;
-  pointer-events: none
 }

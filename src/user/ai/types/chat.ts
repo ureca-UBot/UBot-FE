@@ -219,6 +219,8 @@ export interface ChatUserData {
 // BE ProductType
 export type ChatProductType = 'PLAN' | 'ADDON' | 'BUNDLE' | 'ROAMING'
 
+export const CHAT_PRODUCT_LIMIT = 5
+
 // BE ProductDataCards.ProductCard: type은 요금 앞말을 고르는 데만 씁니다.
 // fee는 요금제·부가서비스는 월 요금, 로밍은 일 요금, 결합은 할인액이며 없으면 null입니다.
 export interface ChatProductCard {
@@ -233,10 +235,42 @@ export interface ChatProductCard {
   description?: string | null
 }
 
-// BE ProductDataCards: 상품 정보 질문의 답변에 쓰인 상품입니다. 카드가 없으면 productData 자체가 null이고,
-// null이 아니면 products는 항상 배열입니다.
+export interface ChatProductFilterGroup {
+  key: string
+  label: string
+  selected: string | null
+  anyAllowed: boolean
+  options: { value: string; label: string }[]
+}
+
+export interface ChatProductRefine {
+  type: ChatProductType
+  keyword: string | null
+  total: number
+  groups: ChatProductFilterGroup[]
+}
+
+export interface ChatProductSearchRequest {
+  type: ChatProductType
+  keyword?: string | null
+  conditions: Record<string, string>
+}
+
+export interface ChatProductAvailability {
+  key: string
+  anyAvailable: boolean
+  options: { value: string; available: boolean }[]
+}
+
+export interface ChatProductSearchResponse {
+  answer: string
+  productData: ChatProductData
+}
+
+// 조건 선택이 필요한 응답은 products가 비어 있어도 refine을 표시합니다.
 export interface ChatProductData {
   products: ChatProductCard[]
+  refine?: ChatProductRefine | null
 }
 
 export interface FaqAnswerSelection {

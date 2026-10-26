@@ -686,13 +686,27 @@
 }
 
 .ubot-user-app .research-actions {
-  margin-top: 14px
+  margin-top: 10px
+}
+
+.ubot-user-app .research-toolbar {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: start;
+  gap: 6px;
+  margin-top: 6px
+}
+
+.ubot-user-app .research-toolbar .chat-feedback {
+  min-width: 0;
+  margin-top: 0
 }
 
 .ubot-user-app .research-prompt {
   margin: 0;
   color: var(--muted);
-  font-size: 12px
+  font-size: 11px;
+  line-height: 1.5
 }
 
 .ubot-user-app .research-note {
@@ -702,7 +716,25 @@
 }
 
 .ubot-user-app .research-actions .answer-actions {
-  margin-top: 8px
+  gap: 6px;
+  margin-top: 0
+}
+
+.ubot-user-app .research-actions .answer-actions button {
+  min-height: 28px;
+  padding: 5px 9px;
+  font-size: 11px;
+  line-height: 1.4
+}
+
+.ubot-user-app .research-toolbar .chat-feedback-vote {
+  width: 28px;
+  height: 28px
+}
+
+.ubot-user-app .research-toolbar .chat-feedback-vote svg {
+  width: 16px;
+  height: 16px
 }
 
 .ubot-user-app .research-actions button:disabled {
