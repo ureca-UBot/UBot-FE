@@ -15,6 +15,7 @@ import { displayReviewTime } from '../utils/format'
 import { ReviewSourceFilters } from './ReviewSourceFilters'
 import { ReviewEvidence } from './ReviewEvidence'
 
+const LARGE_SELECTION = 100
 const runLabels: Record<string, string> = {
   QUEUED: '대기 중',
   RUNNING: '분석 중',
@@ -58,6 +59,13 @@ export function ReviewChecks() {
   }
   async function startAnalysis() {
     if (submittingRef.current || running || checked.size === 0 || !serverReady) return
+    if (
+      checked.size > LARGE_SELECTION &&
+      !window.confirm(
+        `선택한 ${checked.size}건을 모두 분석합니다. 분석은 한 번에 하나만 실행되며 시간이 오래 걸릴 수 있습니다. 진행할까요?`,
+      )
+    )
+      return
     submittingRef.current = true
     setSubmitting(true)
     setAnalysisError('')
@@ -176,7 +184,7 @@ export function ReviewChecks() {
         기록을 선택해 위험 단어·문장 후보를 분석할 수 있습니다. LLM 판정 보류 기록은 같은 작업에서
         재검토하며, 원래 가드 판정은 유지합니다.
       </p>
-      <div className="review-source-filters">
+      <div className="review-check-presets">
         <button type="button" onClick={() => changeFilters(outputLlmPreset('PASS'))}>
           출력 LLM 통과 답변만
         </button>
@@ -203,13 +211,13 @@ export function ReviewChecks() {
         disabled={serverReady !== true}
       />
       {serverReady === false && (
-        <p role="status">
+        <p role="status" className="review-server-note">
           다중 선택과 선택 항목 분석은 서버 업데이트 후 사용할 수 있습니다. 기존 검사 기록은 계속
           조회할 수 있습니다.
         </p>
       )}
       <div className="review-selection-bar">
-        <strong>선택 {checked.size}건</strong>
+        <strong className="review-selection-count">선택 {checked.size}건</strong>
         <button
           type="button"
           disabled={checked.size === 0 || submitting}
@@ -293,7 +301,7 @@ export function ReviewChecks() {
               </thead>
               <tbody>
                 {data.content.map((check) => (
-                  <tr key={check.id}>
+                  <tr key={check.id} className={checked.has(check.id) ? 'is-checked' : undefined}>
                     <td>
                       <input
                         type="checkbox"
@@ -309,9 +317,8 @@ export function ReviewChecks() {
                       />
                     </td>
                     <td>
-                      {displayReviewTime(check.createdAt)}
-                      <br />
-                      {checkOriginLabel(check)}
+                      <span className="review-time">{displayReviewTime(check.createdAt)}</span>
+                      <small className="review-origin">{checkOriginLabel(check)}</small>
                       {skippedCheckLabels(check) && (
                         <small>생략: {skippedCheckLabels(check)}</small>
                       )}
@@ -326,7 +333,11 @@ export function ReviewChecks() {
                             : '검사할 답변 없음')}
                     </td>
                     <td>
-                      {outcomeLabel(check.outcome)}
+                      <span
+                        className={`review-outcome review-outcome--${check.outcome.toLowerCase()}`}
+                      >
+                        {outcomeLabel(check.outcome)}
+                      </span>
                       <small>{check.reasons.join(', ')}</small>
                     </td>
                     <td>

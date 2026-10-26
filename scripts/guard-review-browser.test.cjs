@@ -119,6 +119,30 @@ async function pageFixture(mobile = false, options = {}) {
       })
     }
     if (p.endsWith('/checks') && method === 'GET') {
+      if (options.manyChecks) {
+        const page = Number(url.searchParams.get('page') ?? 0)
+        const size = Number(url.searchParams.get('size') ?? 20)
+        return ok({
+          content: Array.from({ length: size }, (_, index) => {
+            const id = page * size + index + 1
+            return {
+              id,
+              attemptId: id,
+              origin: 'OUTPUT_LLM',
+              outcome: 'PASS',
+              reasons: [],
+              question: `질문 ${id}`,
+              answerPreview: '답변',
+              createdAt: '2026-10-25T12:00:00',
+              detailsRetained: true,
+            }
+          }),
+          page,
+          size,
+          totalElements: size * 3,
+          totalPages: 3,
+        })
+      }
       return ok({
         content: [
           {
@@ -224,6 +248,16 @@ async function pageFixture(mobile = false, options = {}) {
         last: (page + 1) * size >= cases.length,
       })
     }
+    if (p.endsWith('/runs/10'))
+      return ok({
+        id: 10,
+        kind: 'ANALYSIS',
+        status: 'QUEUED',
+        processed: 0,
+        total: 2,
+        result: {},
+        createdAt: '2026-10-25',
+      })
     if (p.endsWith('/runs/11'))
       return ok({
         id: 11,
@@ -314,6 +348,67 @@ test('출력 LLM 통과·차단 필터와 당시 FAQ 원문을 보여준다', as
       true,
     )
     assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+async function openChecks(page) {
+  await page
+    .getByRole('navigation', { name: '관리자 메뉴' })
+    .getByRole('link', { name: '금지·위험 표현 관리', exact: true })
+    .click()
+  await page
+    .getByRole('navigation', { name: '금지어·AI 검토 메뉴' })
+    .getByRole('link', { name: '가드 검사 기록', exact: true })
+    .click()
+}
+
+test('선택한 검사 기록은 선택한 ID만 분석으로 보내고 진행 상태를 표시한다', async () => {
+  const { context, page, requests, failures } = await pageFixture(false, { manyChecks: true })
+  try {
+    await openChecks(page)
+    await page.getByLabel('검사 기록 1 선택').check()
+    await page.getByLabel('검사 기록 2 선택').check()
+    await page.getByText('선택 2건', { exact: true }).waitFor()
+    await page.getByRole('button', { name: '선택 항목 AI 분석', exact: true }).click()
+    await page.getByText('선택 항목 분석 #10').waitFor()
+    const post = requests.find((r) => r.p.endsWith('/checks/analysis') && r.method === 'POST')
+    assert.deepEqual(post.body, { checkIds: [1, 2] })
+    await page.getByText('선택 0건', { exact: true }).waitFor()
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
+test('100건을 넘게 선택하면 확인 후에만 분석을 접수한다', async () => {
+  const { context, page, requests } = await pageFixture(false, { manyChecks: true })
+  try {
+    await openChecks(page)
+    await page.getByLabel('페이지당 기록 수').selectOption('50')
+    for (const label of ['1', '2', '3']) {
+      await page.getByRole('button', { name: label, exact: true }).click()
+      await page.getByLabel('현재 페이지의 분석 가능한 기록 선택').check()
+    }
+    await page.getByText('선택 150건', { exact: true }).waitFor()
+    const messages = []
+    page.once('dialog', async (dialog) => {
+      messages.push(dialog.message())
+      await dialog.dismiss()
+    })
+    await page.getByRole('button', { name: '선택 항목 AI 분석', exact: true }).click()
+    await page.waitForTimeout(300)
+    assert.match(messages[0], /선택한 150건을 모두 분석합니다/)
+    assert.equal(
+      requests.some((r) => r.p.endsWith('/checks/analysis')),
+      false,
+    )
+    page.once('dialog', (dialog) => dialog.accept())
+    await page.getByRole('button', { name: '선택 항목 AI 분석', exact: true }).click()
+    await page.getByText('선택 항목 분석 #10').waitFor()
+    const post = requests.find((r) => r.p.endsWith('/checks/analysis') && r.method === 'POST')
+    assert.equal(post.body.checkIds.length, 150)
   } finally {
     await context.close()
   }
