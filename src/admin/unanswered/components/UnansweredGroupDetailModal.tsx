@@ -85,7 +85,7 @@ export function UnansweredGroupDetailModal({
         {!group && !error && <p className="page-message">불러오는 중입니다.</p>}
         {group && (
           <>
-            <dl>
+            <dl className="unanswered-group-summary">
               {group.topicName && (
                 <>
                   <dt>주제</dt>
@@ -109,37 +109,45 @@ export function UnansweredGroupDetailModal({
                 </>
               )}
             </dl>
-            <div className="unanswered-question-list">
-              {group.questions.map((question) => {
+            <div className="unanswered-questions-heading">
+              <h3>묶음에 포함된 질문</h3>
+              <span>{group.questions.length}건</span>
+            </div>
+            <ol className="unanswered-question-list">
+              {group.questions.map((question, index) => {
                 const reverification = group.reverifications?.find(
                   (item) => item.questionId === question.id,
                 )
                 return (
-                  <p key={question.id}>
-                    <span>{question.question}</span>
-                    {question.searchQuery && question.searchQuery !== question.question && (
-                      <small>검색어: {question.searchQuery}</small>
-                    )}
-                    <small>
-                      {UNANSWERED_REASON_LABELS[question.reason]}
-                      {question.bestSimilarity != null &&
-                        ` · 최고 유사도 ${question.bestSimilarity.toFixed(2)}`}
-                      {` · ${formatDate(question.createdAt)}`}
-                    </small>
-                    {reverification && (
-                      <small className="unanswered-reverify">
-                        FAQ #{reverification.faqId} 「{reverification.faqQuestion}」로 해결 가능 ·
-                        유사도{' '}
-                        {reverification.beforeSimilarity != null
-                          ? reverification.beforeSimilarity.toFixed(2)
-                          : '-'}{' '}
-                        → {reverification.afterSimilarity.toFixed(2)}
-                      </small>
-                    )}
-                  </p>
+                  <li key={question.id}>
+                    <span className="unanswered-question-number">{index + 1}</span>
+                    <article>
+                      <div className="unanswered-question-meta">
+                        <b>{UNANSWERED_REASON_LABELS[question.reason]}</b>
+                        <time>{formatDate(question.createdAt)}</time>
+                      </div>
+                      <h4>{question.question}</h4>
+                      {question.searchQuery && question.searchQuery !== question.question && (
+                        <small>검색어: {question.searchQuery}</small>
+                      )}
+                      {question.bestSimilarity != null && (
+                        <small>최고 유사도 {question.bestSimilarity.toFixed(2)}</small>
+                      )}
+                      {reverification && (
+                        <small className="unanswered-reverify">
+                          FAQ #{reverification.faqId} 「{reverification.faqQuestion}」로 해결 가능 ·
+                          유사도{' '}
+                          {reverification.beforeSimilarity != null
+                            ? reverification.beforeSimilarity.toFixed(2)
+                            : '-'}{' '}
+                          → {reverification.afterSimilarity.toFixed(2)}
+                        </small>
+                      )}
+                    </article>
+                  </li>
                 )
               })}
-            </div>
+            </ol>
           </>
         )}
         {error && <p className="login-error">{error}</p>}

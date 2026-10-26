@@ -81,3 +81,18 @@ test('다른 origin의 채팅 접수와 상태 조회에도 게스트 세션 쿠
   await api.apiClient.get('/api/chat/jobs/1')
   assert.ok(calls.every(({ init }) => init.credentials === 'include'))
 })
+
+test('번호 중복 검사는 인증과 취소 신호를 유지하고 조회 전용 API로 요청한다', async () => {
+  api.tokenStorage.setTokens({ accessToken: 'phone-check', refreshToken: 'refresh' })
+  const calls = captureRequests()
+  const controller = new AbortController()
+  await api.subscriptionApi.checkPhoneNumber('010-1234-5678', controller.signal)
+  assert.equal(
+    calls[0].url,
+    'https://api.example.test/api/subscriptions/me/phone-number-availability?phoneNumber=010-1234-5678',
+  )
+  assert.equal(calls[0].init.method ?? 'GET', 'GET')
+  assert.equal(new Headers(calls[0].init.headers).get('Authorization'), 'Bearer phone-check')
+  assert.equal(calls[0].init.signal, controller.signal)
+  api.tokenStorage.clear()
+})

@@ -1,3 +1,4 @@
+import { DateField } from '../../../shared/components/DateField'
 import {
   RESERVATION_STATUS_LABELS,
   type ReservationStatus,
@@ -41,7 +42,8 @@ export function ReservationListPage() {
         <div className="unanswered-filters">
           <label>
             방문 날짜
-            <input
+            <DateField
+              aria-label="예약 날짜"
               onChange={(event) => changeFilter(() => setDate(event.target.value))}
               required
               type="date"

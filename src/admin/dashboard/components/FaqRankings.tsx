@@ -2,6 +2,7 @@ import type { useFaqDashboard } from '../hooks/useFaqDashboard'
 import { DraggableRankStrip } from './DraggableRankStrip'
 import { SimilarityChartFrame } from './SimilarityChartFrame'
 import { UsageChartFrame } from './UsageChartFrame'
+import { DashboardSection } from './DashboardSection'
 
 type Props = Pick<
   ReturnType<typeof useFaqDashboard>,
@@ -35,11 +36,7 @@ export function FaqRankings({
 }: Props) {
   return (
     <div className="faq-dashboard-monitoring-row">
-      <section className="faq-dashboard-section faq-dashboard-section--usage">
-        <div className="faq-dashboard-section__title">
-          <span className="faq-dashboard-section__number">02</span>
-          <h2>FAQ 사용량 TOP/LOW 20</h2>
-        </div>
+      <DashboardSection kind="usage" number="02" title="FAQ 사용량 TOP/LOW 20">
         <div className="faq-dashboard-tabs">
           <button
             className={usageType === 'top' ? 'is-active' : ''}
@@ -94,12 +91,13 @@ export function FaqRankings({
             onSelect={selectFaqFromRanking}
           />
         </div>
-      </section>
+      </DashboardSection>
 
-      <section className="faq-dashboard-section faq-dashboard-section--similarity">
-        <div className="faq-dashboard-section__title">
-          <span className="faq-dashboard-section__number">03</span>
-          <h2>FAQ 평균 Similarity TOP/LOW 20</h2>
+      <DashboardSection
+        kind="similarity"
+        number="03"
+        title="FAQ 평균 Similarity TOP/LOW 20"
+        actions={
           <div className="faq-dashboard-average">
             <span>전체 FAQ 평균 Similarity: </span>
             <strong>
@@ -108,7 +106,8 @@ export function FaqRankings({
                 : '-'}
             </strong>
           </div>
-        </div>
+        }
+      >
         <div className="faq-dashboard-tabs">
           <button
             className={similarityType === 'top' ? 'is-active' : ''}
@@ -163,7 +162,7 @@ export function FaqRankings({
             onSelect={selectFaqFromRanking}
           />
         </div>
-      </section>
+      </DashboardSection>
     </div>
   )
 }

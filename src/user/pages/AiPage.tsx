@@ -3,6 +3,7 @@ import { chatApi } from '../ai/api/chatApi'
 import { useCustomerCounsel, counselStates } from '../../counsel/hooks/useCustomerCounsel'
 import { CounselConversation } from '../../counsel/components/CounselConversation'
 import { ConversationTimeline } from '../../counsel/components/ConversationTimeline'
+import { CounselorIcon } from '../../counsel/components/CounselorIcon'
 import '../../counsel/styles/counsel.css'
 import { ChatInput } from '../ai/components/ChatInput'
 import { ChatSendIcon } from '../ai/components/ChatSendIcon'
@@ -66,22 +67,38 @@ export function AiPage({
   const inputDisabled = chat
     ? isInitializing || chat.isPending || counsel.blocking || deletingId !== null || openingHistory
     : false
+  const navigationDisabled = chat
+    ? isInitializing ||
+      chat.isPending ||
+      counsel.navigationBlocking ||
+      deletingId !== null ||
+      openingHistory
+    : false
   const isGenerating = chat ? chat.turns.some((turn) => turn.isPending) : false
   const startNewChat = chat
     ? () => {
-        if (inputDisabled) return
-        counsel.clear()
+        if (navigationDisabled) return
+        if (counsel.ongoingSession) {
+          if (!counsel.leave()) return
+        } else counsel.clear()
         chat.resetConversation()
         setInputVersion((current) => current + 1)
+        setMobileHistoryOpen(false)
       }
     : undefined
-  const historyRefreshKey = `${historyVersion}:${chat?.turns.filter((turn) => turn.response?.status === 'SUCCESS').length ?? 0}:${counsel.session?.sessionId ?? ''}:${counsel.session?.status ?? ''}:${counsel.session?.lastDeliveredSeq ?? 0}`
+  const historyRefreshKey = `${historyVersion}:${chat?.turns.filter((turn) => turn.response?.status === 'SUCCESS').length ?? 0}:${counsel.session?.sessionId ?? ''}:${counsel.session?.status ?? ''}:${counsel.session?.lastDeliveredSeq ?? 0}:${counsel.ongoingSession?.status ?? ''}`
   const openConversation = (conversationId: string) => {
-    if (!chat || inputDisabled || historyBusy.current) return
+    if (!chat || navigationDisabled || historyBusy.current) return
+    if (counsel.backgrounded && conversationId === counsel.ongoingSession?.conversationId) {
+      counsel.resume()
+      setMobileHistoryOpen(false)
+      return
+    }
     if (conversationId === chat.conversationId) {
       setMobileHistoryOpen(false)
       return
     }
+    if (counsel.ongoingSession && !counsel.leave()) return
     historyBusy.current = true
     setOpeningHistory(true)
     void chat
@@ -99,7 +116,7 @@ export function AiPage({
   }
 
   const deleteConversation = async (conversationId: string) => {
-    if (!chat || inputDisabled || historyBusy.current) return
+    if (!chat || navigationDisabled || historyBusy.current) return
     historyBusy.current = true
     setDeletingId(conversationId)
     chat.setConversationLocked(true)
@@ -113,7 +130,7 @@ export function AiPage({
       }
       setHistoryVersion((current) => current + 1)
     } finally {
-      chat.setConversationLocked(false)
+      chat.setConversationLocked(counsel.blocking)
       historyBusy.current = false
       setDeletingId(null)
     }
@@ -127,7 +144,14 @@ export function AiPage({
       <button
         className={`ai-counsel-link${loggedIn ? '' : ' open-login'}`}
         type="button"
-        onClick={loggedIn ? () => void counsel.requestCounsel() : undefined}
+        onClick={
+          loggedIn
+            ? () =>
+                counsel.backgrounded && counsel.ongoingSession
+                  ? counsel.resume()
+                  : void counsel.requestCounsel()
+            : undefined
+        }
         disabled={
           isInitializing ||
           (loggedIn &&
@@ -137,15 +161,23 @@ export function AiPage({
               chat?.isPending ||
               counsel.loading ||
               counsel.busy ||
-              Boolean(counsel.session && counsel.session.status !== 'ENDED')))
+              Boolean(counsel.ongoingSession && !counsel.backgrounded)))
         }
         title={
           !loggedIn
             ? '로그인 후 상담사를 호출할 수 있습니다.'
-            : '현재 대화 내역을 상담사에게 공유하고 연결합니다.'
+            : counsel.backgrounded && counsel.ongoingSession
+              ? '진행 중인 상담 채팅으로 돌아갑니다.'
+              : '이전 대화 내역 없이 새 채팅방에서 상담사와 연결합니다.'
         }
       >
-        {counsel.busy ? '연결 요청 중…' : counsel.uncertain ? '상담 요청 확인' : '상담사 호출'}
+        {counsel.busy
+          ? '연결 요청 중…'
+          : counsel.backgrounded && counsel.ongoingSession
+            ? '상담으로 돌아가기'
+            : counsel.uncertain
+              ? '상담 요청 확인'
+              : '상담사 호출'}
       </button>
     </div>
   )
@@ -163,6 +195,12 @@ export function AiPage({
             <div>
               <img className="ai-brand-logo" src={logo} alt="Ubot" width={90} height={45} />
             </div>
+            <span
+              className={`ai-channel-label${counsel.session ? ' ai-channel-label--counsel' : ''}`}
+            >
+              {counsel.session && <CounselorIcon size={18} />}
+              {counsel.session ? '상담사 채팅' : 'AI 채팅'}
+            </span>
           </div>
           <div className="ai-mobile-support mobile-only">{supportActions}</div>
 
@@ -179,7 +217,7 @@ export function AiPage({
                     loggedIn={loggedIn && !isInitializing}
                     activeId={counsel.session?.conversationId ?? chat.conversationId}
                     refreshKey={historyRefreshKey}
-                    disabled={inputDisabled}
+                    disabled={navigationDisabled}
                     onSelect={openConversation}
                     onDelete={deleteConversation}
                     deletingId={deletingId}
@@ -193,7 +231,7 @@ export function AiPage({
                   loggedIn={loggedIn && !isInitializing}
                   activeId={counsel.session?.conversationId ?? chat.conversationId}
                   refreshKey={historyRefreshKey}
-                  disabled={inputDisabled}
+                  disabled={navigationDisabled}
                   onSelect={openConversation}
                   onDelete={deleteConversation}
                   deletingId={deletingId}
@@ -215,18 +253,49 @@ export function AiPage({
               <button
                 className="new-chat"
                 id="newChat"
-                disabled={inputDisabled}
+                disabled={navigationDisabled}
                 onClick={startNewChat}
               >
                 ＋ 새 대화
               </button>
               <div className="ai-left-bottom">
-                {!loggedIn && <button className="open-login">로그인</button>}
+                {!loggedIn && (
+                  <div className="ai-support-actions">
+                    <button className="open-login" type="button">
+                      로그인
+                    </button>
+                  </div>
+                )}
                 {supportActions}
               </div>
             </aside>
 
             <section className="ai-center">
+              {counsel.backgrounded && counsel.ongoingSession && (
+                <div
+                  className="counsel-resume"
+                  data-status={counsel.ongoingSession.status.toLowerCase()}
+                  role="status"
+                >
+                  <CounselorIcon size={20} />
+                  <div>
+                    <strong>{counselStates[counsel.ongoingSession.status]}</strong>
+                    <span>
+                      {counsel.ongoingSession.status === 'WAITING'
+                        ? '다른 대화를 이용해도 대기는 유지됩니다.'
+                        : '상담 채팅으로 돌아와 대화를 이어가세요.'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="counsel-secondary-button"
+                    disabled={navigationDisabled}
+                    onClick={counsel.resume}
+                  >
+                    상담 보기
+                  </button>
+                </div>
+              )}
               {chat && (isInitializing || !loggedIn) && (
                 <p className="status-line" role="status">
                   {isInitializing
@@ -241,18 +310,53 @@ export function AiPage({
                 </p>
               )}
               {counsel.session && !counsel.loading ? (
-                <div className="ai-counsel-session">
-                  <div className="counsel-toolbar">
-                    <strong role="status">{counselStates[counsel.session.status]}</strong>
-                    {counsel.session.status !== 'ENDED' && (
-                      <button disabled={counsel.busy} onClick={() => void counsel.endCounsel()}>
-                        {counsel.session.status === 'WAITING' ? '대기 취소' : '상담 종료'}
-                      </button>
-                    )}
+                <div
+                  className="ai-chat-view ai-counsel-session"
+                  data-status={counsel.session.status.toLowerCase()}
+                >
+                  <div className="counsel-toolbar counsel-session-header">
+                    <span className="counsel-session-avatar">
+                      <CounselorIcon size={24} />
+                    </span>
+                    <div className="counsel-session-title">
+                      <span className="counsel-session-label">
+                        {counsel.session.status === 'WAITING'
+                          ? '연결 대기'
+                          : counsel.session.status === 'ACTIVE'
+                            ? '상담 중'
+                            : counsel.session.status === 'PAUSED'
+                              ? '재연결 중'
+                              : '상담 기록'}
+                      </span>
+                      <strong role="status">{counselStates[counsel.session.status]}</strong>
+                    </div>
+                    <div className="counsel-session-actions">
+                      {counsel.session.status === 'WAITING' && (
+                        <button
+                          type="button"
+                          className="counsel-secondary-button"
+                          disabled={navigationDisabled}
+                          onClick={startNewChat}
+                        >
+                          다른 대화 이용
+                        </button>
+                      )}
+                      {counsel.session.status !== 'ENDED' && (
+                        <button
+                          type="button"
+                          className="counsel-secondary-button"
+                          disabled={counsel.busy}
+                          onClick={() => void counsel.endCounsel()}
+                        >
+                          {counsel.busy
+                            ? '처리 중…'
+                            : counsel.session.status === 'WAITING'
+                              ? '대기 취소'
+                              : '상담 종료'}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {counsel.session.status === 'WAITING' && (
-                    <p>이전 대화를 상담사에게 공유하고 있습니다. 접수 순서대로 연결합니다.</p>
-                  )}
                   {counsel.session.status === 'ENDED' && counsel.session.conversationId ? (
                     <ConversationTimeline
                       key={`${counsel.session.sessionId}:${counsel.session.conversationId}:${historyRefreshKey}`}

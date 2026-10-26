@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ProductDeleteModal } from '../../product/components/ProductDeleteModal'
 import { ProductFormModal } from '../../product/components/ProductFormModal'
+import { ProductDetailModal } from '../../product/components/ProductDetailModal'
 import { ProductPagination } from '../../product/components/ProductPagination'
 import { ProductTable } from '../../product/components/ProductTable'
 import { useProductManagement } from '../../product/hooks/useProductManagement'
@@ -38,6 +39,7 @@ export function ProductListPage<TDetail, TValues, TCreate, TUpdate>({
   } = useProductManagement<TDetail, TValues, TCreate, TUpdate>({ kind })
   // 종류별 추가 동작(예: 요금제 포함 부가서비스)을 연 상품입니다.
   const [rowActionProduct, setRowActionProduct] = useState<AdminProduct<TDetail> | null>(null)
+  const [detailProduct, setDetailProduct] = useState<AdminProduct<TDetail> | null>(null)
   const RowActionModal = kind.rowAction?.Modal
   return (
     <>
@@ -121,6 +123,7 @@ export function ProductListPage<TDetail, TValues, TCreate, TUpdate>({
               deleted={deleted}
               kind={kind}
               onDelete={setDeleteProduct}
+              onDetail={setDetailProduct}
               onEdit={(product) => void openEdit(product)}
               onRowAction={setRowActionProduct}
               onToggleStatus={(product) => void toggleStatus(product)}
@@ -138,6 +141,13 @@ export function ProductListPage<TDetail, TValues, TCreate, TUpdate>({
           onClose={() => setFormProduct(undefined)}
           onSaved={closeFormAfterSave}
           product={formProduct}
+        />
+      )}
+      {detailProduct && (
+        <ProductDetailModal
+          kind={kind}
+          product={detailProduct}
+          onClose={() => setDetailProduct(null)}
         />
       )}
 

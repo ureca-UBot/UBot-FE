@@ -1,3 +1,4 @@
+import { DateField } from '../../../shared/components/DateField'
 import { useEffect, useState, type FormEvent } from 'react'
 import { ApiRequestError } from '../../../shared/api/client'
 import { profileApi } from '../api/profileApi'
@@ -186,7 +187,8 @@ export function MyProfileCard({ active }: { active: boolean }) {
           </label>
           <label>
             <span>생년월일</span>
-            <input
+            <DateField
+              aria-label="생년월일"
               disabled={saving}
               max={today()}
               onChange={(event) => updateField('birthDate', event.target.value)}

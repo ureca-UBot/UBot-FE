@@ -72,7 +72,7 @@ async function contextFor(browser, role) {
       const path = new URL(route.request().url()).pathname
       if (path.endsWith('/timeline')) {
         const entries = [
-          ...history,
+          ...(state.handoffs.length ? [] : history),
           ...(state.savedFaqs ?? []).flatMap((faq) => [
             { role: 'USER', content: faq.question, source: 'SAVED' },
             { role: 'AI', content: faq.answer, source: 'SAVED' },
@@ -138,10 +138,17 @@ async function contextFor(browser, role) {
       if (path.endsWith('/requests')) {
         const body = request.postDataJSON()
         state.handoffs.push(body)
-        state.current = { ...room, conversationId: body.conversationId, handoffId: body.handoffId }
+        state.current = {
+          ...room,
+          conversationId:
+            body.conversationId ??
+            `30000000-0000-0000-0000-${String(state.handoffs.length).padStart(12, '0')}`,
+          handoffId: body.handoffId,
+        }
         return ok(state.current)
       }
-      if (path.includes('/sessions/conversation/')) return ok(state.ended ?? null)
+      if (path.includes('/sessions/conversation/'))
+        return ok(state.ended?.conversationId === path.split('/').at(-1) ? state.ended : null)
       const single = path.match(/^\/api\/counsel\/sessions\/([^/]+)$/)
       if (single && request.method() === 'GET') {
         // BE처럼 더 이상 배정되지 않은 상담사에게는 403, 없는 상담은 404를 돌려줌
@@ -159,7 +166,7 @@ async function contextFor(browser, role) {
       }
       if (path.endsWith('/context'))
         return ok(
-          history
+          (state.handoffs.length ? [] : history)
             .filter((item) => item.sequence > Number(url.searchParams.get('afterSequence')))
             .slice(0, 100),
         )
@@ -289,7 +296,8 @@ async function main() {
       'counsel must preserve the existing chat header layout',
     )
     assert.equal(new URL(p.url()).hash, '#/ai')
-    assert.equal(customer.state.handoffs[0].conversationId, conversationId)
+    assert.equal(customer.state.handoffs[0].conversationId, null)
+    assert.notEqual(customer.state.current.conversationId, conversationId)
     assert.equal('faqIds' in customer.state.handoffs[0], false)
     assert.deepEqual(Object.keys(customer.state.handoffs[0]).sort(), [
       'conversationId',
@@ -300,11 +308,8 @@ async function main() {
       false,
       'handoff must not send client-authored conversation text',
     )
-    await p
-      .locator('.counsel-history-message')
-      .filter({ hasText: 'AI의 추가 안내입니다.' })
-      .waitFor()
-    assert.equal(await p.locator('.counsel-history-message').count(), 4)
+    await p.getByText('상담사에게 현재 채팅창 메세지를 전달합니다.', { exact: true }).waitFor()
+    assert.equal(await p.locator('.counsel-history-message').count(), 0)
     assert.equal(await p.getByTitle('기존 요금제 문의', { exact: true }).isDisabled(), true)
     const input = p.getByRole('textbox', { name: /메시지/ })
     await input.fill('차단 문장')
@@ -385,7 +390,7 @@ async function main() {
     await p.getByRole('button', { name: '상담 종료', exact: true }).click()
     await p.getByText('상담이 종료되었어요').waitFor()
     await p.getByText('종료 직전 100', { exact: true }).waitFor()
-    assert.equal(await p.locator('.counsel-history-message').count(), 107)
+    assert.equal(await p.locator('.counsel-history-message').count(), 103)
     assert.ok(
       (await p.locator('.counsel-messages').boundingBox()).height <= 424,
       'long history must scroll inside the conversation',
@@ -431,7 +436,7 @@ async function main() {
       selections.push(body)
       const saved = {
         ...body,
-        conversationId,
+        conversationId: body.conversationId ?? conversationId,
         question: `서버 FAQ 질문 ${body.faqId}`,
         answer: `서버 저장 FAQ 답변 ${body.faqId}`,
       }
@@ -476,6 +481,8 @@ async function main() {
     await faqCustomer.page.getByText('서버 저장 FAQ 답변 42', { exact: true }).waitFor()
     await faqCustomer.page.getByRole('button', { name: '상담사 호출', exact: true }).click()
     await faqCustomer.page.getByText('상담사와 연결되었어요').waitFor()
+    const firstCounselConversationId = faqCustomer.state.current.conversationId
+    assert.equal(faqCustomer.state.handoffs[0].conversationId, null)
     assert.equal('faqIds' in faqCustomer.state.handoffs[0], false)
     assert.equal(selections[0].faqId, 42)
     assert.equal(typeof selections[0].selectionId, 'string')
@@ -491,14 +498,31 @@ async function main() {
     await faqCustomer.page.getByText('서버 저장 FAQ 답변 43', { exact: true }).waitFor()
     await faqCustomer.page.getByRole('button', { name: '상담사 호출', exact: true }).click()
     await faqCustomer.page.getByText('상담사와 연결되었어요').waitFor()
-    assert.equal(selections[1].conversationId, conversationId)
-    assert.equal(faqCustomer.state.handoffs[1].conversationId, conversationId)
+    assert.equal(selections[1].conversationId, firstCounselConversationId)
+    assert.equal(faqCustomer.state.handoffs[1].conversationId, null)
+    assert.notEqual(faqCustomer.state.current.conversationId, firstCounselConversationId)
     assert.equal('faqIds' in faqCustomer.state.handoffs[1], false)
     assert.deepEqual(Object.keys(faqCustomer.state.handoffs[1]).sort(), [
       'conversationId',
       'handoffId',
     ])
     await faqCustomer.context.close()
+
+    const directCustomer = await contextFor(browser, 'USER')
+    const chatbotRequests = []
+    directCustomer.page.on('request', (request) => {
+      if (new URL(request.url()).pathname.startsWith('/api/chat/'))
+        chatbotRequests.push(request.url())
+    })
+    await directCustomer.page.goto(`${origin}/#/ai`)
+    await directCustomer.page.getByRole('button', { name: '상담사 호출', exact: true }).click()
+    await directCustomer.page
+      .getByText('상담사에게 현재 채팅창 메세지를 전달합니다.', { exact: true })
+      .waitFor()
+    assert.equal(directCustomer.state.handoffs[0].conversationId, null)
+    assert.equal(await directCustomer.page.locator('.counsel-history-message').count(), 0)
+    assert.deepEqual(chatbotRequests, [], 'direct counsel must not create an AI question')
+    await directCustomer.context.close()
 
     const counselor = await contextFor(browser, 'COUNSELOR')
     await counselor.page.goto(`${origin}/#/counselor`)

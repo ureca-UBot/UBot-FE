@@ -267,7 +267,15 @@ const mockProduct = (
   name: string,
   fee: number | null,
   description: string | null,
-): ChatProductCard => ({ type, name, fee, description })
+): ChatProductCard => ({
+  type,
+  name,
+  fee,
+  specs: [],
+  highlights: description ? [description] : [],
+  network: null,
+  feeNote: null,
+})
 
 function mockProductData(question: string): ChatProductData | null {
   if (question.includes('로밍')) {

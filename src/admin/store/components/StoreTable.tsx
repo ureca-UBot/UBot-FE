@@ -73,7 +73,7 @@ export function StoreTable({
                         상세정보
                       </button>
                       <button
-                        className="table-action-button"
+                        className="table-action-button table-action-button--edit"
                         onClick={() => onEdit(store.storeId)}
                         type="button"
                       >

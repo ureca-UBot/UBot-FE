@@ -2,6 +2,10 @@ import {
   NETWORK_TYPE_LABELS,
   PLAN_TARGET_GROUP_LABELS,
   formatPlanData,
+  formatPlanVoice,
+  formatPlanSms,
+  formatDataAmount,
+  formatSpeed,
   formatWon,
 } from '../../../shared/product/format'
 import type { PlanDetail } from '../../../shared/product/types'
@@ -124,6 +128,22 @@ export const planKind: ProductKind<
   idOf: (detail) => detail.summary.planId,
   codeOf: (detail) => detail.summary.planCode,
   nameOf: (detail) => detail.summary.name,
+  descriptionOf: (detail) => detail.description,
+  detailFields: ({ summary, tetheringAmountMb, minAge, maxAge }) => [
+    { label: '통신 방식', value: NETWORK_TYPE_LABELS[summary.networkType] },
+    { label: '대상', value: PLAN_TARGET_GROUP_LABELS[summary.targetGroup] },
+    { label: '월 요금', value: formatWon(summary.monthlyFee) },
+    { label: '데이터 제공량', value: formatPlanData(summary) },
+    {
+      label: '소진 후 속도',
+      value: summary.exhaustedSpeedKbps === null ? '-' : formatSpeed(summary.exhaustedSpeedKbps),
+    },
+    { label: '테더링 제공량', value: formatDataAmount(tetheringAmountMb) },
+    { label: '음성 제공량', value: formatPlanVoice(summary) },
+    { label: '문자 제공량', value: formatPlanSms(summary) },
+    { label: '최소 가입 연령', value: minAge === null ? '제한 없음' : `${minAge}세` },
+    { label: '최대 가입 연령', value: maxAge === null ? '제한 없음' : `${maxAge}세` },
+  ],
   columns: [
     {
       header: '구분',

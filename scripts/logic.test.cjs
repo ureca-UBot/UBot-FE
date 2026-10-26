@@ -8,6 +8,77 @@ const storage = new Map()
 const originalFetch = global.fetch
 const originalStorage = global.sessionStorage
 
+test('청구 예상치는 이용 중 상품·할인·할부와 해당 월의 로밍만 합산하고 과거 청구와 구분한다', () => {
+  const loaded = (value) => ({ status: 'loaded', value })
+  const parts = {
+    plan: loaded({ summary: { name: '현재 요금제', monthlyFee: 40000 } }),
+    addons: loaded([
+      { name: '현재 부가서비스', monthlyFee: 3000, status: 'ACTIVE' },
+      { name: '해지한 부가서비스', monthlyFee: 9000, status: 'CANCELED' },
+    ]),
+    bundles: loaded([{ name: '가족', appliedDiscountAmount: 5000, status: 'ACTIVE' }]),
+    contracts: loaded([
+      {
+        status: 'ACTIVE',
+        discountAmount: 4000,
+        installment: {
+          deviceName: '단말',
+          installmentStatus: 'ACTIVE',
+          monthlyInstallmentAmount: 6000,
+        },
+      },
+    ]),
+    roamings: loaded([
+      {
+        name: '월말 로밍',
+        status: 'SCHEDULED',
+        dailyFee: 1000,
+        startDate: '2026-10-31',
+        endDate: '2026-11-02',
+      },
+      {
+        name: '취소한 로밍',
+        status: 'CANCELED',
+        dailyFee: 99999,
+        startDate: '2026-10-01',
+        endDate: '2026-10-31',
+      },
+    ]),
+    bills: loaded([{ totalAmount: 999999 }]),
+  }
+  const estimate = modules.billing.estimateBill(parts, '2026-10')
+  assert.equal(estimate.total, 41000)
+  assert.equal(estimate.status, 'ready')
+  assert.equal(
+    estimate.items.some((item) => item.label.includes('해지') || item.label.includes('취소')),
+    false,
+  )
+  assert.equal(estimate.items.find((item) => item.label.includes('로밍')).amount, 1000)
+  assert.equal(modules.billing.estimateBill(parts, '2026-10', 'TERMINATED').status, 'inactive')
+})
+
+test('청구 예상은 누락·조회 실패·미상 요금을 0원으로 처리하지 않는다', () => {
+  assert.equal(modules.billing.estimateBill({}, '2026-10').status, 'loading')
+  assert.equal(
+    modules.billing.estimateBill({ addons: { status: 'failed' } }, '2026-10').status,
+    'failed',
+  )
+  const parts = {
+    plan: { status: 'loaded', value: { summary: { name: '기본', monthlyFee: 33000 } } },
+    addons: {
+      status: 'loaded',
+      value: [{ status: 'ACTIVE', name: '요금 미상', monthlyFee: null }],
+    },
+    contracts: { status: 'loaded', value: [] },
+    bundles: { status: 'loaded', value: [] },
+    roamings: { status: 'loaded', value: [] },
+  }
+  assert.equal(modules.billing.estimateBill(parts, '2026-10').total, null)
+  parts.addons.value = []
+  parts.contracts.value = [{ status: 'ACTIVE', discountAmount: null, installment: null }]
+  assert.equal(modules.billing.estimateBill(parts, '2026-10').total, null)
+})
+
 before(async () => {
   const { build } = await import('vite')
   await build({

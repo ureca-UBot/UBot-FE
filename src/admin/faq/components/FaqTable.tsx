@@ -68,7 +68,11 @@ export function FaqTable({ faqs, onDetail, onEdit, onDelete, onVersionHistory }:
                   >
                     상세정보
                   </button>
-                  <button className="table-action-button" onClick={() => onEdit(faq)} type="button">
+                  <button
+                    className="table-action-button table-action-button--edit"
+                    onClick={() => onEdit(faq)}
+                    type="button"
+                  >
                     수정
                   </button>
                   <button

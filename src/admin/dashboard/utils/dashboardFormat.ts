@@ -16,7 +16,7 @@ export const defaultStartDate = (() => {
   date.setDate(date.getDate() - 30)
   return toInputDate(date)
 })()
-export const improvementPageSize = 5
+export const improvementPageSize = 10
 export const improvementTypes: FaqImprovementType[] = [
   'LOW_RAG_QUALITY',
   'LOW_USAGE',

@@ -43,7 +43,8 @@
   text-wrap: pretty;
 }
 
-.admin-layout :is(.primary-button, .secondary-button, .logout-button, .pagination button) {
+.admin-layout :is(.primary-button, .secondary-button, .logout-button),
+.admin-layout .pagination button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -60,7 +61,8 @@
   background: #4338ca;
 }
 
-.admin-layout :is(.secondary-button, .pagination button):not(:disabled):hover {
+.admin-layout .secondary-button:not(:disabled):hover,
+.admin-layout .pagination button:not(:disabled):hover {
   border-color: #a5b4fc;
   color: #4338ca;
   background: #eef2ff;

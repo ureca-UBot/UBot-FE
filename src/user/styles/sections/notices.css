@@ -17,7 +17,8 @@
 }
 
 .ubot-user-app .notice-page {
-  max-width: 860px
+  max-width: 860px;
+  min-height: 760px
 }
 
 .ubot-user-app .notice-filter {
@@ -128,14 +129,11 @@
 }
 
 .ubot-user-app .notice-items {
+  display: grid;
+  gap: 12px;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--ink);
   list-style: none
-}
-
-.ubot-user-app .notice-items li {
-  border-bottom: 1px solid var(--line)
 }
 
 .ubot-user-app .notice-item {
@@ -143,17 +141,19 @@
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 18px 6px;
-  border: 0;
+  min-height: 80px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
   color: var(--ink);
-  background: transparent;
+  background: #fff;
   font: inherit;
   text-align: left;
   cursor: pointer
 }
 
-.ubot-user-app .notice-item:hover {
-  background: #fafafb
+.ubot-user-app .notice-item:is(:hover, :focus-visible) {
+  background: var(--pink-soft)
 }
 
 .ubot-user-app .notice-item__title {
@@ -214,7 +214,7 @@
   height: 36px;
   padding: 0 10px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 999px;
   color: var(--ink);
   background: #fff;
   font-size: 14px;
@@ -233,19 +233,28 @@
 }
 
 .ubot-user-app .notice-back {
-  padding: 6px 0;
-  border: 0;
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
   color: var(--muted);
-  background: transparent;
+  background: #fff;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer
 }
 
+.ubot-user-app .notice-detail {
+  min-height: 560px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: #fff
+}
+
 .ubot-user-app .notice-detail__head {
-  margin-top: 14px;
+  margin-top: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid var(--ink)
+  border-bottom: 1px solid var(--line)
 }
 
 .ubot-user-app .notice-detail__head h2 {
@@ -266,6 +275,7 @@
 }
 
 .ubot-user-app .notice-detail__body {
+  min-height: 320px;
   padding: 28px 4px 12px;
   font-size: 16px;
   line-height: 1.8;
@@ -277,7 +287,7 @@
   .ubot-user-app .notice-item {
     flex-wrap: wrap;
     gap: 8px 10px;
-    padding: 16px 2px
+    padding: 18px 16px
   }
 
   .ubot-user-app .notice-item__title {
@@ -287,6 +297,11 @@
 
   .ubot-user-app .notice-item__meta {
     flex-basis: 100%
+  }
+
+  .ubot-user-app .notice-detail {
+    padding: 22px 18px;
+    border-radius: var(--r-md)
   }
 
   .ubot-user-app .notice-detail__head h2 {

@@ -401,6 +401,47 @@
   letter-spacing: -.02em
 }
 
+.ubot-user-app .chat-user-data .pd-network {
+  align-self: flex-start;
+  display: inline-block;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border: 1px solid var(--purple);
+  border-radius: 999px;
+  color: var(--purple);
+  font-size: 12px;
+  font-weight: 700
+}
+
+.ubot-user-app .chat-user-data .pd-fee-note,
+.ubot-user-app .chat-user-data .pd-specs,
+.ubot-user-app .chat-user-data .pd-highlights {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .chat-user-data .pd-specs,
+.ubot-user-app .chat-user-data .pd-highlights {
+  display: grid;
+  gap: 6px;
+  padding-left: 16px;
+  list-style: disc
+}
+
+.ubot-user-app .chat-user-data .pd-specs {
+  color: var(--ink);
+  font-weight: 700
+}
+
+.ubot-user-app .chat-user-data .pd-specs + .pd-highlights {
+  padding-top: 10px;
+  border-top: 1px solid var(--line)
+}
+
 .ubot-user-app .chat-user-data .pd-actions {
   display: flex;
   flex-wrap: wrap;

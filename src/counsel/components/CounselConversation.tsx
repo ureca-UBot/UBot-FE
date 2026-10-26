@@ -4,6 +4,8 @@ import { counselApi } from '../api/counselApi'
 import { counselConfig } from '../config/counselConfig'
 import type { Delivery, Receipt, Session, HistoryMessage } from '../types/counsel'
 import { CounselMessage } from './CounselMessage'
+import { CounselorIcon } from './CounselorIcon'
+import { ChatSendIcon } from '../../user/ai/components/ChatSendIcon'
 
 const notices = {
   PENDING: '표현을 확인하고 있어요. 아직 상대방에게 전송되지 않았습니다.',
@@ -165,6 +167,12 @@ export function CounselConversation({
   }
   return (
     <section className="counsel-conversation" aria-label="상담 메시지">
+      {role === 'USER' && (
+        <p className="counsel-context-notice">
+          <CounselorIcon size={16} />
+          상담사에게 현재 채팅창 메세지를 전달합니다.
+        </p>
+      )}
       <div
         ref={messageList}
         className="counsel-messages chat-thread"
@@ -188,8 +196,28 @@ export function CounselConversation({
             content={item.content}
           />
         ))}
-        <p className="counsel-handoff-divider">상담사 연결 요청 · 이전 대화에 이어 상담합니다</p>
-        {messages.length === 0 && <p className="counsel-muted">전달된 메시지가 없습니다.</p>}
+        {historyLoaded && history.length > 0 && (
+          <p className="counsel-handoff-divider">상담사 연결 요청 · 이전 대화에 이어 상담합니다</p>
+        )}
+        {role === 'USER' &&
+          session.status === 'WAITING' &&
+          historyLoaded &&
+          messages.length === 0 && (
+            <div className="counsel-waiting">
+              <span className="counsel-waiting__icon">
+                <CounselorIcon size={32} />
+              </span>
+              <h2>상담사를 연결하고 있어요</h2>
+              <p>
+                접수 순서대로 연결합니다.
+                <br />
+                다른 대화를 이용해도 대기는 유지돼요.
+              </p>
+            </div>
+          )}
+        {role === 'COUNSELOR' && messages.length === 0 && (
+          <p className="counsel-muted">전달된 메시지가 없습니다.</p>
+        )}
         {messages.map((message) => (
           <CounselMessage
             key={message.deliverySequence}
@@ -256,7 +284,11 @@ export function CounselConversation({
             placeholder={
               session.status === 'ACTIVE'
                 ? '문의 내용을 입력해 주세요.'
-                : '상담이 연결되면 메시지를 보낼 수 있어요.'
+                : session.status === 'WAITING'
+                  ? '상담사 연결 대기 중입니다.'
+                  : session.status === 'PAUSED'
+                    ? '상담사를 다시 연결하고 있어요.'
+                    : '상담이 종료되었습니다.'
             }
           />
           <button
@@ -271,7 +303,7 @@ export function CounselConversation({
             }
             title={attempt?.status === 'CHECK_FAILED' ? '다시 전송하기' : '메시지 전송'}
           >
-            {sending ? '…' : '↑'}
+            {sending ? '…' : role === 'USER' ? <ChatSendIcon /> : '↑'}
           </button>
         </div>
       </form>

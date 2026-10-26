@@ -25,7 +25,8 @@ export function UsageChartFrame({ items }: { items: FaqUsageItem[] }) {
             <CartesianGrid stroke="#e5ecf6" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="faqId"
-              interval={0}
+              interval="preserveStartEnd"
+              minTickGap={14}
               tick={{ fill: '#5d6c84', fontSize: 9 }}
               tickLine={false}
             />

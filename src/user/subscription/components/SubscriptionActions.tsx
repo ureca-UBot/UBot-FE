@@ -1,3 +1,4 @@
+import { DateField } from '../../../shared/components/DateField'
 import { useEffect, useRef, useState } from 'react'
 import {
   BUNDLE_TYPE_LABELS,
@@ -14,7 +15,12 @@ import type {
   PlanSummary,
   RoamingProduct,
 } from '../../product/types/product'
-import { homeSubscriptionApi, subscriptionCommandApi } from '../api/subscriptionApi'
+import {
+  homeSubscriptionApi,
+  subscriptionApi,
+  subscriptionCommandApi,
+} from '../api/subscriptionApi'
+import { ApiRequestError } from '../../../shared/api/client'
 import type {
   BundleGroup,
   BundleGroupMember,
@@ -25,6 +31,7 @@ import type {
 } from '../types/subscription'
 import { addDaysText, countDays, formatPeriod, toLocalDateText } from '../utils/format'
 import { SubscriptionActionDialog } from './SubscriptionActionDialog'
+import { PlanPicker } from './PlanPicker'
 
 // 백엔드 RoamingScheduleRequest 검증과 같은 최대 이용 일수입니다.
 const MAX_ROAMING_DAYS = 90
@@ -169,50 +176,122 @@ function OpenSubscriptionDialog({ productId, onClose, onDone }: DialogProps) {
   )
   const { value: planId, setValue: setPlanId } = plans
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [phoneCheck, setPhoneCheck] = useState<{
+    number: string
+    status: 'checking' | 'available' | 'taken' | 'failed'
+    message: string
+  } | null>(null)
+  const phoneRequest = useRef<AbortController | null>(null)
+  useEffect(() => () => phoneRequest.current?.abort(), [])
+  const phoneDigits = phoneNumber.trim().replaceAll('-', '')
   const phoneValid = phoneNumber.trim() === '' || PHONE_NUMBER_PATTERN.test(phoneNumber.trim())
+  const phoneReady =
+    phoneDigits === '' || (phoneCheck?.number === phoneDigits && phoneCheck.status === 'available')
+
+  function changePhoneNumber(value: string) {
+    phoneRequest.current?.abort()
+    setPhoneNumber(value)
+    setPhoneCheck(null)
+  }
+
+  async function checkPhoneNumber() {
+    if (!phoneValid || !phoneDigits) return
+    phoneRequest.current?.abort()
+    const controller = new AbortController()
+    phoneRequest.current = controller
+    setPhoneCheck({ number: phoneDigits, status: 'checking', message: '번호를 확인하고 있습니다.' })
+    try {
+      const result = await subscriptionApi.checkPhoneNumber(phoneNumber.trim(), controller.signal)
+      if (controller.signal.aborted) return
+      if (result.phoneNumber.replaceAll('-', '') !== phoneDigits)
+        throw new Error('번호를 다시 확인해 주세요.')
+      setPhoneCheck({
+        number: phoneDigits,
+        status: result.available ? 'available' : 'taken',
+        message: result.available
+          ? '사용할 수 있는 번호입니다.'
+          : '이미 사용 중인 번호입니다. 다른 번호를 입력해 주세요.',
+      })
+    } catch (caught) {
+      if (!controller.signal.aborted)
+        setPhoneCheck({
+          number: phoneDigits,
+          status: 'failed',
+          message:
+            caught instanceof Error
+              ? caught.message
+              : '번호를 확인하지 못했습니다. 다시 시도해 주세요.',
+        })
+    }
+  }
 
   return (
     <SubscriptionActionDialog
       badge="새 회선"
-      canSubmit={planId !== '' && phoneValid}
-      description="요금제를 고르면 새 회선을 개통합니다. 원하는 번호가 없으면 비워 두세요. 서버가 번호를 배정합니다."
+      canSubmit={
+        Boolean(plans.items?.some((plan) => String(plan.planId) === planId)) &&
+        phoneValid &&
+        phoneReady
+      }
+      description="가격과 제공량을 비교해 요금제를 골라 주세요. 번호를 비워 두면 자동으로 배정합니다."
       onClose={onClose}
       onSubmit={async () => {
-        const created = await subscriptionCommandApi.createSubscription({
-          planId: Number(planId),
-          ...(phoneNumber.trim() ? { phoneNumber: phoneNumber.trim() } : {}),
-        })
-        onDone(`${created.phoneNumber} 회선을 개통했습니다.`)
+        try {
+          const created = await subscriptionCommandApi.createSubscription({
+            planId: Number(planId),
+            ...(phoneNumber.trim() ? { phoneNumber: phoneNumber.trim() } : {}),
+          })
+          onDone(`${created.phoneNumber} 회선을 개통했습니다.`)
+        } catch (caught) {
+          if (caught instanceof ApiRequestError && caught.code === 'SUB-019')
+            setPhoneCheck({ number: phoneDigits, status: 'taken', message: caught.message })
+          throw caught
+        }
       }}
       pendingLabel="개통 중..."
       submitLabel="개통 신청"
       title="회선 개통"
     >
-      <OptionSelect
-        emptyText="판매 중인 요금제가 없어요"
-        idOf={(plan: PlanSummary) => plan.planId}
-        label="요금제"
-        onChange={setPlanId}
-        options={plans}
-        placeholder="요금제를 골라 주세요"
-        textOf={planText}
-        value={planId}
-      />
-      <label>
-        <span>원하는 번호 (선택)</span>
-        <input
-          inputMode="tel"
-          maxLength={13}
-          onChange={(event) => setPhoneNumber(event.target.value)}
-          placeholder="010-1234-5678"
-          value={phoneNumber}
-        />
+      <PlanPicker options={plans} value={planId} onChange={setPlanId} />
+      <div className="subscription-phone-check">
+        <label htmlFor="new-line-phone">원하는 번호 (선택)</label>
+        <div className="subscription-phone-row">
+          <input
+            id="new-line-phone"
+            inputMode="tel"
+            maxLength={13}
+            onChange={(event) => changePhoneNumber(event.target.value)}
+            placeholder="010-1234-5678"
+            value={phoneNumber}
+          />
+          <button
+            className="my-profile-ghost"
+            type="button"
+            disabled={!phoneDigits || !phoneValid || phoneCheck?.status === 'checking'}
+            onClick={() => void checkPhoneNumber()}
+          >
+            {phoneCheck?.status === 'checking' ? '확인 중…' : '중복 검사'}
+          </button>
+        </div>
         {!phoneValid && (
           <small className="my-profile-message error">
             010으로 시작하는 11자리 번호를 입력해 주세요.
           </small>
         )}
-      </label>
+        {phoneCheck && (
+          <p
+            className={`subscription-phone-status${phoneCheck.status === 'available' ? ' subscription-phone-status--available' : phoneCheck.status === 'taken' || phoneCheck.status === 'failed' ? ' error' : ''}`}
+            role={
+              phoneCheck.status === 'taken' || phoneCheck.status === 'failed' ? 'alert' : 'status'
+            }
+          >
+            {phoneCheck.message}
+          </p>
+        )}
+        <p className="subscription-phone-hint">
+          번호를 비워 두면 자동으로 배정합니다. 직접 입력한 번호는 중복 검사 후 신청할 수 있어요.
+        </p>
+      </div>
     </SubscriptionActionDialog>
   )
 }
@@ -376,7 +455,8 @@ function ScheduleRoamingDialog({
       />
       <label>
         <span>시작일</span>
-        <input
+        <DateField
+          aria-label="로밍 시작 날짜"
           min={today}
           onChange={(event) => {
             const next = event.target.value
@@ -390,7 +470,8 @@ function ScheduleRoamingDialog({
       </label>
       <label>
         <span>종료일</span>
-        <input
+        <DateField
+          aria-label="로밍 종료 날짜"
           max={startDate ? addDaysText(startDate, MAX_ROAMING_DAYS - 1) : undefined}
           min={startDate || today}
           onChange={(event) => setEndDate(event.target.value)}

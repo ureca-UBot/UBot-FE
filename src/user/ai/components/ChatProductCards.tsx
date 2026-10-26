@@ -85,6 +85,9 @@ function ProductCard({
   onOpenDetail: (detail: OpenDetail) => void
 }) {
   const [lookup, setLookup] = useState<'idle' | 'loading' | 'missing' | 'failed'>('idle')
+  const specs = card.specs ?? []
+  const highlights = card.highlights ?? []
+  const nameNetwork = card.name.match(/5G(?![a-z\d])|LTE/i)?.[0]
 
   const handleDetail = async () => {
     setLookup('loading')
@@ -103,13 +106,32 @@ function ProductCard({
         <h4 className="pd-name" title={card.name} aria-label={card.name}>
           <ProductName name={card.name} />
         </h4>
+        {card.network && card.network.toUpperCase() !== nameNetwork?.toUpperCase() && (
+          <span className="pd-network">{card.network}</span>
+        )}
         {card.fee !== null && (
           <p className="pd-fee">
             <span className="pd-fee-label">{FEE_PREFIX[card.type]}</span>
             <strong>{formatWon(card.fee)}원</strong>
           </p>
         )}
-        {card.description && <p className="ud-note pd-description">{card.description}</p>}
+        {card.feeNote && <p className="pd-fee-note">{card.feeNote}</p>}
+        {specs.length > 0 && (
+          <ul className="pd-specs" aria-label="상품 제공량">
+            {specs.map((spec, index) => (
+              <li key={index}>{spec}</li>
+            ))}
+          </ul>
+        )}
+        {highlights.length > 0 ? (
+          <ul className="pd-highlights" aria-label="상품 혜택 및 이용 조건">
+            {highlights.map((highlight, index) => (
+              <li key={index}>{highlight}</li>
+            ))}
+          </ul>
+        ) : card.description ? (
+          <p className="ud-note pd-description">{card.description}</p>
+        ) : null}
         <div className="pd-actions">
           <button
             className="pd-detail"

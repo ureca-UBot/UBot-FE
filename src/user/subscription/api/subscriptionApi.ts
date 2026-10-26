@@ -15,6 +15,7 @@ import type {
   SubscriptionDetailKey,
   SubscriptionRoaming,
   UsageRecord,
+  PhoneNumberAvailability,
 } from '../types/subscription'
 
 const BASE_PATH = '/api/subscriptions/me'
@@ -24,6 +25,11 @@ const RECENT_BILL_COUNT = 6
 
 // 모든 조회는 로그인한 사용자 본인의 회선만 대상으로 합니다. 다른 사람의 회선 ID를 넣으면 404(SUB-001)입니다.
 export const subscriptionApi = {
+  checkPhoneNumber: (phoneNumber: string, signal?: AbortSignal) =>
+    apiClient.get<PhoneNumberAvailability>(
+      `${BASE_PATH}/phone-number-availability?${new URLSearchParams({ phoneNumber })}`,
+      { signal },
+    ),
   getMySubscriptionList: () => apiClient.get<Subscription[]>(BASE_PATH),
   getMyPlan: (subscriptionId: number) =>
     apiClient.get<PlanDetail>(`${BASE_PATH}/${subscriptionId}/plan`),

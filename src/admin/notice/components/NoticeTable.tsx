@@ -90,7 +90,7 @@ export function NoticeTable({
                       ) : (
                         <>
                           <button
-                            className="table-action-button"
+                            className="table-action-button table-action-button--edit"
                             disabled={busy}
                             onClick={() => onEdit(notice)}
                             type="button"

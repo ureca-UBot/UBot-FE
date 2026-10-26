@@ -49,6 +49,7 @@ export const homeProductKind: ProductKind<
   idOf: (detail) => detail.homeProductId,
   codeOf: (detail) => detail.code,
   nameOf: (detail) => detail.name,
+  descriptionOf: (detail) => detail.description,
   columns: [
     { header: '종류', text: (detail) => HOME_PRODUCT_TYPE_LABELS[detail.productType] },
     {

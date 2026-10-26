@@ -1,3 +1,4 @@
+import { DateField } from '../../../shared/components/DateField'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useAuth } from '../../../auth/hooks/useAuth'
 import { reservationApi } from '../api/reservationApi'
@@ -145,7 +146,8 @@ export function ReservationForm({ store, onClose, onReserved }: ReservationFormP
       {head}
       <label>
         <span>방문 날짜</span>
-        <input
+        <DateField
+          aria-label="예약 날짜"
           disabled={submitting}
           max={maxDate()}
           min={toLocalDate(new Date())}

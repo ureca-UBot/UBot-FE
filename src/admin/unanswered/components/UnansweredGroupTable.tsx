@@ -60,7 +60,7 @@ export function UnansweredGroupTable({ groups, onSelect }: UnansweredGroupTableP
                 <td>{formatDate(group.lastOccurredAt)}</td>
                 <td>
                   <button
-                    className="table-action-button"
+                    className={`table-action-button${group.resolvedFaqId ? '' : ' table-action-button--primary'}`}
                     onClick={() => onSelect(group)}
                     type="button"
                   >

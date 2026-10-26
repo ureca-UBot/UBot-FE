@@ -31,6 +31,7 @@ export const addonServiceKind: ProductKind<
   idOf: (detail) => detail.addonServiceId,
   codeOf: (detail) => detail.code,
   nameOf: (detail) => detail.name,
+  descriptionOf: (detail) => detail.description,
   columns: [
     { header: '분류', text: (detail) => ADDON_CATEGORY_LABELS[detail.category] },
     { header: '월 이용료', text: (detail) => formatWon(detail.monthlyFee) },
