@@ -95,9 +95,10 @@ async function scenario(name, options, check) {
     })
     try {
       await page.goto(server.origin + '/#/ai')
-      if (options.mobile) await page.locator('.ai-mobile-history summary').click()
+      if (options.mobile)
+        await page.getByRole('button', { name: '최근 대화 열기', exact: true }).click()
       const history = page.locator(
-        options.mobile ? '.ai-mobile-history .history-block' : '.ai-left .history-block',
+        options.mobile ? '.ai-history-drawer .history-block' : '.ai-left .history-block',
       )
       await history.locator('.history-select').first().waitFor()
       await page.waitForFunction(() => !document.querySelector('.history-select')?.disabled)

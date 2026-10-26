@@ -234,7 +234,7 @@ async function main() {
     await fresh.page.setViewportSize({ width: 390, height: 844 })
     await fresh.page.goto(`${origin}/#/ai`)
     assert.equal(await fresh.page.evaluate(() => sessionStorage.getItem('counsel:session:1')), null)
-    await fresh.page.getByText('최근 대화 · 상담 내역', { exact: true }).click()
+    await fresh.page.getByRole('button', { name: '최근 대화 열기', exact: true }).click()
     await fresh.page
       .getByRole('button')
       .and(fresh.page.getByTitle('상담으로 시작한 문의', { exact: true }))
@@ -244,9 +244,9 @@ async function main() {
       .getByText('보존된 상담 메시지 129', { exact: true })
       .waitFor()
     assert.equal(
-      await fresh.page.locator('.ai-mobile-history').getAttribute('open'),
-      null,
-      'mobile history should collapse after selection',
+      await fresh.page.locator('.ai-history-drawer[open]').count(),
+      0,
+      'mobile history drawer should close after selection',
     )
     assert.equal(
       await fresh.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
