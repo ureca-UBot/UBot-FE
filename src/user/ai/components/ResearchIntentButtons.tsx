@@ -71,7 +71,17 @@ export function ResearchIntentButtons({
           aria-controls={choicesId}
           onClick={() => setExpanded((value) => !value)}
         >
-          질문에 맞는 의도를 선택하면 다시 찾아드려요.
+          <span>질문에 맞는 의도를 선택하면 다시 찾아드려요.</span>
+          <svg aria-hidden="true" viewBox="0 0 16 16" width={12} height={12}>
+            <path
+              d="m4 6 4 4 4-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
         {feedback}
       </div>

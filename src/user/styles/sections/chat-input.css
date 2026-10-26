@@ -19,6 +19,9 @@
 }
 
 .ubot-user-app .research-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   max-width: 100%;
   min-height: 24px;
   padding: 0;
@@ -30,6 +33,13 @@
   font-size: 11px;
   text-align: left;
   white-space: normal;
+}
+.ubot-user-app .research-toggle svg {
+  flex: none;
+  transition: transform var(--button-motion-duration) ease;
+}
+.ubot-user-app .research-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
 }
 .ubot-user-app .research-toggle:hover:not(:disabled) {
   color: var(--pink-dark);
