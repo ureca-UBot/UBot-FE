@@ -11,10 +11,11 @@ export function ChatSendIcon({ stop = false }: { stop?: boolean }) {
         <rect x={6} y={6} width={12} height={12} rx={2} fill="currentColor" />
       ) : (
         <path
-          d="M12 19V5m-7 7 7-7 7 7"
+          d="M20 4 3.5 11.2l7 2.3 2.3 7z"
+          transform="translate(-2.5 0) rotate(45 12 12)"
           fill="none"
           stroke="currentColor"
-          strokeWidth={2.5}
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
         />

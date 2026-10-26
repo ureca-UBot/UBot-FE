@@ -105,6 +105,20 @@
 .ubot-user-app .customer-faq details {
   border-bottom: 1px solid var(--line);
 }
+.ubot-user-app .customer-faq-categories { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+.ubot-user-app .customer-faq-categories button { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: #fff; font-size: 13px; }
+.ubot-user-app .customer-faq-categories button[aria-pressed='true'] { color: #fff; border-color: var(--pink); background: var(--pink); }
+.ubot-user-app .customer-faq-categories small { margin-left: 4px; font-size: 11px; opacity: .8; }
+.ubot-user-app .customer-faq-count { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+.ubot-user-app .customer-faq summary { display: flex; align-items: center; gap: 16px; list-style: none; }
+.ubot-user-app .customer-faq summary::-webkit-details-marker { display: none; }
+.ubot-user-app .customer-faq summary small { flex: 0 0 84px; color: var(--muted); font-size: 12px; font-weight: 400; }
+.ubot-user-app .customer-faq summary span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ubot-user-app .customer-faq summary svg { flex-shrink: 0; }
+.ubot-user-app .customer-faq details[open] summary svg { transform: rotate(180deg); }
+.ubot-user-app .customer-faq-answer { margin: 0 0 18px; padding: 18px; border-radius: var(--r-sm); background: var(--soft); }
+.ubot-user-app .customer-faq .customer-faq-answer p { padding: 0; color: var(--ink); overflow-wrap: anywhere; }
+@media (max-width: 600px) { .ubot-user-app .customer-faq summary { gap: 10px; } .ubot-user-app .customer-faq summary small { flex-basis: 54px; } }
 .ubot-user-app .customer-faq summary {
   padding: 18px 4px;
   color: var(--ink);

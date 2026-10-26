@@ -193,6 +193,8 @@ body:has(.ubot-user-app .ai-route.active .ai-counsel-session) .floating-chat-roo
   color: var(--subtle);
   cursor: not-allowed;
 }
+.ubot-user-app .counsel-completion-message { flex-shrink: 0; }
+.ubot-user-app .counsel-completion-message p { margin: 6px 0 12px; }
 
 .ubot-user-app .ai-route .ai-counsel-session .counsel-conversation {
   display: flex;

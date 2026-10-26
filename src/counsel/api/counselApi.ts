@@ -8,6 +8,7 @@ import type {
   EventsPage,
   HandoffRequest,
   HistoryMessage,
+  CustomerInfo,
 } from '../types/counsel'
 
 const base = '/api/counsel'
@@ -33,6 +34,8 @@ export const counselApi = {
   request: (data?: HandoffRequest) => client.post<Session>(`${base}/requests`, data),
   session: (id: string, signal?: AbortSignal) =>
     client.get<Session>(`${base}/sessions/${id}`, signal),
+  customer: (id: string, signal?: AbortSignal) =>
+    client.get<CustomerInfo>(`${base}/sessions/${id}/customer`, signal),
   conversationSession: (id: string, signal?: AbortSignal) =>
     client.get<Session | null>(`${base}/sessions/conversation/${encodeURIComponent(id)}`, signal),
   history: (id: string, after: number, signal?: AbortSignal) =>

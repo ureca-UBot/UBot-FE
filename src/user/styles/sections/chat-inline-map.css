@@ -84,9 +84,7 @@
   font-size: 13px;
 }
 .ubot-user-app .msg.ai > .msg-body:has(.chat-store-cards) {
-  flex: 1;
   min-width: 0;
-  max-width: none;
 }
 .ubot-user-app .chat-store-cards {
   min-width: 0;

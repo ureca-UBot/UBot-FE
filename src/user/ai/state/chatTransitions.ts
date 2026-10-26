@@ -102,6 +102,18 @@ export function canResearchAgain(research: ChatResearch) {
   return !research.isPending && research.response === null && research.errorCode === null
 }
 
+// 검색 근거 부족은 질문 의도를 바꿔 복구할 수 있습니다. 기술·인증 오류는 대상이 아닙니다.
+export function canResearchTurn(turn: ChatTurn) {
+  return (
+    !turn.isPending &&
+    !turn.isCancelled &&
+    !!turn.response?.idempotencyKey &&
+    (turn.response.status === 'SUCCESS' ||
+      (turn.response.status === 'FAIL' &&
+        (turn.errorCode === 'CHAT-012' || turn.errorCode === 'CHAT-013')))
+  )
+}
+
 // 게스트가 로그인하면 서버가 게스트 대화를 회원에게 승계하므로 화면의 대화도 유지합니다.
 export function keepsConversation(previousUserId: string | null, userId: string | null) {
   return previousUserId === null && userId !== null

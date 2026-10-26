@@ -72,7 +72,14 @@
 .admin-layout .admin-product-form__hint { color: #6b7280; font-size: 12px; font-weight: 400; line-height: 1.6; }
 .admin-layout .admin-product-options label { display: inline-flex; align-items: center; font-size: 13px; }
 .admin-layout .admin-product-options :is(input[type='checkbox'], input[type='radio']) { min-height: 0; }
-.admin-layout .admin-product-table .faq-row-actions { flex-wrap: wrap; min-width: 260px; max-width: 340px; }
+.admin-layout .admin-product-table .faq-row-actions { flex-wrap: nowrap; width: max-content; min-width: max-content; max-width: none; }
+.admin-product-status-control { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.admin-layout .forbidden-word-toolbar .calendar-field > input { min-height: 40px; padding: 9px 42px 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; color: #374151; background: #fff; }
+.admin-layout .forbidden-word-toolbar .calendar-field > input:hover { border-color: var(--admin-primary); }
+@media (max-width: 900px) {
+  .admin-layout .admin-product-table td[data-label='관리'] { display: block; overflow-x: auto; }
+  .admin-layout .admin-product-table td[data-label='관리']::before { display: block; margin-bottom: 8px; }
+}
 .admin-layout .admin-product-detail { width: min(1000px, 100%); max-height: calc(100dvh - 48px); overflow-y: auto; gap: 24px; }
 .admin-product-detail__identity p { margin: 0 0 7px; color: #6b7280; font-size: 12px; }
 .admin-layout .admin-product-detail__identity h3 { margin: 0; font-size: 22px; line-height: 1.5; }
@@ -141,12 +148,13 @@
 .admin-layout .faq-dashboard-section__title { flex-wrap: wrap; gap: 8px; }
 .admin-layout .faq-dashboard-section__title h2 { flex: 1; min-width: 120px; font-size: 16px; }
 .admin-layout .faq-dashboard-section button { font-family: inherit; font-size: 12px; }
-.admin-layout .faq-dashboard-section :is(.faq-dashboard-tabs button, .faq-dashboard-detail__range button, .faq-dashboard-detail__arrow, .faq-dashboard-expand, .faq-dashboard-improvement-refresh) {
+.admin-layout .faq-dashboard-section :is(.faq-dashboard-tabs button, .faq-dashboard-detail__range button, .faq-dashboard-detail__arrow, .faq-dashboard-expand, .faq-dashboard-unanswered-link, .faq-dashboard-improvement-refresh) {
   min-height: 32px; padding: 6px 10px; border: 1px solid var(--section-line); border-radius: 7px;
   color: var(--section-strong); background: #fff; font-weight: 700; box-shadow: none;
 }
 .admin-layout .faq-dashboard-section :is(.faq-dashboard-tabs button, .faq-dashboard-detail__range button):is(.is-active, :hover:not(:disabled)) { border-color: var(--section-strong); color: #fff; background: var(--section-strong); box-shadow: none; }
-.admin-layout .faq-dashboard-section :is(.faq-dashboard-expand, .faq-dashboard-detail__arrow, .faq-dashboard-improvement-refresh):hover:not(:disabled) { color: var(--section-strong); background: var(--section-soft); }
+.admin-layout .faq-dashboard-section :is(.faq-dashboard-expand, .faq-dashboard-unanswered-link, .faq-dashboard-detail__arrow, .faq-dashboard-improvement-refresh):hover:not(:disabled) { color: var(--section-strong); background: var(--section-soft); }
+.admin-layout .faq-dashboard-section :is(.faq-dashboard-expand, .faq-dashboard-unanswered-link) { display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; line-height: 1.4; white-space: nowrap; }
 .admin-layout .faq-dashboard-section :is(button, input):focus-visible { outline-color: var(--section-strong); }
 .admin-layout .faq-dashboard-section .faq-dashboard-detail__search button { min-height: 32px; padding: 6px 12px; border-radius: 7px; background: var(--section-strong); font-size: 12px; font-weight: 800; line-height: 1.4; letter-spacing: normal; }
 .admin-layout .faq-dashboard-section .faq-dashboard-detail__search input { height: 32px; font-size: 13px; }

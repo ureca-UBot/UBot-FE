@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "node --test scripts/logic.test.cjs scripts/api-contract.test.cjs scripts/guard-review.test.cjs",
-    "test:browser": "node --test scripts/regression.test.cjs scripts/admin-design.test.cjs scripts/admin-followup.test.cjs scripts/subscription-billing.test.cjs scripts/notice-banners.test.cjs scripts/counsel-waiting.test.cjs scripts/counsel-handoff.test.cjs scripts/chat-retry.test.cjs scripts/chat-cancellation.test.cjs scripts/chat-feedback.test.cjs scripts/chat-store-map.test.cjs scripts/guard-review-browser.test.cjs scripts/telemap.test.cjs",
+    "test:browser": "node --test scripts/regression.test.cjs scripts/admin-design.test.cjs scripts/admin-followup.test.cjs scripts/subscription-billing.test.cjs scripts/notice-banners.test.cjs scripts/public-faq.test.cjs scripts/counsel-waiting.test.cjs scripts/counsel-workspace.test.cjs scripts/counsel-handoff.test.cjs scripts/chat-retry.test.cjs scripts/chat-cancellation.test.cjs scripts/chat-feedback.test.cjs scripts/chat-store-map.test.cjs scripts/guard-review-browser.test.cjs scripts/telemap.test.cjs",
     "test:visual": "node scripts/visual-regression.cjs",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\"",

@@ -561,7 +561,10 @@ async function main() {
       .filter({ hasText: 'AI의 추가 안내입니다.' })
       .waitFor()
     await counselor.page.getByRole('button', { name: '상담 가능으로 전환' }).click()
-    await counselor.page.getByText('현재 상태: 상담 가능').waitFor()
+    await counselor.page
+      .locator('.counsel-presence')
+      .getByText('상담 가능', { exact: true })
+      .waitFor()
     await counselor.page
       .getByRole('textbox', { name: /메시지/ })
       .fill('확인 후 안내해 드리겠습니다.')

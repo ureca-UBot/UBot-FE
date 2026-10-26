@@ -1,54 +1,207 @@
 import { useEffect, useState } from 'react'
-import { rankingApi } from '../ai/api/rankingApi'
-import type { PopularRankingItem } from '../ai/types/ranking'
+import {
+  publicFaqApi,
+  type PublicFaqCategory,
+  type PublicFaqDetail,
+  type PublicFaqSummary,
+} from '../faq/api'
+import type { PageResponse } from '../../shared/types/api'
+
+function FaqAnswer({ id }: { id: number }) {
+  const [revision, setRevision] = useState(0)
+  const [state, setState] = useState<{
+    revision: number
+    detail?: PublicFaqDetail
+    error?: string
+  } | null>(null)
+  useEffect(() => {
+    const controller = new AbortController()
+    publicFaqApi
+      .detail(id, controller.signal)
+      .then((detail) => {
+        if (!controller.signal.aborted) setState({ revision, detail })
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setState({ revision, error: '답변을 불러오지 못했습니다.' })
+      })
+    return () => controller.abort()
+  }, [id, revision])
+  return (
+    <div className="customer-faq-answer">
+      {state?.revision !== revision ? (
+        <p role="status">답변을 불러오는 중입니다.</p>
+      ) : state.error ? (
+        <p role="alert">
+          {state.error}{' '}
+          <button
+            type="button"
+            className="my-profile-ghost"
+            onClick={() => setRevision((value) => value + 1)}
+          >
+            답변 다시 불러오기
+          </button>
+        </p>
+      ) : (
+        <p>{state.detail?.answer}</p>
+      )}
+    </div>
+  )
+}
 
 export function CustomerFaqList({ active }: { active: boolean }) {
-  const [items, setItems] = useState<PopularRankingItem[] | null>(null)
-  const [error, setError] = useState('')
+  const [categories, setCategories] = useState<PublicFaqCategory[]>([])
+  const [categoryError, setCategoryError] = useState(false)
+  const [category, setCategory] = useState('')
+  const [page, setPage] = useState(0)
+  const [opened, setOpened] = useState<number | null>(null)
   const [revision, setRevision] = useState(0)
+  const key = JSON.stringify([category, page, revision])
+  const [state, setState] = useState<{
+    key: string
+    result?: PageResponse<PublicFaqSummary>
+    error?: string
+  } | null>(null)
   useEffect(() => {
     if (!active) return
-    let cancelled = false
-    rankingApi
-      .getRankings()
-      .then((data) => {
-        const combined = [...(data.popular?.rankings ?? []), ...(data.trend?.rankings ?? [])]
-        const unique = [...new Map(combined.map((item) => [item.faqId, item])).values()]
-        if (!cancelled) {
-          setItems(unique)
-          setError('')
+    const controller = new AbortController()
+    publicFaqApi
+      .categories(controller.signal)
+      .then((items) => {
+        if (!controller.signal.aborted) {
+          setCategories(items)
+          setCategoryError(false)
         }
       })
       .catch(() => {
-        if (!cancelled) setError('자주 묻는 질문을 불러오지 못했습니다.')
+        if (!controller.signal.aborted) setCategoryError(true)
       })
-    return () => {
-      cancelled = true
-    }
+    return () => controller.abort()
   }, [active, revision])
+  useEffect(() => {
+    if (!active) return
+    const controller = new AbortController()
+    publicFaqApi
+      .list(category, page, controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted) setState({ key, result })
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setState({ key, error: '자주 묻는 질문을 불러오지 못했습니다.' })
+      })
+    return () => controller.abort()
+  }, [active, category, page, revision, key])
+  const current = state?.key === key ? state : null
+  const choose = (value: string) => {
+    setCategory(value)
+    setPage(0)
+    setOpened(null)
+  }
   return (
     <section className="my-profile customer-faq" aria-labelledby="customerFaqTitle">
       <div className="my-profile-head">
         <h3 id="customerFaqTitle">자주 묻는 질문</h3>
       </div>
-      {error ? (
+      <div className="customer-faq-categories" role="group" aria-label="FAQ 카테고리">
+        <button type="button" aria-pressed={!category} onClick={() => choose('')}>
+          전체
+        </button>
+        {categories.map((item) => (
+          <button
+            key={item.name}
+            type="button"
+            aria-pressed={category === item.name}
+            onClick={() => choose(item.name)}
+          >
+            {item.name} <small>{item.count}</small>
+          </button>
+        ))}
+      </div>
+      {categoryError && (
+        <p className="my-profile-message" role="alert">
+          카테고리를 불러오지 못했습니다.{' '}
+          <button
+            type="button"
+            className="my-profile-ghost"
+            onClick={() => setRevision((value) => value + 1)}
+          >
+            카테고리 다시 불러오기
+          </button>
+        </p>
+      )}
+      {!current ? (
+        <p className="my-profile-message" role="status">
+          질문을 불러오는 중입니다.
+        </p>
+      ) : current.error ? (
         <p role="alert">
-          {error}{' '}
-          <button className="my-profile-ghost" onClick={() => setRevision((value) => value + 1)}>
+          {current.error}{' '}
+          <button
+            type="button"
+            className="my-profile-ghost"
+            onClick={() => setRevision((value) => value + 1)}
+          >
             다시 시도
           </button>
         </p>
-      ) : items === null ? (
-        <p className="my-profile-message">질문을 불러오는 중입니다.</p>
-      ) : items.length === 0 ? (
-        <p className="my-profile-message">등록된 자주 묻는 질문이 없습니다.</p>
+      ) : !current.result?.content.length ? (
+        <p className="my-profile-message">
+          {category
+            ? '선택한 카테고리에 등록된 질문이 없습니다.'
+            : '등록된 자주 묻는 질문이 없습니다.'}
+        </p>
       ) : (
-        items.map((item) => (
-          <details key={item.faqId}>
-            <summary>{item.question}</summary>
-            <p>{item.answer}</p>
-          </details>
-        ))
+        <>
+          <p className="customer-faq-count">
+            전체 {current.result.totalElements.toLocaleString('ko-KR')}개
+          </p>
+          {current.result.content.map((item) => (
+            <details
+              key={key + '-' + item.id}
+              open={opened === item.id}
+              onToggle={(event) => {
+                if (event.currentTarget.open) setOpened(item.id)
+                else if (opened === item.id) setOpened(null)
+              }}
+            >
+              <summary>
+                <small>{item.category}</small>
+                <span>{item.question}</span>
+                <svg viewBox="0 0 24 24" width={18} height={18} aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth={2} />
+                </svg>
+              </summary>
+              {opened === item.id && <FaqAnswer id={item.id} />}
+            </details>
+          ))}
+          {current.result.totalPages > 1 && (
+            <nav className="inquiry-pages" aria-label="FAQ 페이지">
+              <button
+                type="button"
+                disabled={current.result.first}
+                onClick={() => {
+                  setPage((value) => value - 1)
+                  setOpened(null)
+                }}
+              >
+                이전
+              </button>
+              <span>
+                {page + 1} / {current.result.totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={current.result.last}
+                onClick={() => {
+                  setPage((value) => value + 1)
+                  setOpened(null)
+                }}
+              >
+                다음
+              </button>
+            </nav>
+          )}
+        </>
       )}
     </section>
   )

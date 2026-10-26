@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { apiClient } from '../../shared/api/client'
 import { CounselMessage } from './CounselMessage'
 
@@ -19,7 +19,13 @@ interface TimelinePage {
 }
 
 // 종료된 대화는 한 번만 조회함. 다시 열거나 직접 재시도할 때만 새로 요청함
-export function ConversationTimeline({ conversationId }: { conversationId: string }) {
+export function ConversationTimeline({
+  conversationId,
+  footer,
+}: {
+  conversationId: string
+  footer?: ReactNode
+}) {
   const [entries, setEntries] = useState<TimelineEntry[]>([])
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')
@@ -82,6 +88,7 @@ export function ConversationTimeline({ conversationId }: { conversationId: strin
           ),
         )}
         {loaded && entries.length === 0 && <p>저장된 대화가 없습니다.</p>}
+        {loaded && !error && footer}
       </div>
     </section>
   )

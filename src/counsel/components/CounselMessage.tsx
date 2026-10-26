@@ -1,5 +1,6 @@
 import { getAnswerText } from '../../user/ai/utils/answerText'
 import { CounselorIcon } from './CounselorIcon'
+import type { ReactNode } from 'react'
 
 interface CounselMessageProps {
   className: string
@@ -7,11 +8,19 @@ interface CounselMessageProps {
   mine: boolean
   content: string
   detail?: string
+  children?: ReactNode
 }
 
 const labels = { USER: '고객', AI: 'AI', COUNSELOR: '상담사' }
 
-export function CounselMessage({ className, role, mine, content, detail }: CounselMessageProps) {
+export function CounselMessage({
+  className,
+  role,
+  mine,
+  content,
+  detail,
+  children,
+}: CounselMessageProps) {
   return (
     <article
       className={`${className} msg ${mine ? 'user mine' : role === 'AI' ? 'ai' : 'counselor'}`}
@@ -27,6 +36,7 @@ export function CounselMessage({ className, role, mine, content, detail }: Couns
           {detail && ` · ${detail}`}
         </small>
         <p>{role === 'AI' ? getAnswerText(content) : content}</p>
+        {children}
       </div>
     </article>
   )

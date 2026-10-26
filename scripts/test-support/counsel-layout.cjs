@@ -3,7 +3,7 @@ const assert = require('node:assert/strict')
 async function assertCounselLayout(page, { overflowing = false } = {}) {
   await page.locator('.counsel-message.mine').first().waitFor()
   assert.equal(
-    await page.locator('.counsel-heading p').evaluate((heading) => getComputedStyle(heading).color),
+    await page.locator('.page-hero-copy p').evaluate((heading) => getComputedStyle(heading).color),
     'rgb(104, 107, 114)',
     'counselor heading must retain its color regardless of lazy CSS loading order',
   )
@@ -33,6 +33,7 @@ async function assertCounselLayout(page, { overflowing = false } = {}) {
       bubbleColor: getComputedStyle(bubble).color,
       bubbleBackground: getComputedStyle(bubble).backgroundColor,
       sendBackground: getComputedStyle(send).backgroundColor,
+      sendDisabled: send.disabled,
       horizontalOverflow: list.scrollWidth > list.clientWidth + 1,
       pageOverflow: document.documentElement.scrollWidth > window.innerWidth,
     }
@@ -46,12 +47,15 @@ async function assertCounselLayout(page, { overflowing = false } = {}) {
   assert.ok(layout.compose.top >= layout.list.bottom - 1, 'composer must not overlap history')
   assert.ok(layout.textarea.right <= layout.send.left, 'send button must not overlap input')
   assert.ok(layout.send.right <= layout.input.right, 'send button must stay inside composer')
-  assert.equal(layout.send.width, 40)
-  assert.equal(layout.send.height, 40)
-  assert.equal(layout.sendBackground, 'rgb(23, 23, 26)')
+  assert.equal(layout.send.width, 44)
+  assert.equal(layout.send.height, 44)
+  assert.equal(
+    layout.sendBackground,
+    layout.sendDisabled ? 'rgb(255, 240, 247)' : 'rgb(247, 37, 133)',
+  )
   assert.equal(layout.mineAlignment, 'flex-end')
-  assert.equal(layout.bubbleColor, 'rgb(255, 255, 255)')
-  assert.equal(layout.bubbleBackground, 'rgb(23, 23, 26)')
+  assert.equal(layout.bubbleColor, 'rgb(23, 23, 26)')
+  assert.equal(layout.bubbleBackground, 'rgb(255, 240, 247)')
   assert.equal(layout.horizontalOverflow, false, 'long messages must wrap inside the panel')
   assert.equal(layout.pageOverflow, false, 'page must fit the viewport')
   return layout

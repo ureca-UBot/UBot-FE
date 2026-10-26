@@ -431,7 +431,15 @@ test('포함 부가서비스 창은 카테고리·검색 결과 및 포함 개�
       const backgrounds = await page
         .locator('.admin-product-table .faq-row-actions button')
         .evaluateAll((buttons) => buttons.map((button) => getComputedStyle(button).backgroundColor))
-      assert.equal(new Set(backgrounds).size, 5)
+      assert.equal(new Set(backgrounds).size, 4)
+      assert.deepEqual(
+        await page.locator('.admin-product-table .faq-row-actions button').allTextContents(),
+        ['상세정보', '포함 부가서비스', '수정', '삭제'],
+      )
+      const actionRows = await page
+        .locator('.admin-product-table .faq-row-actions button')
+        .evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().top))
+      assert.ok(actionRows.every((top) => Math.abs(top - actionRows[0]) < 1))
       await page.getByRole('button', { name: '포함 부가서비스', exact: true }).click()
       const dialog = page.getByRole('dialog', { name: '포함 부가서비스', exact: true })
       await dialog.getByRole('button', { name: '부가서비스 1 제외', exact: true }).waitFor()

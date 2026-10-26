@@ -18,10 +18,24 @@ export function CustomerCenterPage({ active }: PageProps) {
       <PageHero
         image="customer"
         eyebrow="고객센터"
-        description="접수한 문의와 고객센터 답변을 이곳에서 확인할 수 있습니다."
+        description={
+          faq
+            ? '카테고리별 질문을 선택해 등록된 답변을 확인하세요.'
+            : '접수한 문의와 고객센터 답변을 이곳에서 확인할 수 있습니다.'
+        }
       >
-        문의 내용을 확인하고
-        <br />새 문의를 남겨보세요.
+        {faq ? (
+          <>
+            자주 묻는 질문을
+            <br />
+            확인해 보세요.
+          </>
+        ) : (
+          <>
+            문의 내용을 확인하고
+            <br />새 문의를 남겨보세요.
+          </>
+        )}
       </PageHero>
       <div className="standard-wrap">
         <div className="store-tabs" aria-label="고객센터 항목">

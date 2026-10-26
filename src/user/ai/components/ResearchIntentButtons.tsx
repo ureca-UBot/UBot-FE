@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import {
   CHAT_INTENT_LABELS,
   type ChatIntent,
@@ -32,6 +32,8 @@ export function ResearchIntentButtons({
 }: ResearchIntentButtonsProps) {
   const [isLocating, setIsLocating] = useState(false)
   const [locationNote, setLocationNote] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState(false)
+  const choicesId = useId()
 
   const handleClick = async (intent: ChatIntent) => {
     if (disabled || isLocating) return
@@ -58,26 +60,43 @@ export function ResearchIntentButtons({
 
   return (
     <div className="research-actions">
-      <p className="research-prompt">혹시 질문이 다른 의도였나요?</p>
-      <div className="answer-actions" role="group" aria-label="질문 의도 선택">
-        {INTENTS.map((intent) => (
-          <button
-            key={intent}
-            type="button"
-            disabled={
-              disabled || isLocating || isUsed(researches.find((item) => item.intent === intent))
-            }
-            onClick={() => void handleClick(intent)}
-          >
-            {isLocating && intent === 'STORE_DATA' ? '위치 확인 중...' : CHAT_INTENT_LABELS[intent]}
-          </button>
-        ))}
+      <button
+        className="research-toggle"
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={choicesId}
+        onClick={() => setExpanded((value) => !value)}
+      >
+        질문 의도 변경
+        <svg aria-hidden="true" viewBox="0 0 24 24" width={16} height={16}>
+          <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth={2} />
+        </svg>
+      </button>
+      <div id={choicesId} hidden={!expanded}>
+        <p className="research-prompt">질문에 맞는 의도를 선택하면 다시 찾아드려요.</p>
+        <div className="answer-actions" role="group" aria-label="질문 의도 선택">
+          {INTENTS.map((intent) => (
+            <button
+              key={intent}
+              type="button"
+              aria-pressed={isUsed(researches.find((item) => item.intent === intent))}
+              disabled={
+                disabled || isLocating || isUsed(researches.find((item) => item.intent === intent))
+              }
+              onClick={() => void handleClick(intent)}
+            >
+              {isLocating && intent === 'STORE_DATA'
+                ? '위치 확인 중...'
+                : CHAT_INTENT_LABELS[intent]}
+            </button>
+          ))}
+        </div>
+        {locationNote && (
+          <p className="research-note" role="status">
+            {locationNote}
+          </p>
+        )}
       </div>
-      {locationNote && (
-        <p className="research-note" role="status">
-          {locationNote}
-        </p>
-      )}
     </div>
   )
 }

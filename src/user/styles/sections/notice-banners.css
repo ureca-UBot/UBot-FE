@@ -10,9 +10,9 @@
 }
 
 .ubot-user-app .notice-banner--outage {
-  border-bottom-color: #fecdd3;
-  color: #9f1239;
-  background: #fff1f2
+  border-bottom-color: var(--pink-dark);
+  color: #fff;
+  background: var(--pink-dark)
 }
 
 .ubot-user-app .notice-banner--notice {
@@ -63,7 +63,13 @@
 }
 
 .ubot-user-app .notice-banner--outage .notice-banner__badge {
-  background: #e11d48
+  color: var(--pink-dark);
+  background: #fff
+}
+
+.ubot-user-app .notice-banner--outage :is(.notice-banner__arrow, .notice-banner__region) {
+  color: var(--pink-dark);
+  background: #fff;
 }
 
 .ubot-user-app .notice-banner--notice .notice-banner__badge {

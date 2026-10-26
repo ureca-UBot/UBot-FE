@@ -63,6 +63,19 @@ const userData = {
 
 const cases = [
   { name: '첫 성공은 재시도하지 않는다', states: [success(1)], calls: 1, succeeded: true },
+  ...['CHAT-012', 'CHAT-013'].map((code) => ({
+    name: `${code} 실패는 같은 질문을 자동 반복하지 않고 의도를 바꿔 재검색한다`,
+    states: [
+      failure(1, { errorCode: code, errorMessage: `${code} 답변 근거 부족`, retryable: false }),
+    ],
+    calls: 1,
+    research: true,
+  })),
+  {
+    name: 'CHAT-010 기술 오류에는 의도 변경을 노출하지 않는다',
+    states: [failure(3, { errorCode: 'CHAT-010', retryable: false })],
+    calls: 1,
+  },
   {
     name: '첫 실패 후 성공하면 같은 키로 한 번만 재시도한다',
     states: [failure(1), success(2)],
@@ -134,11 +147,29 @@ test('자동 재시도 계약', { timeout: 150000 }, async (group) => {
       await group.test(item.name, { timeout: 14000 }, async () => {
         const context = await browser.newContext()
         const fixtures = await installFixtures(context, 'USER')
+        const researches = []
         const calls = [],
           keys = [],
           polls = []
         let result
         try {
+          await context.route('**/api/chat/questions/research', (route) => {
+            researches.push({
+              body: route.request().postDataJSON(),
+              key: route.request().headers()['idempotency-key'],
+            })
+            return route.fulfill({
+              json: {
+                success: true,
+                data: {
+                  jobId: 99,
+                  status: 'QUEUED',
+                  idempotencyKey: 'research-key',
+                  attemptCount: 1,
+                },
+              },
+            })
+          })
           await context.route('**/api/chat/questions**', async (route) => {
             const p = new URL(route.request().url()).pathname
             if (!['/api/chat/questions', '/api/chat/questions/retries'].includes(p))
@@ -167,6 +198,17 @@ test('자동 재시도 계약', { timeout: 150000 }, async (group) => {
           })
           await context.route('**/api/chat/jobs/*', async (route) => {
             const number = Number(new URL(route.request().url()).pathname.split('/').pop())
+            if (number === 99)
+              return route.fulfill({
+                json: {
+                  success: true,
+                  data: success(1, {
+                    jobId: 99,
+                    answer: '의도 변경 답변 확인',
+                    idempotencyKey: 'research-key',
+                  }),
+                },
+              })
             polls.push(number)
             const state = item.states[number - 1]
             assert.ok(state, 'Unexpected extra job poll')
@@ -195,6 +237,19 @@ test('자동 재시도 계약', { timeout: 150000 }, async (group) => {
             0,
           )
           assert.deepEqual(keys.slice(1), Array(Math.max(0, calls.length - 1)).fill(key))
+          const toggle = page.getByRole('button', { name: '질문 의도 변경', exact: true })
+          if (item.research) {
+            assert.equal(await toggle.getAttribute('aria-expanded'), 'false')
+            await toggle.click()
+            const choice = page
+              .getByRole('group', { name: '질문 의도 선택', exact: true })
+              .getByRole('button', { name: '상품 정보', exact: true })
+            await choice.click()
+            await page.getByText('의도 변경 답변 확인', { exact: true }).waitFor()
+            assert.deepEqual(researches, [{ body: { intent: 'PRODUCT_DATA' }, key }])
+            assert.ok(await choice.isDisabled())
+            assert.equal(await choice.getAttribute('aria-pressed'), 'true')
+          } else if (!item.succeeded) assert.equal(await toggle.count(), 0)
           assert.deepEqual(errors, [])
           assert.deepEqual(fixtures.unknown, [])
           result = {
