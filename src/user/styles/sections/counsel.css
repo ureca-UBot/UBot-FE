@@ -178,7 +178,7 @@ body:has(.ubot-user-app .ai-route.active .ai-counsel-session) .floating-chat-roo
   gap: 8px;
 }
 
-.ubot-user-app .ai-route :is(.counsel-secondary-button, .ai-counsel-new, .counsel-error button, .counsel-receipt button) {
+.ubot-user-app .ai-route :is(.counsel-secondary-button, .counsel-error button, .counsel-receipt button) {
   min-height: 40px;
   padding: 8px 16px;
   border: 1px solid var(--line);
@@ -275,8 +275,6 @@ body:has(.ubot-user-app .ai-route.active .ai-counsel-session) .floating-chat-roo
   font-size: 12px;
   font-weight: 700;
 }
-
-.ubot-user-app .ai-route .ai-counsel-new { align-self: flex-start; margin: 12px 20px 16px; }
 
 .ubot-user-app .ai-route .counsel-resume {
   display: flex;

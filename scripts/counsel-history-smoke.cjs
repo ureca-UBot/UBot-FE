@@ -203,7 +203,7 @@ async function main() {
       .and(page.getByTitle('오래된 상담', { exact: true }))
       .click()
     await transcript.getByText('보존된 상담 메시지 129', { exact: true }).waitFor()
-    await page.getByRole('button', { name: '새 AI 대화 시작' }).click()
+    await page.locator('.ai-left').getByRole('button', { name: '＋ 새 대화', exact: true }).click()
     assert.equal(await transcript.count(), 0)
     let release
     state.hold = new Promise((resolve) => {

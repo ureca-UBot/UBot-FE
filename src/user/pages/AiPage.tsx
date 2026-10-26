@@ -435,9 +435,6 @@ export function AiPage({
                           }
                         />
                       </div>
-                      <button className="ai-counsel-new desktop-only" onClick={startNewChat}>
-                        새 AI 대화 시작
-                      </button>
                     </>
                   )}
                 </div>
