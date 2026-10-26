@@ -172,20 +172,7 @@
   }
 }
 @media (max-width: 767px) {
-  .ubot-user-app .floating-chat-trigger {
-    right: 24px;
-    bottom: calc(104px + env(safe-area-inset-bottom));
-    width: 72px;
-    height: 72px;
-  }
-  .ubot-user-app .floating-chat-trigger .ubot-mascot {
-    max-width: 70px;
-    max-height: 70px;
-  }
-  .ubot-user-app .floating-chat-panel {
-    right: 24px;
-    bottom: calc(192px + env(safe-area-inset-bottom));
-    width: calc(100vw - 48px);
-    height: min(600px, calc(100dvh - 218px));
+  .ubot-user-app.floating-chat-root {
+    display: none;
   }
 }

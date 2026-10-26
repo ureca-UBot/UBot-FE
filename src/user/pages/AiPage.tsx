@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { chatApi } from '../ai/api/chatApi'
 import { useCustomerCounsel, counselStates } from '../../counsel/hooks/useCustomerCounsel'
 import { CounselConversation } from '../../counsel/components/CounselConversation'
@@ -8,6 +8,7 @@ import { ChatInput } from '../ai/components/ChatInput'
 import { ChatSendIcon } from '../ai/components/ChatSendIcon'
 import { ChatMessages } from '../ai/components/ChatMessages'
 import { ConversationHistory } from '../ai/components/ConversationHistory'
+import { MobileConversationDrawer } from '../ai/components/MobileConversationDrawer'
 import { RankingFaqPanel } from '../ai/components/RankingFaqPanel'
 import type { useChat } from '../ai/hooks/useChat'
 import logo from '../assets/ubot-logo.png'
@@ -42,6 +43,7 @@ export function AiPage({
 }: PageProps) {
   const [inputVersion, setInputVersion] = useState(0)
   const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false)
+  const closeMobileHistory = useCallback(() => setMobileHistoryOpen(false), [])
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [openingHistory, setOpeningHistory] = useState(false)
   const [historyVersion, setHistoryVersion] = useState(0)
@@ -164,29 +166,58 @@ export function AiPage({
               <img className="ai-brand-logo" src={logo} alt="Ubot" width={90} height={45} />
             </div>
           </div>
-          <div className="ai-mobile-support mobile-only">{supportActions}</div>
+          <div className="ai-mobile-support mobile-only">
+            {chat && (
+              <button
+                className="ai-history-toggle"
+                type="button"
+                aria-label="최근 대화 열기"
+                aria-haspopup="dialog"
+                aria-expanded={mobileHistoryOpen}
+                onClick={() => setMobileHistoryOpen(true)}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            )}
+            <span className="ai-mobile-title">AI 채팅</span>
+            {supportActions}
+          </div>
+          {chat && (
+            <MobileConversationDrawer
+              active={active}
+              open={mobileHistoryOpen}
+              onOpen={() => setMobileHistoryOpen(true)}
+              onClose={closeMobileHistory}
+              onNewChat={() => {
+                startNewChat?.()
+                closeMobileHistory()
+              }}
+              disabled={inputDisabled}
+            >
+              <ConversationHistory
+                loggedIn={loggedIn && !isInitializing}
+                activeId={counsel.session?.conversationId ?? chat.conversationId}
+                refreshKey={historyRefreshKey}
+                disabled={inputDisabled}
+                onSelect={openConversation}
+                onDelete={deleteConversation}
+                deletingId={deletingId}
+              />
+            </MobileConversationDrawer>
+          )}
 
           <div className="ai-layout">
-            {chat && (
-              <details
-                className="ai-mobile-history mobile-only"
-                open={mobileHistoryOpen}
-                onToggle={(event) => setMobileHistoryOpen(event.currentTarget.open)}
-              >
-                <summary>최근 대화 · 상담 내역</summary>
-                {mobileHistoryOpen && (
-                  <ConversationHistory
-                    loggedIn={loggedIn && !isInitializing}
-                    activeId={counsel.session?.conversationId ?? chat.conversationId}
-                    refreshKey={historyRefreshKey}
-                    disabled={inputDisabled}
-                    onSelect={openConversation}
-                    onDelete={deleteConversation}
-                    deletingId={deletingId}
-                  />
-                )}
-              </details>
-            )}
             <aside className="ai-left desktop-only">
               {chat && (
                 <ConversationHistory

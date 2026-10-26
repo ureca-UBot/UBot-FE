@@ -28,22 +28,85 @@
 }
 .ubot-user-app .history-block .history-counsel-label { margin-left: 6px; color: var(--muted); font-size: 11px; }
 .ubot-user-app .history-block .history-preview { color: var(--muted); font-size: 12px; font-weight: 400; }
-.ubot-user-app .ai-mobile-history { padding: 0 18px; border-bottom: 1px solid var(--line); }
-.ubot-user-app .ai-mobile-history summary { padding: 10px 0; color: var(--muted); font-size: 13px; cursor: pointer; }
+.ubot-user-app .ai-history-swipe-edge { display: none; }
+.ubot-user-app .ai-history-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: min(340px, calc(100vw - 44px));
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
+  border: 0;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 12px 0 40px rgba(0, 0, 0, .12);
+  touch-action: pan-y pinch-zoom;
+}
+.ubot-user-app .ai-history-drawer[open] {
+  display: flex;
+  flex-direction: column;
+  animation: ai-history-enter .2s ease-out;
+}
+.ubot-user-app .ai-history-drawer::backdrop { background: rgba(0, 0, 0, .35); }
+.ubot-user-app .ai-history-drawer-head {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ubot-user-app .ai-history-drawer-head h2 { margin: 0; font-size: 17px; }
+.ubot-user-app .ai-history-drawer-head button,
+.ubot-user-app .ai-history-toggle {
+  display: grid;
+  width: 44px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ink);
+  background: transparent;
+}
+.ubot-user-app .ai-history-drawer .new-chat { flex-shrink: 0; margin: 18px 0; }
+.ubot-user-app .ai-history-drawer .history-block { margin-top: 0; }
+@keyframes ai-history-enter {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
 
 @media(max-width:767px) {
-  .ubot-user-app .ai-mobile-support {
+  .ubot-user-app .ai-mobile-support.mobile-only {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 12px 18px;
     border-bottom: 1px solid var(--line);
   }
 
+  .ubot-user-app .ai-mobile-support .ai-support-actions { margin-left: auto; }
+  .ubot-user-app .ai-mobile-title { font-weight: 700; }
+  .ubot-user-app .ai-history-swipe-edge {
+    display: block;
+    position: fixed;
+    top: 123px;
+    bottom: calc(68px + env(safe-area-inset-bottom));
+    left: 0;
+    width: 20px;
+    z-index: 61;
+    touch-action: pan-y pinch-zoom;
+  }
+
   .ubot-user-app .ai-route .ai-chat-view {
-    height: calc(100dvh - 328px);
+    height: calc(100dvh - 190px - env(safe-area-inset-bottom));
     min-height: 280px;
   }
 
   .ubot-user-app .ai-route .ai-counsel-session {
-    height: calc(100dvh - 336px - env(safe-area-inset-bottom));
+    height: calc(100dvh - 198px - env(safe-area-inset-bottom));
     min-height: 280px;
   }
 }

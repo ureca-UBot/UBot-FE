@@ -649,8 +649,11 @@
   }
 
   .ubot-user-app .ai-app-head {
-    height: 50px;
-    padding: 0 18px
+    display: none
+  }
+
+  .ubot-user-app .ai-mobile-support [data-route="customer"] {
+    display: none
   }
 
   .ubot-user-app .ai-layout {
