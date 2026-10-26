@@ -249,6 +249,17 @@ export function AiPage({
                 onDelete={deleteConversation}
                 deletingId={deletingId}
               />
+              <section className="ai-history-rankings" aria-label="인기 및 급상승 FAQ">
+                <RankingFaqPanel
+                  active={active && mobileHistoryOpen}
+                  disabled={inputDisabled}
+                  residenceArea={residenceArea}
+                  onSelectFaq={(faq) => {
+                    closeMobileHistory()
+                    void chat.sendFaqAnswer(faq, counsel.session?.conversationId ?? undefined)
+                  }}
+                />
+              </section>
             </MobileConversationDrawer>
           )}
 
@@ -399,19 +410,6 @@ export function AiPage({
                   )}
                   {counsel.session.status === 'ENDED' && chat && (
                     <>
-                      <div className="mobile-only">
-                        <RankingFaqPanel
-                          active={active}
-                          disabled={inputDisabled}
-                          residenceArea={residenceArea}
-                          onSelectFaq={(faq) =>
-                            void chat.sendFaqAnswer(
-                              faq,
-                              counsel.session?.conversationId ?? undefined,
-                            )
-                          }
-                        />
-                      </div>
                       {chat.isPending && (
                         <p className="status-line" role="status">
                           답변을 확인하고 있어요.
@@ -437,7 +435,7 @@ export function AiPage({
                           }
                         />
                       </div>
-                      <button className="ai-counsel-new" onClick={startNewChat}>
+                      <button className="ai-counsel-new desktop-only" onClick={startNewChat}>
                         새 AI 대화 시작
                       </button>
                     </>

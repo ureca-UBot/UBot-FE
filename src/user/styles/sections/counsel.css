@@ -73,6 +73,13 @@
 }
 .ubot-user-app .ai-history-drawer .new-chat { flex-shrink: 0; margin: 18px 0; }
 .ubot-user-app .ai-history-drawer .history-block { margin-top: 0; }
+.ubot-user-app .ai-history-rankings {
+  height: min(42dvh, 360px);
+  min-height: 0;
+  flex-shrink: 0;
+  margin: 16px -18px 0;
+  border-top: 1px solid var(--line);
+}
 @keyframes ai-history-enter {
   from { transform: translateX(-100%); }
   to { transform: translateX(0); }
@@ -314,8 +321,10 @@ body:has(.ubot-user-app .ai-route.active .ai-counsel-session) .floating-chat-roo
   }
 
   .ubot-user-app .ai-route .ai-chat-view {
-    height: calc(100dvh - 190px - env(safe-area-inset-bottom));
-    min-height: 280px;
+    flex: 1;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .ubot-user-app .ai-route .counsel-session-header { padding: 14px 16px; }
