@@ -382,6 +382,33 @@ test('선택한 검사 기록은 선택한 ID만 분석으로 보내고 진행 �
   }
 })
 
+test('입력·출력 가드 LLM 보류 건수를 보여 주고 누르면 보류 기록만 조회한다', async () => {
+  const { context, page, requests, failures } = await pageFixture(false, { manyChecks: true })
+  try {
+    await openChecks(page)
+    const input = page.getByRole('button', { name: /입력 가드 LLM 보류/ })
+    await input.getByText('30건', { exact: true }).waitFor()
+    await page
+      .getByRole('button', { name: /출력 가드 LLM 보류/ })
+      .getByText('30건')
+      .waitFor()
+    await input.click()
+    await page.waitForTimeout(300)
+    assert.ok(
+      requests.some(
+        (r) =>
+          r.p.endsWith('/checks') &&
+          r.query.includes('origin=INPUT_LLM') &&
+          r.query.includes('outcome=REVIEW') &&
+          r.query.includes('size=20'),
+      ),
+    )
+    assert.deepEqual(failures, [])
+  } finally {
+    await context.close()
+  }
+})
+
 test('100건을 넘게 선택하면 확인 후에만 분석을 접수한다', async () => {
   const { context, page, requests } = await pageFixture(false, { manyChecks: true })
   try {

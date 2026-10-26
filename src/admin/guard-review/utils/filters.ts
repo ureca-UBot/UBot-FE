@@ -42,6 +42,11 @@ export function canAnalyzeCheck(check: GuardCheck) {
     ['PASS', 'FILTERED', 'REJECTED', 'REVIEW', 'ERROR'].includes(check.outcome)
   )
 }
+
+export function llmReviewPreset(origin: 'INPUT_LLM' | 'OUTPUT_LLM'): GuardFilters {
+  return { origin, outcome: 'REVIEW' }
+}
+
 export function outputLlmPreset(outcome: 'PASS' | 'REJECTED'): GuardFilters {
   return { origin: 'OUTPUT_LLM', outcome }
 }

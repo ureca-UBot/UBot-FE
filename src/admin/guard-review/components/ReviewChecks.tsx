@@ -7,6 +7,7 @@ import { ForbiddenWordPagination } from '../../forbidden-word/components/Forbidd
 import {
   canAnalyzeCheck,
   checkOriginLabel,
+  llmReviewPreset,
   outcomeLabel,
   outputLlmPreset,
   skippedCheckLabels,
@@ -16,6 +17,10 @@ import { ReviewSourceFilters } from './ReviewSourceFilters'
 import { ReviewEvidence } from './ReviewEvidence'
 
 const LARGE_SELECTION = 100
+const holdCards = [
+  { origin: 'INPUT_LLM', label: '입력 가드 LLM 보류' },
+  { origin: 'OUTPUT_LLM', label: '출력 가드 LLM 보류' },
+] as const
 const runLabels: Record<string, string> = {
   QUEUED: '대기 중',
   RUNNING: '분석 중',
@@ -46,6 +51,7 @@ export function ReviewChecks() {
   const [run, setRun] = useState<ReviewRun | null>(null)
   const [runError, setRunError] = useState('')
   const [pollRevision, setPollRevision] = useState(0)
+  const [holdCounts, setHoldCounts] = useState<Record<string, number | null>>({})
   const [serverReady, setServerReady] = useState<boolean | null>(null)
   const running = runId !== null && (!run || !['COMPLETED', 'FAILED'].includes(run.status))
   const eligible = data?.content.filter(canAnalyzeCheck) ?? []
@@ -123,6 +129,20 @@ export function ReviewChecks() {
   }, [])
   useEffect(() => {
     const abort = new AbortController()
+    for (const { origin } of holdCards)
+      api
+        .checks(0, 10, llmReviewPreset(origin), abort.signal)
+        .then((value) => {
+          if (!abort.signal.aborted)
+            setHoldCounts((prev) => ({ ...prev, [origin]: value.totalElements }))
+        })
+        .catch(() => {
+          if (!abort.signal.aborted) setHoldCounts((prev) => ({ ...prev, [origin]: null }))
+        })
+    return () => abort.abort()
+  }, [revision])
+  useEffect(() => {
+    const abort = new AbortController()
     api
       .checks(page, size, filters, abort.signal)
       .then((value) => {
@@ -184,6 +204,21 @@ export function ReviewChecks() {
         기록을 선택해 위험 단어·문장 후보를 분석할 수 있습니다. LLM 판정 보류 기록은 같은 작업에서
         재검토하며, 원래 가드 판정은 유지합니다.
       </p>
+      <div className="review-hold-summary" aria-label="LLM 판정 보류 현황">
+        {holdCards.map(({ origin, label }) => (
+          <button key={origin} type="button" onClick={() => changeFilters(llmReviewPreset(origin))}>
+            <span>{label}</span>
+            <strong>
+              {holdCounts[origin] === undefined
+                ? '...'
+                : holdCounts[origin] === null
+                  ? '확인 불가'
+                  : `${holdCounts[origin]}건`}
+            </strong>
+            <small>누르면 해당 보류 기록만 봅니다</small>
+          </button>
+        ))}
+      </div>
       <div className="review-check-presets">
         <button type="button" onClick={() => changeFilters(outputLlmPreset('PASS'))}>
           출력 LLM 통과 답변만
