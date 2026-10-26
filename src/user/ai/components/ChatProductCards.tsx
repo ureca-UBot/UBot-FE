@@ -40,11 +40,7 @@ export function ChatProductCards({
   return (
     <div className="chat-user-data chat-product-data">
       {productData.refine?.groups.length ? (
-        <ChatProductRefine
-          key={JSON.stringify(productData.refine)}
-          refine={productData.refine}
-          initialProducts={productData.products}
-        >
+        <ChatProductRefine key={JSON.stringify(productData.refine)} refine={productData.refine}>
           {list}
         </ChatProductRefine>
       ) : (

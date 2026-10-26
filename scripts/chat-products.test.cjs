@@ -45,18 +45,6 @@ async function scenario(config, run) {
       .fill('나에게 맞는 상품을 찾아줘')
     await scope.getByRole('button', { name: '질문 보내기', exact: true }).click()
     await scope.locator('.chat-product-data').waitFor()
-    const initialData = config.data ?? { refine }
-    if (initialData.refine?.total > 0)
-      await scope
-        .locator('.pd-filter-results .pd-list, .pd-filter-results [role="alert"]')
-        .or(
-          scope
-            .locator('.pd-refine > .pd-filter-status[role="status"]')
-            .filter({ hasText: '현재 조건에 맞는 상품이 없습니다.' }),
-        )
-        .first()
-        .waitFor()
-    state.requests.previewCount = state.requests.searches.length
     await run({ page, context, scope, ...state })
     assert.deepEqual(errors, [])
     assert.deepEqual(state.fixtures.unknown, [])
@@ -88,11 +76,11 @@ test('상품 조건을 순서대로 서버에서 확인하고 없는 조합을 �
     await scope.getByRole('button', { name: /청년.*상품 없음/ }).waitFor()
     assert.equal(await scope.getByRole('button', { name: /청년.*상품 없음/ }).isDisabled(), true)
     assert.equal(await scope.locator('.pd-list').count(), 0)
-    assert.equal(requests.searches.length, requests.previewCount)
+    assert.equal(requests.searches.length, 0)
     for (const name of ['일반', '5만원 이하', '무제한만', '월정액 낮은 순'])
       await choose(scope, name)
     await scope.getByText('조건에 맞는 상품 2개', { exact: true }).waitFor()
-    assert.deepEqual(requests.searches.slice(requests.previewCount), [
+    assert.deepEqual(requests.searches, [
       {
         type: 'PLAN',
         keyword: null,
@@ -271,9 +259,19 @@ for (const [type, groups, selections, expected] of [
 ])
   test(`${type}도 응답의 단계·선택지로 조회하며 비회원이 사용할 수 있다`, async () => {
     await scenario(
-      { role: null, data: { products: [], refine: { type, keyword: null, total: 20, groups } } },
+      {
+        role: null,
+        data: {
+          products: [{ ...products[0], type }],
+          refine: { type, keyword: null, total: 20, groups },
+        },
+      },
       async ({ scope, requests }) => {
-        for (const selection of selections) await choose(scope, selection)
+        for (const selection of selections) {
+          assert.equal(await scope.locator('.pd-card').count(), 0)
+          assert.equal(requests.searches.length, 0)
+          await choose(scope, selection)
+        }
         await scope.locator('.pd-list').waitFor()
         assert.deepEqual(requests.searches.at(-1), { type, keyword: null, conditions: expected })
         assert.equal(await scope.getByRole('button', { name: '상관없음', exact: true }).count(), 0)
@@ -343,7 +341,7 @@ test('390px·320px에서도 조건 버튼과 가로 결과가 채팅 영역 안�
 })
 
 for (const supplied of [false, true])
-  test(`상품이 많아도 첫 응답과 필터 완료 결과에 최대 5개를 표시한다 (${supplied ? '항목 포함 응답' : '안내 문장만 있는 응답'})`, async () => {
+  test(`첫 응답에 상품이 있어도 필터를 완료한 뒤에만 최대 5개를 표시한다 (${supplied ? '항목 포함 응답' : '안내 문장만 있는 응답'})`, async () => {
     const many = Array.from({ length: 8 }, (_, index) => ({
       ...products[index % 2],
       name: `검증 상품 ${index + 1}`,
@@ -360,16 +358,8 @@ for (const supplied of [false, true])
         },
       },
       async ({ page, scope, requests }) => {
-        assert.equal(await scope.locator('.pd-card').count(), 5)
-        await scope.getByText('조건에 맞는 상품 28개', { exact: false }).waitFor()
-        assert.ok((await scope.locator('.pd-result-count').textContent()).includes('5개 표시'))
-        if (!supplied) {
-          assert.deepEqual(requests.searches[0], {
-            type: 'PLAN',
-            keyword: null,
-            conditions: { sortBy: 'MONTHLY_FEE_ASC' },
-          })
-        } else assert.equal(requests.searches.length, 0)
+        assert.equal(await scope.locator('.pd-card').count(), 0)
+        assert.equal(requests.searches.length, 0)
         await finish(scope)
         assert.equal(await scope.locator('.pd-card').count(), 5)
         assert.ok((await scope.locator('.pd-result-count').textContent()).includes('5개 표시'))

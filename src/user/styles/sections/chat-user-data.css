@@ -509,16 +509,15 @@
 }
 
 .ubot-user-app .chat-product-data .pd-card .pd-name {
-  display: -webkit-box;
+  display: block;
   min-height: 44px;
-  max-height: 44px;
+  max-height: none;
   margin: 0;
-  overflow: hidden;
+  overflow: visible;
   overflow-wrap: anywhere;
   font-size: 15px;
   line-height: 1.45;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2
+  -webkit-line-clamp: unset
 }
 
 .ubot-user-app .chat-product-data .pd-list {

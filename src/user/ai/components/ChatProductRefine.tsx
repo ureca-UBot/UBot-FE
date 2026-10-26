@@ -3,7 +3,6 @@ import { productSearchApi } from '../api/productSearchApi'
 import {
   CHAT_PRODUCT_LIMIT,
   type ChatProductAvailability,
-  type ChatProductCard,
   type ChatProductData,
   type ChatProductRefine as ProductRefine,
   type ChatProductSearchRequest,
@@ -18,11 +17,9 @@ type Lookup = { key: string; revision: number } & (
 
 export function ChatProductRefine({
   refine,
-  initialProducts,
   children,
 }: {
   refine: ProductRefine
-  initialProducts: ChatProductCard[]
   children: (data: ChatProductData) => ReactNode
 }) {
   // null은 사용자가 명시적으로 고른 '상관없음'입니다. 배열에는 확인한 앞 단계만 담습니다.
@@ -201,23 +198,6 @@ export function ChatProductRefine({
           )}
         </div>
       )}
-      {choices.length === 0 && refine.total > 0 && availability?.anyAvailable !== false && (
-        <InitialProductResults
-          request={{
-            type: refine.type,
-            keyword,
-            conditions: Object.fromEntries(
-              refine.groups.flatMap((item) =>
-                item.selected === null ? [] : [[item.key, item.selected]],
-              ),
-            ),
-          }}
-          products={keyword === refine.keyword ? initialProducts : []}
-          total={refine.total}
-        >
-          {children}
-        </InitialProductResults>
-      )}
       {result && (
         <div className="pd-filter-results" aria-live="polite">
           <p className="pd-result-count">
@@ -237,78 +217,5 @@ export function ChatProductRefine({
         </div>
       )}
     </section>
-  )
-}
-
-// 많은 상품의 첫 답변은 안내 문장과 refine만 내려옵니다. 기존 조건 그대로 목록을 조회합니다.
-function InitialProductResults({
-  request,
-  products,
-  total,
-  children,
-}: {
-  request: ChatProductSearchRequest
-  products: ChatProductCard[]
-  total: number
-  children: (data: ChatProductData) => ReactNode
-}) {
-  const [revision, setRevision] = useState(0)
-  const [lookup, setLookup] = useState<{
-    key: string
-    revision: number
-    result?: ChatProductSearchResponse
-  } | null>(null)
-  const queryKey = JSON.stringify(request)
-  const supplied = products.length > 0
-  const current = lookup?.key === queryKey && lookup.revision === revision ? lookup : null
-
-  useEffect(() => {
-    if (supplied) return
-    let cancelled = false
-    void productSearchApi
-      .search(JSON.parse(queryKey) as ChatProductSearchRequest)
-      .then((result) => {
-        if (!cancelled) setLookup({ key: queryKey, revision, result })
-      })
-      .catch(() => {
-        if (!cancelled) setLookup({ key: queryKey, revision })
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [queryKey, revision, supplied])
-
-  const data = supplied ? { products } : current?.result?.productData
-  const count = supplied ? total : (data?.refine?.total ?? data?.products.length ?? 0)
-
-  return (
-    <div className="pd-filter-results" aria-live="polite">
-      {data?.products.length ? (
-        <>
-          <p className="pd-result-count">
-            조건에 맞는 상품 {count.toLocaleString('ko-KR')}개
-            {count > Math.min(data.products.length, CHAT_PRODUCT_LIMIT) && (
-              <span> · {Math.min(data.products.length, CHAT_PRODUCT_LIMIT)}개 표시</span>
-            )}
-          </p>
-          {children(data)}
-        </>
-      ) : current ? (
-        <div className="pd-filter-status" role="alert">
-          <p>
-            {data && count === 0
-              ? '현재 조건에 맞는 상품이 없습니다.'
-              : '상품 항목을 불러오지 못했습니다.'}
-          </p>
-          <button onClick={() => setRevision((value) => value + 1)} type="button">
-            상품 다시 불러오기
-          </button>
-        </div>
-      ) : (
-        <p className="pd-filter-status" role="status">
-          조건에 맞는 상품을 찾고 있습니다.
-        </p>
-      )}
-    </div>
   )
 }
