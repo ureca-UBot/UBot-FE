@@ -2,10 +2,11 @@ export function ChatSendIcon({ stop = false }: { stop?: boolean }) {
   return (
     <svg
       aria-hidden="true"
+      className={stop ? undefined : 'chat-send-icon'}
       focusable="false"
       viewBox="0 0 24 24"
-      width={stop ? 22 : 30}
-      height={stop ? 22 : 30}
+      width={22}
+      height={22}
     >
       {stop ? (
         <rect x={6} y={6} width={12} height={12} rx={2} fill="currentColor" />

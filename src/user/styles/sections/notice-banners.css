@@ -22,33 +22,9 @@
 }
 
 .ubot-user-app .notice-banner__inner {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
   width: min(calc(100% - 32px), 1280px);
   min-height: 44px;
-  margin: auto;
-  padding: 8px 0
-}
-
-.ubot-user-app .notice-banner__header,
-.ubot-user-app .notice-banner__footer {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  gap: 8px
-}
-
-.ubot-user-app .notice-banner__actions,
-.ubot-user-app .notice-banner__carousel {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 4px
-}
-
-.ubot-user-app .notice-banner__actions {
-  margin-left: auto
+  margin: auto
 }
 
 .ubot-user-app .notice-banner__badge {
@@ -85,8 +61,6 @@
 }
 
 .ubot-user-app .notice-banner__title {
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap
@@ -98,31 +72,9 @@
   opacity: .88
 }
 
-.ubot-user-app .notice-banner__content-text {
-  display: inline-block;
-  width: max-content;
-  white-space: nowrap;
-  vertical-align: top
-}
-
-.ubot-user-app .notice-banner__content--scrolling .notice-banner__content-text {
-  animation-name: notice-content-scroll;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite
-}
-
-.ubot-user-app .notice-banner:hover .notice-banner__content-text,
-.ubot-user-app .notice-banner:focus-within .notice-banner__content-text {
-  animation-play-state: paused
-}
-
-@keyframes notice-content-scroll {
-  0%, 15% { transform: translateX(0); }
-  85%, 100% { transform: translateX(var(--notice-scroll-distance)); }
-}
-
 .ubot-user-app .notice-banner__arrow,
 .ubot-user-app .notice-banner__all,
+.ubot-user-app .notice-banner__toggle,
 .ubot-user-app .notice-banner__close {
   flex: none;
   border: 0;
@@ -147,7 +99,8 @@
   opacity: .8
 }
 
-.ubot-user-app .notice-banner__all {
+.ubot-user-app .notice-banner__all,
+.ubot-user-app .notice-banner__toggle {
   padding: 4px 6px;
   font-size: 12px;
   font-weight: 700;
@@ -177,26 +130,99 @@
   opacity: 1
 }
 
-@media (min-width: 768px) {
-  .ubot-user-app .notice-banner__inner {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
-    grid-template-areas: "badge title carousel region actions" "body body body body body";
-    align-items: center;
-    gap: 6px 8px
-  }
+/* PC: 배지·제목·본문·버튼을 한 줄에 두고, 본문은 자세히 버튼으로 펼칩니다. */
+.ubot-user-app .notice-banner--pc .notice-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0
+}
 
-  .ubot-user-app .notice-banner__header,
-  .ubot-user-app .notice-banner__footer {
-    display: contents
-  }
+.ubot-user-app .notice-banner--pc .notice-banner__title {
+  flex: none;
+  max-width: 45%
+}
 
-  .ubot-user-app .notice-banner__badge { grid-area: badge; }
-  .ubot-user-app .notice-banner__title { grid-area: title; }
-  .ubot-user-app .notice-banner__carousel { grid-area: carousel; }
-  .ubot-user-app .notice-banner__region { grid-area: region; }
-  .ubot-user-app .notice-banner__actions { grid-area: actions; margin-left: 0; }
-  .ubot-user-app .notice-banner__body { grid-area: body; }
+.ubot-user-app .notice-banner--pc .notice-banner__content {
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner--pc .notice-banner__content--open {
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere
+}
+
+/* 모바일: 제목 줄과 본문 줄로 나누고, 긴 본문은 옆으로 흐르게 보여줍니다. */
+.ubot-user-app .notice-banner--mobile .notice-banner__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0
+}
+
+.ubot-user-app .notice-banner--mobile :is(.notice-banner__header, .notice-banner__footer) {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px
+}
+
+.ubot-user-app .notice-banner--mobile :is(.notice-banner__actions, .notice-banner__carousel) {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__actions {
+  margin-left: auto
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__carousel {
+  gap: 2px
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__title {
+  flex: 1;
+  min-width: 0
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__body {
+  font-size: 13px
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__arrow {
+  width: 22px;
+  height: 24px
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__count {
+  font-size: 10px
+}
+
+.ubot-user-app .notice-banner__content-text {
+  display: inline-block;
+  width: max-content;
+  white-space: nowrap;
+  vertical-align: top
+}
+
+.ubot-user-app .notice-banner__content--scrolling .notice-banner__content-text {
+  animation-name: notice-content-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite
+}
+
+.ubot-user-app .notice-banner:hover .notice-banner__content-text,
+.ubot-user-app .notice-banner:focus-within .notice-banner__content-text {
+  animation-play-state: paused
+}
+
+@keyframes notice-content-scroll {
+  0%, 15% { transform: translateX(0); }
+  85%, 100% { transform: translateX(var(--notice-scroll-distance)); }
 }
 
 @media (max-width: 767px) {
@@ -212,32 +238,10 @@
   .ubot-user-app:has(.notice-banners) .page-standard {
     padding-top: 0
   }
-
-  .ubot-user-app .notice-banner__header,
-  .ubot-user-app .notice-banner__footer {
-    gap: 6px
-  }
-
-  .ubot-user-app .notice-banner__body {
-    font-size: 13px
-  }
-
-  .ubot-user-app .notice-banner__carousel {
-    gap: 2px
-  }
-
-  .ubot-user-app .notice-banner__arrow {
-    width: 22px;
-    height: 24px
-  }
-
-  .ubot-user-app .notice-banner__count {
-    font-size: 10px
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ubot-user-app .notice-banner__content {
+  .ubot-user-app .notice-banner--mobile .notice-banner__content {
     overflow-x: auto;
     scrollbar-width: thin
   }
@@ -247,4 +251,3 @@
     transform: none
   }
 }
-
