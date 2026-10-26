@@ -6,13 +6,12 @@ interface MobileBottomNavProps {
 
 const items = [
   {
-    page: 'ai',
-    label: 'AI 채팅',
+    page: 'store',
+    label: '상품 정보',
     icon: (
       <>
-        <path d="M13 4H6a3 3 0 0 0-3 3v14l6-3h9a3 3 0 0 0 3-3v-3" />
-        <path d="m18 2 1.1 3.9L23 7l-3.9 1.1L18 12l-1.1-3.9L13 7l3.9-1.1Z" />
-        <path d="M7 10h3m-3 4h8" />
+        <rect x="6" y="2" width="12" height="20" rx="2.5" />
+        <path d="M10 5h4m-3 14h2" />
       </>
     ),
   },
@@ -27,12 +26,13 @@ const items = [
     ),
   },
   {
-    page: 'store',
-    label: '상품 정보',
+    page: 'ai',
+    label: 'AI 채팅',
     icon: (
       <>
-        <rect x="6" y="2" width="12" height="20" rx="2.5" />
-        <path d="M10 5h4m-3 14h2" />
+        <path d="M13 4H6a3 3 0 0 0-3 3v14l6-3h9a3 3 0 0 0 3-3v-3" />
+        <path d="m18 2 1.1 3.9L23 7l-3.9 1.1L18 12l-1.1-3.9L13 7l3.9-1.1Z" />
+        <path d="M7 10h3m-3 4h8" />
       </>
     ),
   },
