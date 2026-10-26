@@ -91,8 +91,8 @@ async function scenario(role, run) {
 
 test('비로그인 고객은 묶인 카테고리로 전체 FAQ를 조회하고 페이지 이동·상세를 사용할 수 있다', async () => {
   await scenario(null, async ({ page, state }) => {
-    const categories = page.getByRole('group', { name: 'FAQ 카테고리' })
-    await categories.getByRole('button', { name: '와이파이 12', exact: true }).click()
+    const categories = page.getByRole('combobox', { name: 'FAQ 카테고리' })
+    await categories.selectOption({ label: '와이파이 (12)' })
     await page.getByText('전체 12개', { exact: true }).waitFor()
     assert.equal(await page.locator('.customer-faq details').count(), 10)
     assert.equal(state.reads.filter((read) => /\/\d+$/.test(read.pathname)).length, 0)
@@ -103,7 +103,7 @@ test('비로그인 고객은 묶인 카테고리로 전체 FAQ를 조회하고 �
       .getByRole('button', { name: '다음', exact: true })
       .click()
     await page.getByText('와이파이 질문 11', { exact: true }).waitFor()
-    await categories.getByRole('button', { name: '문자 1', exact: true }).click()
+    await categories.selectOption({ label: '문자 (1)' })
     await page.getByText('문자 연동 질문', { exact: true }).waitFor()
     assert.ok(
       state.reads.some(
@@ -112,9 +112,9 @@ test('비로그인 고객은 묶인 카테고리로 전체 FAQ를 조회하고 �
           new URLSearchParams(read.query).get('page') === '0',
       ),
     )
-    await categories.getByRole('button', { name: '기타 0', exact: true }).click()
+    await categories.selectOption({ label: '기타 (0)' })
     await page.getByText('선택한 카테고리에 등록된 질문이 없습니다.', { exact: true }).waitFor()
-    await categories.getByRole('button', { name: '전체', exact: true }).click()
+    await categories.selectOption({ label: '전체' })
     await page.getByText('전체 13개', { exact: true }).waitFor()
     for (const width of [1440, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 })

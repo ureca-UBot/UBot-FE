@@ -105,10 +105,9 @@
 .ubot-user-app .customer-faq details {
   border-bottom: 1px solid var(--line);
 }
-.ubot-user-app .customer-faq-categories { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
-.ubot-user-app .customer-faq-categories button { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: #fff; font-size: 13px; }
-.ubot-user-app .customer-faq-categories button[aria-pressed='true'] { color: #fff; border-color: var(--pink); background: var(--pink); }
-.ubot-user-app .customer-faq-categories small { margin-left: 4px; font-size: 11px; opacity: .8; }
+.ubot-user-app .customer-faq-categories { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.ubot-user-app .customer-faq-categories > span { flex: none; color: var(--muted); font-size: 13px; font-weight: 700; }
+.ubot-user-app .customer-faq-categories select { width: min(100%, 280px); }
 .ubot-user-app .customer-faq-count { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
 .ubot-user-app .customer-faq summary { display: flex; align-items: center; gap: 16px; list-style: none; }
 .ubot-user-app .customer-faq summary::-webkit-details-marker { display: none; }

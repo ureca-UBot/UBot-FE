@@ -102,21 +102,22 @@ export function CustomerFaqList({ active }: { active: boolean }) {
       <div className="my-profile-head">
         <h3 id="customerFaqTitle">자주 묻는 질문</h3>
       </div>
-      <div className="customer-faq-categories" role="group" aria-label="FAQ 카테고리">
-        <button type="button" aria-pressed={!category} onClick={() => choose('')}>
-          전체
-        </button>
-        {categories.map((item) => (
-          <button
-            key={item.name}
-            type="button"
-            aria-pressed={category === item.name}
-            onClick={() => choose(item.name)}
-          >
-            {item.name} <small>{item.count}</small>
-          </button>
-        ))}
-      </div>
+      {/* 카테고리가 많아 펼침 목록으로 고릅니다. */}
+      <label className="customer-faq-categories">
+        <span>카테고리</span>
+        <select
+          aria-label="FAQ 카테고리"
+          value={category}
+          onChange={(event) => choose(event.target.value)}
+        >
+          <option value="">전체</option>
+          {categories.map((item) => (
+            <option key={item.name} value={item.name}>
+              {item.name} ({item.count})
+            </option>
+          ))}
+        </select>
+      </label>
       {categoryError && (
         <p className="my-profile-message" role="alert">
           카테고리를 불러오지 못했습니다.{' '}
