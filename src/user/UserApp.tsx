@@ -58,6 +58,7 @@ export default function UserApp() {
       <NoticeBanners onNoticePage={page === 'notices'} />
       <DesktopHeader
         isAdmin={user?.role === 'ADMIN'}
+        isCounselor={user?.role === 'COUNSELOR'}
         canLogout={Boolean(user)}
         loggedIn={loggedIn || Boolean(user)}
         memberName={memberName}
@@ -65,7 +66,11 @@ export default function UserApp() {
         page={page}
         onBrandClick={resetChatConversation}
       />
-      <MobileHeader isAdmin={user?.role === 'ADMIN'} title={userPageTitles[page]} />
+      <MobileHeader
+        isAdmin={user?.role === 'ADMIN'}
+        isCounselor={user?.role === 'COUNSELOR'}
+        title={userPageTitles[page]}
+      />
       <main>
         <VisitedPage active={page === 'store'}>
           <StorePage active={page === 'store'} />

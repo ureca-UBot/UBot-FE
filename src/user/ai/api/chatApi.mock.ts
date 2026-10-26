@@ -268,7 +268,9 @@ const mockProduct = (
   fee: number | null,
   description: string | null,
 ): ChatProductCard => ({
-  type, name, fee,
+  type,
+  name,
+  fee,
   specs: [],
   highlights: description ? [description] : [],
   network: null,

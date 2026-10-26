@@ -9,9 +9,11 @@ import { useNotificationUnread } from '../notification/hooks/useNotificationUnre
 import type { UserPage } from '../routes'
 import { HeaderMegaMenu } from './HeaderMegaMenu'
 import { AdminScreenLink } from './AdminScreenLink'
+import { CounselorScreenLink } from './CounselorScreenLink'
 
 interface DesktopHeaderProps {
   isAdmin: boolean
+  isCounselor: boolean
   loggedIn: boolean
   canLogout: boolean
   memberName: string | null
@@ -30,6 +32,7 @@ const mainNav = [
 
 export function DesktopHeader({
   isAdmin,
+  isCounselor,
   canLogout,
   loggedIn,
   memberName,
@@ -107,6 +110,7 @@ export function DesktopHeader({
         </nav>
         <div className="header-tools">
           {isAdmin && <AdminScreenLink />}
+          {isCounselor && <CounselorScreenLink />}
           <button className="header-action" data-route="stores" aria-label="매장찾기" type="button">
             <span className="header-action-icon" aria-hidden="true">
               <img src={storeIcon} width={40} height={40} alt="" />

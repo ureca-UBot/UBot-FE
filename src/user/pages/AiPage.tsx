@@ -259,7 +259,13 @@ export function AiPage({
                 ＋ 새 대화
               </button>
               <div className="ai-left-bottom">
-                {!loggedIn && <button className="open-login">로그인</button>}
+                {!loggedIn && (
+                  <div className="ai-support-actions">
+                    <button className="open-login" type="button">
+                      로그인
+                    </button>
+                  </div>
+                )}
                 {supportActions}
               </div>
             </aside>

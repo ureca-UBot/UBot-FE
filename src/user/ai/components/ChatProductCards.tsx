@@ -118,12 +118,16 @@ function ProductCard({
         {card.feeNote && <p className="pd-fee-note">{card.feeNote}</p>}
         {specs.length > 0 && (
           <ul className="pd-specs" aria-label="상품 제공량">
-            {specs.map((spec, index) => <li key={index}>{spec}</li>)}
+            {specs.map((spec, index) => (
+              <li key={index}>{spec}</li>
+            ))}
           </ul>
         )}
         {highlights.length > 0 ? (
           <ul className="pd-highlights" aria-label="상품 혜택 및 이용 조건">
-            {highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}
+            {highlights.map((highlight, index) => (
+              <li key={index}>{highlight}</li>
+            ))}
           </ul>
         ) : card.description ? (
           <p className="ud-note pd-description">{card.description}</p>
