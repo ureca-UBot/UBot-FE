@@ -71,3 +71,10 @@
   background: var(--pink-soft);
   opacity: 1;
 }
+
+@media (max-width: 767px) {
+  .ubot-user-app .chat-send-icon {
+    width: 30px;
+    height: 30px;
+  }
+}

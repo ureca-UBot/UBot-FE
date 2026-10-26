@@ -670,7 +670,7 @@ test('고객센터 하위 메뉴와 공개 FAQ는 실제 질문·답변 및 상�
   })
 })
 
-test('우측 하단 Ubot은 모바일 크기로 열리고 전체 채팅과 같은 대화를 유지한다', async () => {
+test('우측 하단 Ubot은 PC에서 열려 전체 채팅과 같은 대화를 유지하고 모바일에서는 숨긴다', async () => {
   await withPage('USER', async ({ page, goto }) => {
     await goto('/customer-center')
     await page.getByRole('button', { name: 'Ubot 챗봇 열기', exact: true }).click()
@@ -685,11 +685,16 @@ test('우측 하단 Ubot은 모바일 크기로 열리고 전체 채팅과 같�
       .locator('.ai-chat-view:visible')
       .getByText('검증용 AI 답변입니다.', { exact: true })
       .waitFor()
+    const desktopViewport = page.viewportSize()
+    // 모바일은 하단 메뉴의 AI 채팅을 사용하므로 우측 하단 Ubot을 숨깁니다.
     await page.setViewportSize({ width: 390, height: 844 })
+    assert.equal(
+      await page.getByRole('button', { name: 'Ubot 챗봇 열기', exact: true }).isVisible(),
+      false,
+    )
+    await page.setViewportSize(desktopViewport)
     await page.getByRole('button', { name: 'Ubot 챗봇 열기', exact: true }).click()
     await panel.waitFor({ state: 'visible' })
-    const mobileBounds = await panel.boundingBox()
-    assert.ok(mobileBounds.x >= 0 && mobileBounds.x + mobileBounds.width <= 390)
     await page.keyboard.press('Escape')
     await panel.waitFor({ state: 'hidden' })
     assert.equal(

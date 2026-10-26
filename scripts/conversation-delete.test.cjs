@@ -226,6 +226,11 @@ scenario(
   '삭제 응답을 기다리는 동안 중복 삭제·전환·새 질문을 막는다',
   { holdDelete: true },
   async ({ page, history, state, release }) => {
+    // 입력창은 포커스를 유지하려고 비활성화하지 않으므로, 질문을 입력해 둔 보내기 버튼이 막히는지 확인합니다.
+    const heroForm = page.locator('form.ai-searchbox', { has: page.locator('#aiHeroInput') })
+    const send = heroForm.getByRole('button', { name: '질문 보내기', exact: true })
+    await page.locator('#aiHeroInput').fill('삭제 중 새 질문')
+    assert.equal(await send.isDisabled(), false)
     await confirmDelete(page, history, 'a')
     const dialog = page.getByRole('dialog', { name: '대화를 삭제할까요?' })
     await page.waitForFunction(() => document.querySelector('.history-delete')?.disabled)
@@ -234,7 +239,7 @@ scenario(
     assert.equal(await dialog.isVisible(), true)
     assert.equal(await history.getByTitle('대화 b', { exact: true }).isDisabled(), true)
     assert.equal(await page.locator('#newChat').isDisabled(), true)
-    assert.equal(await page.locator('#aiHeroInput').isDisabled(), true)
+    assert.equal(await send.isDisabled(), true)
     await history
       .getByRole('button', { name: '대화 a 대화 삭제', exact: true })
       .evaluate((button) => button.click())

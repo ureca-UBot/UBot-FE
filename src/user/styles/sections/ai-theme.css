@@ -1,5 +1,5 @@
 .ubot-user-app .ai-route {
-  background: #fff;
+  background: var(--pink-soft);
 }
 .ubot-user-app .ai-app {
   border-color: var(--line);
