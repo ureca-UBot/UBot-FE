@@ -189,11 +189,12 @@ export function useCustomerCounsel(chat?: ChatContextValue) {
     setError('')
     chat.setConversationLocked(true)
     try {
-      // 대화 ID를 비워 새 상담방을 만듭니다. 기존 AI·상담 내역은 넘기지 않고,
+      // 현재 대화 ID로 서버에 저장한 문답·FAQ·이전 상담 내역을 인계합니다.
+      // 새로고침으로 대화 선택이 사라졌다면 복원한 상담의 대화를 이어갑니다.
       // 응답 유실 시에는 같은 요청 ID로 재시도해 상담방 중복 생성을 막습니다.
       pendingRequest.current ??= {
         handoffId: crypto.randomUUID(),
-        conversationId: null,
+        conversationId: chat.conversationId ?? latest.current?.conversationId ?? null,
       }
       const created = await counselApi.request(pendingRequest.current)
       if (!alive.current) return

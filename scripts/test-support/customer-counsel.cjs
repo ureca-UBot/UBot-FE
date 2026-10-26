@@ -87,7 +87,7 @@ async function customerCounsel(context) {
       state.requests.push(request.postDataJSON())
       state.current = {
         sessionId,
-        conversationId: counselId,
+        conversationId: request.postDataJSON().conversationId ?? counselId,
         status: 'WAITING',
         assignmentVersion: 1,
         lastDeliveredSeq: 0,
@@ -99,7 +99,13 @@ async function customerCounsel(context) {
       const id = pathname.split('/').at(-1)
       return ok(
         route,
-        id === archiveId ? archive : id === counselId ? (state.current ?? state.ended) : null,
+        id === state.current?.conversationId
+          ? state.current
+          : id === state.ended?.conversationId
+            ? state.ended
+            : id === archiveId
+              ? archive
+              : null,
       )
     }
     if (pathname.endsWith('/context')) return ok(route, [])

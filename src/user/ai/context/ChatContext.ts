@@ -15,7 +15,7 @@ export interface ChatContextValue {
   // 성공한 답변의 질문을 선택한 의도로 다시 검색합니다. 결과는 해당 turn의 researches에 쌓입니다.
   researchAnswer: (turnId: number, intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
   resetConversation: () => void
-  // 서버가 새로 만든 상담방을 선택하며 이전 AI 문답을 현재 화면에서 분리합니다.
+  // 상담 대화를 선택합니다. 인계한 AI 문답은 상담 화면이 서버 저장본으로 표시합니다.
   startCounselConversation: (conversationId: string) => void
   openConversation: (conversationId: string) => Promise<boolean>
   setConversationLocked: (locked: boolean) => void

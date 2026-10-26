@@ -170,7 +170,7 @@ export function AiPage({
             ? '로그인 후 상담사를 호출할 수 있습니다.'
             : counsel.backgrounded && counsel.ongoingSession
               ? '진행 중인 상담 채팅으로 돌아갑니다.'
-              : '이전 대화 내역 없이 새 채팅방에서 상담사와 연결합니다.'
+              : '현재 대화 내역을 상담사에게 공유하고 연결합니다.'
         }
       >
         {counsel.busy
