@@ -249,7 +249,7 @@ export function FaqImprovements({
           </tbody>
         </table>
       </div>
-      {improvementResponse && improvementResponse.totalPages > 1 && (
+      {improvementResponse && (
         <div className="faq-dashboard-improvement-pagination">
           <Pagination
             onChange={(page) => {
@@ -262,6 +262,7 @@ export function FaqImprovements({
             }}
             page={improvementResponse.page}
             showEdgeButtons
+            showSinglePage
             totalPages={improvementResponse.totalPages}
           />
         </div>
@@ -367,7 +368,6 @@ export function FaqImprovements({
                       container.setPointerCapture(event.pointerId)
                       setIsDuplicateDragging(true)
                     }
-                    container.scrollLeft = drag.scrollLeft - (event.clientX - drag.clientX)
                     container.scrollTop = drag.scrollTop - (event.clientY - drag.clientY)
                   }}
                   onPointerUp={(event) => {
