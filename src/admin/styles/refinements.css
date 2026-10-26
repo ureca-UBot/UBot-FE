@@ -169,8 +169,8 @@
 .faq-dashboard-improvement-refresh svg { width: 17px; height: 17px; flex: 0 0 auto; }
 .admin-layout .faq-dashboard-improvement-type-arrow { display: inline-block; width: 12px; height: 12px; margin: 0; vertical-align: middle; flex-shrink: 0; }
 .admin-layout .faq-dashboard-section--improvement:not(.is-expanded) { display: flex; flex-direction: column; }
-.admin-layout .faq-dashboard-section--improvement:not(.is-expanded) .faq-dashboard-improvement-table-wrap { flex: 1; }
-.admin-layout .faq-dashboard-section--improvement:not(.is-expanded) .faq-dashboard-improvement-table { height: 100%; }
+.admin-layout .faq-dashboard-section--improvement:not(.is-expanded) .faq-dashboard-improvement-table-wrap { flex: 0 0 auto; }
+.admin-layout .faq-dashboard-section--improvement:not(.is-expanded) .faq-dashboard-improvement-table { height: auto; }
 .admin-layout .faq-dashboard-section--improvement .faq-dashboard-improvement-table thead { height: 34px; }
 .admin-layout .faq-dashboard-section--improvement .faq-dashboard-improvement-table td { vertical-align: middle; }
 .admin-layout .faq-ai-review-modal__header > button { font-size: 22px; }

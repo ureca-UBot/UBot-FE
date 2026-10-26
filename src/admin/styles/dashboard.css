@@ -1035,52 +1035,54 @@
   outline-offset: 2px;
 }
 .faq-dashboard-improvement-table-wrap {
-  overflow-x: auto;
+  overflow: hidden;
 }
 .faq-dashboard-improvement-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 0;
   table-layout: fixed;
   font-size: 11px;
 }
 .faq-dashboard-improvement-table th,
 .faq-dashboard-improvement-table td {
   min-width: 0;
-  padding: 7px 4px;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  padding: 5px 4px;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .faq-dashboard-improvement-table th:nth-child(1),
 .faq-dashboard-improvement-table td:nth-child(1) {
-  width: 9%;
+  width: 8%;
 }
 .faq-dashboard-improvement-table th:nth-child(2),
 .faq-dashboard-improvement-table td:nth-child(2) {
-  width: 27%;
+  width: 30%;
 }
 .faq-dashboard-improvement-table th:nth-child(3),
 .faq-dashboard-improvement-table td:nth-child(3) {
-  width: 10%;
+  width: 12%;
 }
 .faq-dashboard-improvement-table th:nth-child(4),
 .faq-dashboard-improvement-table td:nth-child(4) {
-  width: 10%;
+  width: 9%;
 }
 .faq-dashboard-improvement-table th:nth-child(5),
 .faq-dashboard-improvement-table td:nth-child(5) {
-  width: 20%;
+  width: 19%;
 }
 .faq-dashboard-improvement-table th:nth-child(6),
 .faq-dashboard-improvement-table td:nth-child(6) {
-  width: 24%;
+  width: 22%;
 }
 .faq-dashboard-improvement-table td:nth-child(2),
 .faq-dashboard-improvement-table td:nth-child(3) {
   max-width: none;
-  overflow: visible;
+  overflow: hidden;
   text-align: left;
-  text-overflow: clip;
-  white-space: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .faq-dashboard-improvement-question {
   display: block;
@@ -1093,6 +1095,7 @@
   flex-wrap: nowrap;
   justify-content: center;
   gap: 2px;
+  overflow: hidden;
   white-space: nowrap;
 }
 .faq-dashboard-improvement-types span {
@@ -1163,10 +1166,14 @@
 }
 .faq-dashboard-improvement-duplicates {
   display: flex;
+  align-self: stretch;
   min-width: 0;
   min-height: 0;
+  box-sizing: border-box;
+  contain: size;
   padding: 9px;
   flex-direction: column;
+  overflow: hidden;
   border: 1px solid #f3dfbc;
   border-radius: 6px;
   background: #fffdfa;
@@ -1185,7 +1192,8 @@
   min-height: 0;
   height: 0;
   flex: 1;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   cursor: grab;
   user-select: none;
   touch-action: none;
@@ -1197,7 +1205,7 @@
 }
 .faq-dashboard-improvement-duplicates table {
   width: 100%;
-  min-width: 340px;
+  min-width: 0;
   border-collapse: collapse;
   table-layout: fixed;
   font-size: 10px;
