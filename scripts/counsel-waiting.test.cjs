@@ -73,6 +73,11 @@ test('상담 대기를 유지하며 기존 AI·상담 기록과 새 대화를 �
     assert.equal(state.requests[0].conversationId, null)
     await page.getByRole('button', { name: '상담 종료', exact: true }).click()
     await page.getByText('상담이 종료되었어요', { exact: true }).waitFor()
+    await page
+      .locator('.counsel-completion-message')
+      .getByRole('button', { name: '새 AI 대화 시작', exact: true })
+      .waitFor()
+    assert.equal(await page.locator('.ai-counsel-session > .ai-counsel-new').count(), 0)
   })
 })
 

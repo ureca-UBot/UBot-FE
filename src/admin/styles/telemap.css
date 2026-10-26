@@ -18,23 +18,33 @@
 .telemap-map__heading h2 { margin: 0; color: #111827; font-size: 16px; font-weight: 700; }
 .telemap-map__heading h2 > span { margin-left: 8px; color: #6b7280; font-size: 12px; font-weight: 400; }
 .telemap-map__heading p { margin: 7px 0 0; color: #6b7280; font-size: 12px; }
-.telemap-map__canvas { position: relative; width: min(100%, max(400px, calc((100dvh - 360px) * 1.0588))); max-width: 780px; margin: 8px auto; aspect-ratio: 720 / 680; }
+.telemap-map__controls { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 18px; }
+.telemap-map__controls > span { margin-right: auto; color: #6b7280; font-size: 11px; }
+.telemap-map__controls button { min-width: 32px; height: 32px; padding: 0 9px; border: 1px solid #d1d5db; border-radius: 6px; color: #374151; background: #fff; font: inherit; font-size: 12px; }
+.telemap-map__controls button:hover:not(:disabled) { background: #f9fafb; }
+.telemap-map__controls button:disabled { color: #9ca3af; cursor: default; }
+.telemap-map__controls output { min-width: 42px; color: #6b7280; font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.telemap-map__canvas { position: relative; width: 100%; max-width: 900px; margin: 8px auto; overflow: hidden; aspect-ratio: 720 / 680; }
+.telemap-map__canvas.is-zoomed { cursor: grab; touch-action: none; }
+.telemap-map__canvas.is-dragging, .telemap-map__canvas.is-dragging .telemap-map__hit-area { cursor: grabbing; }
+.telemap-map__stage { position: absolute; inset: 0; transform-origin: center; }
 .telemap-map__boundaries { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.telemap-map__province { fill: #f3f4f6; stroke: #d1d5db; stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; cursor: pointer; }
-.telemap-map__province:hover, .telemap-map__province:focus-visible, .telemap-map__province.is-selected { fill: #eef2ff; stroke: #4f46e5; stroke-width: 1.5; }
-.telemap-map__province:focus-visible { outline: 2px solid #4f46e5; outline-offset: 2px; }
-.telemap-map__province.is-muted { fill: #f9fafb; }
+.telemap-map__hit-area { fill: transparent; stroke: transparent; pointer-events: fill; cursor: pointer; }
+.telemap-map__province { fill: #f3f4f6; stroke: #d1d5db; stroke-width: 1; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: none; transition: transform 180ms ease-out, fill 180ms ease-out, stroke 180ms ease-out; }
+.telemap-map__territory:is(.is-raised, .is-selected) .telemap-map__province { fill: #eef2ff; stroke: #4f46e5; stroke-width: 1.2; }
+.telemap-map__territory.is-raised .telemap-map__province { transform: translateY(-7px); }
+/* 한 장의 밑면만 사용합니다. 작은 섬의 테두리와 반투명 그림자가 중첩되지 않습니다. */
+.telemap-map__depth { fill: #d1d5db; stroke: none; opacity: 0; pointer-events: none; transition: opacity 180ms ease-out; }
+.telemap-map__territory.is-raised .telemap-map__depth { opacity: 1; }
 .telemap-map__leader { stroke: #d1d5db; stroke-width: 1; pointer-events: none; }
-.telemap-map__place { position: absolute; display: flex; align-items: center; flex-direction: column; gap: 5px; transform: translate(-50%, -50%); }
-.telemap-map__place.is-muted { opacity: .45; }
+.telemap-map__place { position: absolute; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; transform: translate(-50%, -50%); }
 .telemap-map__place:hover, .telemap-map__place:focus-within { z-index: 2; opacity: 1; }
-.telemap-map__label { display: inline-flex; align-items: center; gap: 5px; padding: 3px 6px; border: 1px solid transparent; border-radius: 6px; color: #374151; background: #fff; font-size: 12px; font-weight: 700; line-height: 1.2; }
-.telemap-map__label > span { color: #9ca3af; font-size: 11px; font-weight: 400; }
-.telemap-map__place.is-selected .telemap-map__label { color: #4338ca; border-color: #4f46e5; background: #eef2ff; }
+.telemap-map__label { position: absolute; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; color: #374151; background: transparent; font-size: 11px; font-weight: 700; line-height: 1.2; white-space: nowrap; transform: translate(-50%, -50%); transition: top 180ms ease-out; }
+.telemap-map__label.is-selected { color: #4338ca; }
 .telemap-map__markers { display: flex; align-items: center; justify-content: center; gap: 3px; }
-.telemap-map__marker { display: grid; min-width: 30px; height: 30px; padding: 0 5px; place-items: center; border: 2px solid #fff; border-radius: 999px; color: #fff; background: var(--subject-color); font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.telemap-map__marker { display: grid; width: 30px; min-width: 30px; height: 30px; padding: 0; place-items: center; border: 2px solid #fff; border-radius: 999px; color: #fff; background: var(--subject-color); font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
 .telemap-map__marker:hover { outline: 2px solid var(--subject-color); outline-offset: 1px; }
-.telemap-map__more { height: 28px; padding: 0 5px; border: 1px solid #d1d5db; border-radius: 999px; color: #374151; background: #fff; font-size: 11px; }
+.telemap-map__more { width: 30px; height: 30px; padding: 0; border: 1px solid #d1d5db; border-radius: 999px; color: #374151; background: #fff; font-size: 11px; }
 .telemap-map__footnote { display: flex; flex-wrap: wrap; gap: 6px 16px; color: #6b7280; font-size: 11px; line-height: 1.6; }
 .telemap-map__footnote a { color: inherit; text-underline-offset: 3px; }
 .telemap-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; max-height: 130px; padding: 16px 20px; overflow-y: auto; border-top: 1px solid #e5e7eb; }
@@ -86,12 +96,12 @@
   .telemap-map__heading { padding: 0 8px; }
   .telemap-map__heading h2 > span { display: block; margin: 6px 0 0; }
   .telemap-map__canvas { margin: 20px auto; }
-  .telemap-map__place { gap: 1px; }
-  .telemap-map__label { padding: 2px 3px; font-size: 11px; }
-  .telemap-map__marker { min-width: 23px; height: 23px; padding: 0 3px; border-width: 1px; font-size: 11px; }
-  .telemap-map__markers { gap: 1px; }
-  .telemap-map__more { height: 22px; padding: 0 3px; }
   .telemap-map__footnote { padding: 0 8px; }
   .telemap-legend { padding: 14px; gap: 6px; }
   .telemap-detail-modal__questions li { flex-direction: column; gap: 5px; }
 }
+.telemap-map__canvas.is-compact .telemap-map__place { gap: 2px; }
+.telemap-map__canvas.is-compact .telemap-map__marker { width: 23px; min-width: 23px; height: 23px; padding: 0; border-width: 1px; }
+.telemap-map__canvas.is-compact .telemap-map__markers { gap: 2px; }
+.telemap-map__canvas.is-compact .telemap-map__more { width: 23px; height: 23px; padding: 0; }
+@media (prefers-reduced-motion: reduce) { .telemap-map__province, .telemap-map__depth, .telemap-map__label { transition-duration: 0s; } }

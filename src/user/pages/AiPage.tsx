@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { chatApi } from '../ai/api/chatApi'
 import { useCustomerCounsel, counselStates } from '../../counsel/hooks/useCustomerCounsel'
 import { CounselConversation } from '../../counsel/components/CounselConversation'
+import { CounselMessage } from '../../counsel/components/CounselMessage'
 import { ConversationTimeline } from '../../counsel/components/ConversationTimeline'
 import { CounselorIcon } from '../../counsel/components/CounselorIcon'
 import '../../counsel/styles/counsel.css'
@@ -400,6 +401,23 @@ export function AiPage({
                     <ConversationTimeline
                       key={`${counsel.session.sessionId}:${counsel.session.conversationId}:${historyRefreshKey}`}
                       conversationId={counsel.session.conversationId}
+                      footer={
+                        <CounselMessage
+                          className="counsel-completion-message"
+                          role="COUNSELOR"
+                          mine={false}
+                          content="상담을 마쳤어요. 새로운 질문은 AI와 대화를 시작해 주세요."
+                        >
+                          <button
+                            type="button"
+                            className="ai-counsel-new"
+                            disabled={navigationDisabled}
+                            onClick={startNewChat}
+                          >
+                            새 AI 대화 시작
+                          </button>
+                        </CounselMessage>
+                      }
                     />
                   ) : (
                     <CounselConversation

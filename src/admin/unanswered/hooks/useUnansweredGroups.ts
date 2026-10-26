@@ -11,9 +11,9 @@ import {
 export function useUnansweredGroups() {
   const [status, setStatus] = useState<UnansweredGroupStatus | null>('PENDING')
   const [minCount, setMinCount] = useState(2)
-  const [sort, setSort] = useState<UnansweredGroupSort>('recent')
+  const [sort, setSort] = useState<UnansweredGroupSort>('count')
   const [page, setPage] = useState(0)
-  const [size, setSize] = useState<UnansweredGroupPageSize>(20)
+  const [size, setSize] = useState<UnansweredGroupPageSize>(10)
   const [result, setResult] = useState<PageResponse<UnansweredGroupResponse> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

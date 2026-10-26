@@ -11,10 +11,7 @@ export function UnansweredSummary({ monitoringData }: Props) {
       number="01"
       title="미처리 질문 모니터링"
       actions={
-        <Link
-          className="secondary-button faq-dashboard-unanswered-link"
-          to="/admin/unanswered-groups"
-        >
+        <Link className="faq-dashboard-unanswered-link" to="/admin/unanswered-groups">
           미응답 질문 관리 <span aria-hidden="true">›</span>
         </Link>
       }

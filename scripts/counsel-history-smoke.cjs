@@ -165,7 +165,8 @@ async function main() {
       .click()
     const transcript = page.getByRole('region', { name: '전체 대화 기록' })
     await transcript.getByText('보존된 상담 메시지 129', { exact: true }).waitFor()
-    assert.equal(await transcript.locator('article').count(), 132)
+    assert.equal(await transcript.locator('article:not(.counsel-completion-message)').count(), 132)
+    assert.equal(await transcript.locator('.counsel-completion-message').count(), 1)
     assert.equal(await transcript.getByText('연결 전 AI 답변', { exact: true }).count(), 1)
     // 개발 StrictMode는 첫 effect를 취소하고 다시 실행할 수 있음
     assert.deepEqual([...new Set(state.timelineReads)], ['', 'cursor:100'])

@@ -15,6 +15,7 @@ import { ChatStoreCards } from './ChatStoreCards'
 import { ChatUserDataCards } from './ChatUserDataCards'
 import { ResearchIntentButtons } from './ResearchIntentButtons'
 import { Mascot } from '../../mascot/Mascot'
+import { canResearchTurn } from '../state/chatTransitions'
 
 interface ChatMessagesProps {
   active: boolean
@@ -216,25 +217,23 @@ export function ChatMessages({
                       conversationId={turn.response.conversationId}
                     />
                   )}
-                  {canResearch &&
-                    turn.response?.status === 'SUCCESS' &&
-                    turn.response.idempotencyKey && (
-                      <ResearchIntentButtons
-                        researches={turn.researches}
-                        disabled={disabled}
-                        onResearch={(intent, location) => onResearch(turn.id, intent, location)}
-                      />
-                    )}
-                  {turn.researches.map((research) => (
-                    <ResearchResult
-                      key={research.intent}
-                      research={research}
-                      question={turn.question}
-                      onNavigateToStore={onNavigateToStore}
-                    />
-                  ))}
                 </>
               )}
+              {canResearch && canResearchTurn(turn) && (
+                <ResearchIntentButtons
+                  researches={turn.researches}
+                  disabled={disabled}
+                  onResearch={(intent, location) => onResearch(turn.id, intent, location)}
+                />
+              )}
+              {turn.researches.map((research) => (
+                <ResearchResult
+                  key={research.intent}
+                  research={research}
+                  question={turn.question}
+                  onNavigateToStore={onNavigateToStore}
+                />
+              ))}
             </div>
           </div>
         </Fragment>

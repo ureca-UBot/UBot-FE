@@ -303,6 +303,24 @@ async function installFixtures(context, role = null) {
         })
       if (p === '/api/admin/faq-categories')
         return ok(pageOf([{ faqCategoryId: 1, name: '이용 안내' }]))
+      if (p === '/api/public/faqs/categories')
+        return ok([{ name: '이용 안내', count: state.faqs.length }])
+      if (p === '/api/public/faqs')
+        return ok(
+          pageOf(
+            state.faqs.map((item) => ({
+              id: item.id,
+              category: '이용 안내',
+              question: item.question,
+            })),
+          ),
+        )
+      if (p.startsWith('/api/public/faqs/')) {
+        const item = state.faqs.find((item) => String(item.id) === p.split('/').at(-1))
+        return item
+          ? ok({ id: item.id, category: '이용 안내', question: item.question, answer: item.answer })
+          : route.fulfill({ status: 404, json: { success: false } })
+      }
       if (p === '/api/admin/faqs') {
         if (method === 'POST') state.faqs.push({ ...faq, ...body, id: 2 })
         if (method === 'PATCH') Object.assign(state.faqs[0], body)

@@ -36,6 +36,7 @@ export function CounselConversation({
   const [history, setHistory] = useState<HistoryMessage[]>([])
   const [historyError, setHistoryError] = useState('')
   const [historyLoaded, setHistoryLoaded] = useState(false)
+  const [messagesLoaded, setMessagesLoaded] = useState(false)
   const locked = sending || attempt?.status === 'PENDING' || attempt?.status === 'UNKNOWN'
 
   useEffect(() => {
@@ -104,6 +105,7 @@ export function CounselConversation({
           }
         } while (batch.length === 100)
         failures = 0
+        setMessagesLoaded(true)
         setError('')
       } catch (e) {
         failures += 1
@@ -180,7 +182,11 @@ export function CounselConversation({
         aria-live="polite"
         aria-relevant="additions"
       >
-        {!historyLoaded && !historyError && <p role="status">이전 대화를 불러오고 있어요.</p>}
+        {!historyLoaded && !historyError && (
+          <p className="status-line" role="status">
+            이전 대화를 불러오고 있어요.
+          </p>
+        )}
         {historyError && (
           <p role="alert" className="counsel-error">
             {historyError}{' '}
@@ -215,9 +221,15 @@ export function CounselConversation({
               </p>
             </div>
           )}
-        {role === 'COUNSELOR' && messages.length === 0 && (
-          <p className="counsel-muted">전달된 메시지가 없습니다.</p>
-        )}
+        {role === 'COUNSELOR' &&
+          historyLoaded &&
+          messagesLoaded &&
+          !historyError &&
+          !error &&
+          history.length === 0 &&
+          messages.length === 0 && (
+            <p className="status-line counsel-empty-message">전달된 메시지가 없습니다.</p>
+          )}
         {messages.map((message) => (
           <CounselMessage
             key={message.deliverySequence}
@@ -303,7 +315,7 @@ export function CounselConversation({
             }
             title={attempt?.status === 'CHECK_FAILED' ? '다시 전송하기' : '메시지 전송'}
           >
-            {sending ? '…' : role === 'USER' ? <ChatSendIcon /> : '↑'}
+            {sending ? '…' : <ChatSendIcon />}
           </button>
         </div>
       </form>

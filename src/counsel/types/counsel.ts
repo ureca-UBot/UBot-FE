@@ -12,6 +12,19 @@ export interface HistoryMessage {
   content: string
   source: 'SAVED' | 'COUNSEL'
 }
+export interface CustomerInfo {
+  name: string
+  lines: {
+    subscriptionId: number
+    phoneNumber: string
+    status: 'ACTIVE' | 'SUSPENDED'
+    planName: string
+    addons: string[]
+    bundles: string[]
+    roamings: string[]
+  }[]
+  homeProducts: { subscriptionId: number; productType: 'INTERNET' | 'IPTV'; name: string }[]
+}
 export interface HandoffRequest {
   handoffId: string
   conversationId: string | null

@@ -82,11 +82,23 @@ export function ProductTable<TDetail>({
                     </td>
                   ))}
                   <td data-label="상태">
-                    <span
-                      className={`admin-product-status admin-product-status--${active ? 'active' : 'inactive'}`}
-                    >
-                      {active ? '활성' : '비활성'}
-                    </span>
+                    <div className="admin-product-status-control">
+                      <span
+                        className={`admin-product-status admin-product-status--${active ? 'active' : 'inactive'}`}
+                      >
+                        {active ? '활성' : '비활성'}
+                      </span>
+                      {!deleted && (
+                        <button
+                          className={`table-action-button table-action-button--${active ? 'deactivate' : 'activate'}`}
+                          disabled={busy}
+                          onClick={() => onToggleStatus(product)}
+                          type="button"
+                        >
+                          {active ? '비활성화' : '활성화'}
+                        </button>
+                      )}
+                    </div>
                   </td>
                   <td className="admin-product-table__value" data-label={dateLabel}>
                     {formatDate(deleted ? product.metadata.deletedAt : product.metadata.updatedAt)}
@@ -102,14 +114,6 @@ export function ProductTable<TDetail>({
                       </button>
                       {!deleted && (
                         <>
-                          <button
-                            className="table-action-button table-action-button--edit"
-                            disabled={busy}
-                            onClick={() => onEdit(product)}
-                            type="button"
-                          >
-                            수정
-                          </button>
                           {rowActionLabel && onRowAction && (
                             <button
                               className="table-action-button table-action-button--included"
@@ -121,12 +125,12 @@ export function ProductTable<TDetail>({
                             </button>
                           )}
                           <button
-                            className={`table-action-button table-action-button--${active ? 'deactivate' : 'activate'}`}
+                            className="table-action-button table-action-button--edit"
                             disabled={busy}
-                            onClick={() => onToggleStatus(product)}
+                            onClick={() => onEdit(product)}
                             type="button"
                           >
-                            {active ? '비활성화' : '활성화'}
+                            수정
                           </button>
                           <button
                             className="table-action-button table-action-button--danger"

@@ -105,6 +105,11 @@
 .ubot-user-app .floating-chat-panel .msg {
   gap: 8px;
 }
+.ubot-user-app .floating-chat-panel .msg.ai > .msg-body {
+  flex: 0 1 78%;
+  width: 78%;
+  max-width: 78%;
+}
 .ubot-user-app .floating-chat-panel .msg-avatar {
   width: 32px;
   height: 32px;

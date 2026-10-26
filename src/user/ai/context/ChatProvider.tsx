@@ -6,6 +6,7 @@ import { saveFaqSelection, type FaqSelectionRequest } from '../api/faqSelectionA
 import type { ChatWaitOptions } from '../api/chatJobPolling'
 import {
   canResearchAgain,
+  canResearchTurn,
   keepsConversation,
   settleRequest,
   updateProgress,
@@ -463,8 +464,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       if (activeRequest.current || conversationLocked.current) return false
       const turn = state.turns.find((item) => item.id === turnId)
       const original = turn?.response
-      if (!turn || turn.isPending || original?.status !== 'SUCCESS' || !original.idempotencyKey)
-        return false
+      if (!turn || !canResearchTurn(turn) || !original?.idempotencyKey) return false
       const used = turn.researches.find((item) => item.intent === intent)
       if (used && !canResearchAgain(used)) return false
 
