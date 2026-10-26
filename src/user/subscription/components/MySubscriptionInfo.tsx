@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ApiRequestError } from '../../../shared/api/client'
-import { HOME_PRODUCT_TYPE_LABELS, formatWon } from '../../product/utils/format'
+import { HOME_PRODUCT_TYPE_LABELS, formatPlanData, formatWon } from '../../product/utils/format'
 import {
   homeSubscriptionApi,
   subscriptionApi,
@@ -17,12 +17,13 @@ import type {
 import {
   HOME_SUBSCRIPTION_STATUS_LABELS,
   SUBSCRIPTION_STATUS_LABELS,
-  dataUsagePercent,
   formatDate,
-  formatShortMonth,
+  toLocalDateText,
 } from '../utils/format'
 import { SubscriptionActions, type SubscriptionAction } from './SubscriptionActions'
 import { SubscriptionDetailSections } from './SubscriptionDetailSections'
+import { MyBillingInfo } from './MyBillingInfo'
+import { estimateBill } from '../utils/billing'
 
 const DETAIL_KEYS = Object.keys(subscriptionDetailLoaders) as SubscriptionDetailKey[]
 
@@ -46,12 +47,6 @@ function lineLabel(subscription: Subscription) {
   return subscription.status === 'ACTIVE'
     ? subscription.phoneNumber
     : `${subscription.phoneNumber} · ${SUBSCRIPTION_STATUS_LABELS[subscription.status]}`
-}
-
-// 사용률을 알 수 없으면(무제한·기록 없음·조회 실패) 빈 원으로 둡니다.
-function usageCircleStyle(percent: number | null): CSSProperties {
-  const filled = percent ?? 0
-  return { background: `conic-gradient(var(--pink) ${filled}%, var(--line) ${filled}%)` }
 }
 
 function loadedValue<T>(part: PartResult<T> | undefined) {
@@ -167,10 +162,11 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
   const selected =
     subscriptions?.find((subscription) => subscription.subscriptionId === selectedId) ?? null
   const parts: SubscriptionDetailParts = (selectedId !== null && details[selectedId]) || {}
-  const latestBill = loadedValue(parts.bills)?.[0] ?? null
-  const usage = loadedValue(parts.usage)
-  const usagePercent = dataUsagePercent(usage)
-  const dataUnlimited = usage?.allowance?.dataUnlimited === true
+  const estimate = estimateBill(parts, toLocalDateText(new Date()).slice(0, 7), selected?.status)
+  // 사용량을 측정하지 않는 동안에는 현재 요금제의 제공량 전부를 잔여량으로 표시합니다.
+  const plan = loadedValue(parts.plan)?.summary
+  const dataAllowance = plan ? formatPlanData(plan) : '-'
+  const hasDataAllowance = Boolean(plan && (plan.dataUnlimited || plan.dataAmountMb !== null))
 
   return (
     <>
@@ -193,22 +189,61 @@ export function MySubscriptionInfo({ active }: { active: boolean }) {
             <div>
               <small>{lineLabel(selected)}</small>
               <h2>{selected.planName}</h2>
-              <span>
-                {latestBill ? `${formatShortMonth(latestBill.billingMonth)} 청구요금` : '청구요금'}
-              </span>
-              <b>{latestBill ? formatWon(latestBill.totalAmount) : '-'}</b>
+              <span>청구 예정 요금</span>
+              <b>{estimate.total === null ? '-' : formatWon(estimate.total)}</b>
+              <button
+                className="my-billing-link"
+                type="button"
+                onClick={() =>
+                  document
+                    .getElementById('myBillingTitle')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              >
+                요금 내역 보기 <span aria-hidden="true">↗</span>
+              </button>
             </div>
             <div
-              aria-label="데이터 사용률"
+              aria-label={
+                hasDataAllowance
+                  ? `데이터 잔여량 ${dataAllowance}, 전체 ${dataAllowance}, 100% 남음`
+                  : '데이터 제공량을 확인하고 있습니다.'
+              }
               className="usage-circle"
               role="img"
-              style={usageCircleStyle(usagePercent)}
             >
-              <i>{usagePercent !== null ? `${usagePercent}%` : dataUnlimited ? '무제한' : '-'}</i>
+              <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+                <circle
+                  className="data-ring-track"
+                  cx={60}
+                  cy={60}
+                  r={52}
+                  fill="none"
+                  strokeWidth={5}
+                />
+                <circle
+                  className="data-ring-value"
+                  cx={60}
+                  cy={60}
+                  r={52}
+                  fill="none"
+                  strokeWidth={5}
+                  pathLength={100}
+                  strokeDasharray={hasDataAllowance ? '99.9 .1' : '0 100'}
+                />
+              </svg>
+              <i>
+                <strong>{hasDataAllowance ? dataAllowance : '-'}</strong>
+                <small>남은 데이터</small>
+              </i>
             </div>
           </>
         )}
       </article>
+
+      {selected && (
+        <MyBillingInfo key={selected.subscriptionId} parts={parts} estimate={estimate} />
+      )}
 
       {subscriptions && (
         <section className="my-profile" aria-labelledby="mySubscriptionTitle">

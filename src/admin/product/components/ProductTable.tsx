@@ -8,7 +8,7 @@ function formatDate(value: string | null) {
 interface ProductTableProps<TDetail> {
   kind: ProductKindDisplay<TDetail>
   products: AdminProduct<TDetail>[]
-  // 삭제된 상품 목록은 조회만 합니다. 복구 API가 없어서 관리 열을 두지 않습니다.
+  // 삭제된 상품에서는 상세 조회만 제공합니다.
   deleted: boolean
   busyId: number | null
   // 종류별 추가 동작 버튼입니다. 이름이 없으면 버튼을 두지 않습니다.
@@ -17,6 +17,7 @@ interface ProductTableProps<TDetail> {
   onEdit: (product: AdminProduct<TDetail>) => void
   onToggleStatus: (product: AdminProduct<TDetail>) => void
   onDelete: (product: AdminProduct<TDetail>) => void
+  onDetail: (product: AdminProduct<TDetail>) => void
 }
 
 export function ProductTable<TDetail>({
@@ -29,9 +30,10 @@ export function ProductTable<TDetail>({
   onEdit,
   onToggleStatus,
   onDelete,
+  onDetail,
 }: ProductTableProps<TDetail>) {
   const dateLabel = deleted ? '삭제일' : '수정일'
-  const columnCount = kind.columns.length + (deleted ? 5 : 6)
+  const columnCount = kind.columns.length + 6
 
   return (
     <div className="faq-table-wrapper admin-product-table-wrapper">
@@ -46,7 +48,7 @@ export function ProductTable<TDetail>({
             ))}
             <th>상태</th>
             <th>{dateLabel}</th>
-            {!deleted && <th>관리</th>}
+            <th>관리</th>
           </tr>
         </thead>
         <tbody>
@@ -89,46 +91,55 @@ export function ProductTable<TDetail>({
                   <td className="admin-product-table__value" data-label={dateLabel}>
                     {formatDate(deleted ? product.metadata.deletedAt : product.metadata.updatedAt)}
                   </td>
-                  {!deleted && (
-                    <td data-label="관리">
-                      <div className="faq-row-actions">
-                        <button
-                          className="table-action-button"
-                          disabled={busy}
-                          onClick={() => onEdit(product)}
-                          type="button"
-                        >
-                          수정
-                        </button>
-                        {rowActionLabel && onRowAction && (
+                  <td data-label="관리">
+                    <div className="faq-row-actions">
+                      <button
+                        className="table-action-button"
+                        type="button"
+                        onClick={() => onDetail(product)}
+                      >
+                        상세정보
+                      </button>
+                      {!deleted && (
+                        <>
                           <button
-                            className="table-action-button"
+                            className="table-action-button table-action-button--edit"
                             disabled={busy}
-                            onClick={() => onRowAction(product)}
+                            onClick={() => onEdit(product)}
                             type="button"
                           >
-                            {rowActionLabel}
+                            수정
                           </button>
-                        )}
-                        <button
-                          className="table-action-button"
-                          disabled={busy}
-                          onClick={() => onToggleStatus(product)}
-                          type="button"
-                        >
-                          {active ? '비활성화' : '활성화'}
-                        </button>
-                        <button
-                          className="table-action-button table-action-button--danger"
-                          disabled={busy}
-                          onClick={() => onDelete(product)}
-                          type="button"
-                        >
-                          삭제
-                        </button>
-                      </div>
-                    </td>
-                  )}
+                          {rowActionLabel && onRowAction && (
+                            <button
+                              className="table-action-button table-action-button--included"
+                              disabled={busy}
+                              onClick={() => onRowAction(product)}
+                              type="button"
+                            >
+                              {rowActionLabel}
+                            </button>
+                          )}
+                          <button
+                            className={`table-action-button table-action-button--${active ? 'deactivate' : 'activate'}`}
+                            disabled={busy}
+                            onClick={() => onToggleStatus(product)}
+                            type="button"
+                          >
+                            {active ? '비활성화' : '활성화'}
+                          </button>
+                          <button
+                            className="table-action-button table-action-button--danger"
+                            disabled={busy}
+                            onClick={() => onDelete(product)}
+                            type="button"
+                          >
+                            삭제
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               )
             })

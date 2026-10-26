@@ -19,6 +19,12 @@ export function useCustomerCounsel(chat?: ChatContextValue) {
   const enabled = Boolean(chat && user?.role === 'USER' && !isInitializing && counselConfig.enabled)
   const storageKey = `counsel:session:${user?.id ?? ''}`
   const [session, setSession] = useState<Session | null>(null)
+  const [backgrounded, setBackgrounded] = useState(false)
+  const [archive, setArchive] = useState<{
+    conversationId: string
+    session: Session | null
+    error: string
+  } | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [checkedConversation, setCheckedConversation] = useState<string | null | undefined>(
     undefined,
@@ -34,8 +40,26 @@ export function useCustomerCounsel(chat?: ChatContextValue) {
   const pendingRequest = useRef<HandoffRequest | null>(null)
   const conversationId = chat?.conversationId ?? null
   const ended = session?.status === 'ENDED'
-  const loading = enabled && (!loaded || checkedConversation !== conversationId)
-  const blocking = enabled && (loading || busy || uncertain || Boolean(session && !ended))
+  const checkingArchive =
+    backgrounded && Boolean(conversationId && conversationId !== session?.conversationId)
+  const loading =
+    enabled &&
+    (!loaded ||
+      checkedConversation !== conversationId ||
+      (checkingArchive && archive?.conversationId !== conversationId))
+  const blocking =
+    enabled && (loading || busy || uncertain || Boolean(!backgrounded && session && !ended))
+  const navigationBlocking =
+    enabled &&
+    (loading ||
+      busy ||
+      uncertain ||
+      Boolean(!backgrounded && session && !ended && session.status !== 'WAITING'))
+  const visibleSession = backgrounded
+    ? archive?.conversationId === conversationId
+      ? archive.session
+      : null
+    : session
 
   const apply = useCallback(
     (value: Session | null) => {
@@ -120,6 +144,35 @@ export function useCustomerCounsel(chat?: ChatContextValue) {
     }
   }, [enabled, conversationId, refresh, storageKey, apply])
 
+  // 대기를 유지하면서 선택한 예전 상담 기록도 독립적으로 볼 수 있습니다.
+  useEffect(() => {
+    if (!enabled || !checkingArchive || !conversationId) return
+    let stopped = false
+    const controller = new AbortController()
+    counselApi
+      .conversationSession(conversationId, controller.signal)
+      .then((value) => {
+        if (!stopped)
+          setArchive({
+            conversationId,
+            session: value?.status === 'ENDED' ? value : null,
+            error: '',
+          })
+      })
+      .catch((caught) => {
+        if (!stopped)
+          setArchive({
+            conversationId,
+            session: null,
+            error: caught instanceof Error ? caught.message : '상담 기록을 불러오지 못했습니다.',
+          })
+      })
+    return () => {
+      stopped = true
+      controller.abort()
+    }
+  }, [enabled, checkingArchive, conversationId])
+
   async function requestCounsel() {
     if (
       !enabled ||
@@ -136,13 +189,17 @@ export function useCustomerCounsel(chat?: ChatContextValue) {
     setError('')
     chat.setConversationLocked(true)
     try {
-      // 응답 유실 시 같은 ID를 재사용함. 문답 본문은 보내지 않고 서버에서 조회함
+      // 대화 ID를 비워 새 상담방을 만듭니다. 기존 AI·상담 내역은 넘기지 않고,
+      // 응답 유실 시에는 같은 요청 ID로 재시도해 상담방 중복 생성을 막습니다.
       pendingRequest.current ??= {
         handoffId: crypto.randomUUID(),
-        conversationId: latest.current?.conversationId ?? chat.conversationId,
+        conversationId: null,
       }
       const created = await counselApi.request(pendingRequest.current)
       if (!alive.current) return
+      if (created.conversationId) chat.startCounselConversation(created.conversationId)
+      setBackgrounded(false)
+      setArchive(null)
       apply(created)
       pendingRequest.current = null
       setUncertain(false)
@@ -182,24 +239,53 @@ export function useCustomerCounsel(chat?: ChatContextValue) {
     }
   }
   function clear() {
-    if (blocking) return
+    if (blocking || (latest.current && latest.current.status !== 'ENDED')) return
     revision.current++
     pendingRequest.current = null
     sessionStorage.removeItem(storageKey)
     apply(null)
+    setBackgrounded(false)
+    setArchive(null)
     setRefresh((value) => value + 1)
   }
+
+  function leave() {
+    if (
+      operation.current ||
+      loading ||
+      uncertain ||
+      (!backgrounded && latest.current?.status !== 'WAITING')
+    )
+      return false
+    setBackgrounded(true)
+    chat?.setConversationLocked(false)
+    return true
+  }
+
+  function resume() {
+    const current = latest.current
+    if (!chat || !current?.conversationId || operation.current || chat.isPending) return
+    chat.setConversationLocked(current.status !== 'ENDED')
+    chat.startCounselConversation(current.conversationId)
+    setArchive(null)
+    setBackgrounded(false)
+  }
   return {
-    session,
+    session: visibleSession,
+    ongoingSession: session && !ended ? session : null,
+    backgrounded,
     loading,
     busy,
     blocking,
+    navigationBlocking,
     uncertain,
-    error,
+    error: error || (archive?.conversationId === conversationId ? archive.error : ''),
     enabled,
     requestCounsel,
     endCounsel,
     clear,
+    leave,
+    resume,
     userId: user?.id ?? '',
   }
 }

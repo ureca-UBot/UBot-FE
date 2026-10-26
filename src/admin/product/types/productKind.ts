@@ -15,6 +15,8 @@ export interface ProductKindDisplay<TDetail> {
   idOf: (detail: TDetail) => number
   codeOf: (detail: TDetail) => string
   nameOf: (detail: TDetail) => string
+  descriptionOf: (detail: TDetail) => string | null
+  detailFields?: (detail: TDetail) => { label: string; value: string }[]
   // 상품명과 상태 사이에 보여줄 종류별 열입니다.
   columns: { header: string; text: (detail: TDetail) => string }[]
 }

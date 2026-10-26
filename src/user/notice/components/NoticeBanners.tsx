@@ -14,8 +14,8 @@ export function NoticeBanners({ onNoticePage }: NoticeBannersProps) {
   // 닫은 배너는 그때 보던 공지 묶음으로 기억합니다. 새 공지가 등록되어 묶음이 바뀌면 다시 보여줍니다.
   const [closedOutages, setClosedOutages] = useState<string | null>(null)
   const [closedNotices, setClosedNotices] = useState<string | null>(null)
-  const outageKey = outages.map((outage) => outage.noticeId).join(',')
-  const noticeKey = notices.map((notice) => notice.noticeId).join(',')
+  const outageKey = JSON.stringify(outages)
+  const noticeKey = JSON.stringify(notices)
 
   const showOutages = outages.length > 0 && closedOutages !== outageKey
   const showNotices = notices.length > 0 && closedNotices !== noticeKey

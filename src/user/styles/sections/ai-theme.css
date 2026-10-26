@@ -12,7 +12,6 @@
 .ubot-user-app .ai-greeting-logo {
   display: block;
   object-fit: contain;
-  mix-blend-mode: multiply;
 }
 .ubot-user-app .ai-greeting-logo {
   margin: 0 auto 4px;

@@ -1,3 +1,4 @@
+import { DateField } from '../../../shared/components/DateField'
 import { useState, type FormEvent } from 'react'
 import { useModalFocus } from '../../../shared/hooks/useModalFocus'
 import {
@@ -137,7 +138,8 @@ export function NoticeFormModal({ notice, onClose, onSaved }: NoticeFormModalPro
 
           <label className="admin-notice-form__full">
             노출 종료 시각 (선택)
-            <input
+            <DateField
+              aria-label="배너 노출 종료 일시"
               onChange={(event) => change({ endsAt: event.target.value })}
               type="datetime-local"
               value={values.endsAt}

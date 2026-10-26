@@ -529,19 +529,31 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [isInitializing, state.turns, userId],
   )
 
-  const resetConversation = useCallback(() => {
-    if (conversationLocked.current) return
+  const replaceConversation = useCallback((conversationId: string | null) => {
     conversation.current.abort()
     conversation.current = new AbortController()
     activeRequest.current = null
     pendingFaq.current = null
     setState((current) => ({
       userId: current.userId,
-      conversationId: null,
+      conversationId,
       turns: [],
       error: null,
     }))
   }, [])
+
+  const resetConversation = useCallback(() => {
+    if (conversationLocked.current) return
+    replaceConversation(null)
+  }, [replaceConversation])
+
+  const startCounselConversation = useCallback(
+    (conversationId: string) => {
+      if (activeRequest.current) return
+      replaceConversation(conversationId)
+    },
+    [replaceConversation],
+  )
 
   const openConversation = useCallback(async (conversationId: string) => {
     if (activeRequest.current || conversationLocked.current) return false
@@ -591,6 +603,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       cancelQuestion,
       researchAnswer,
       resetConversation,
+      startCounselConversation,
       openConversation,
       setConversationLocked,
     }),
@@ -601,6 +614,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       researchAnswer,
       isConversationLocked,
       resetConversation,
+      startCounselConversation,
       sendFaqAnswer,
       sendQuestion,
       requestStoreLocation,

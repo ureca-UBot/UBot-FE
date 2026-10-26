@@ -1,3 +1,4 @@
+import { DateField } from '../../../shared/components/DateField'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authApi } from '../../../auth/api/authApi'
@@ -117,7 +118,8 @@ export function UserSignupPage() {
             </label>
             <label className="auth-field">
               생년월일
-              <input
+              <DateField
+                aria-label="생년월일"
                 max={new Date().toISOString().slice(0, 10)}
                 name="birthDate"
                 autoComplete="bday"

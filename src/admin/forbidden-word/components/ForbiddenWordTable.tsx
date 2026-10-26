@@ -54,14 +54,14 @@ export function ForbiddenWordTable({
                   <td>
                     <div className="faq-row-actions">
                       <button
-                        className="table-action-button"
+                        className="table-action-button table-action-button--edit"
                         onClick={() => onEdit(forbiddenWord)}
                         type="button"
                       >
                         수정
                       </button>
                       <button
-                        className={`table-action-button${active ? ' table-action-button--danger' : ''}`}
+                        className={`table-action-button table-action-button--${active ? 'deactivate' : 'activate'}`}
                         disabled={togglingId === forbiddenWord.id}
                         onClick={() => onToggleStatus(forbiddenWord)}
                         type="button"

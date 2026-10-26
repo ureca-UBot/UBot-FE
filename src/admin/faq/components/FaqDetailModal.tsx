@@ -12,9 +12,24 @@ export function FaqDetailModal({ faq, onClose }: { faq: FaqTableRow; onClose: ()
 
   const [page, setPage] = useState(0)
   const [result, setResult] = useState<PageResponse<FaqLogResponse> | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    void adminFaqApi.getFaqLogsByFaq(String(faq.id), page, 10).then(setResult)
+    let cancelled = false
+    adminFaqApi
+      .getFaqLogsByFaq(String(faq.id), page, 10)
+      .then((next) => {
+        if (!cancelled) {
+          setResult(next)
+          setError(null)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setError('추천 로그를 불러오지 못했습니다.')
+      })
+    return () => {
+      cancelled = true
+    }
   }, [faq.id, page])
 
   return (
@@ -28,10 +43,17 @@ export function FaqDetailModal({ faq, onClose }: { faq: FaqTableRow; onClose: ()
         ref={modalFocusRef}
         aria-labelledby="faq-detail-title"
         aria-modal="true"
-        className="faq-modal faq-detail-modal"
+        className="faq-modal faq-detail-modal faq-reader-modal"
         role="dialog"
       >
-        <h2 id="faq-detail-title">FAQ 상세정보</h2>
+        <header className="faq-reader-head">
+          <div>
+            <span>
+              FAQ #{faq.id} · v{faq.version}
+            </span>
+            <h2 id="faq-detail-title">FAQ 상세정보</h2>
+          </div>
+        </header>
         <dl>
           <dt>카테고리</dt>
           <dd>{faq.categoryName}</dd>
@@ -67,6 +89,11 @@ export function FaqDetailModal({ faq, onClose }: { faq: FaqTableRow; onClose: ()
           )}
         </section>
         <h3>FAQ 추천 로그</h3>
+        {error && (
+          <p className="login-error" role="alert">
+            {error}
+          </p>
+        )}
         {result && (
           <>
             <p className="faq-result-count">총 {result.totalElements}건</p>

@@ -1,9 +1,25 @@
 import { Pagination } from '../../faq/components/Pagination'
+import { DashboardSection } from './DashboardSection'
 
 import type { useFaqDashboard } from '../hooks/useFaqDashboard'
 import { improvementTypeLabel, improvementTypes } from '../utils/dashboardFormat'
 import { FaqAiReviewModal } from './FaqAiReviewModal'
 import { FaqImprovementExclusionModal } from './FaqImprovementExclusionModal'
+
+function DownArrow() {
+  return (
+    <svg
+      className="faq-dashboard-improvement-type-arrow"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      aria-hidden="true"
+    >
+      <path d="M8 2v11m-4-4 4 4 4-4" />
+    </svg>
+  )
+}
 
 type Props = Pick<
   ReturnType<typeof useFaqDashboard>,
@@ -102,10 +118,11 @@ export function FaqImprovements({
   excludeFaqImprovements,
 }: Props) {
   return (
-    <section className="faq-dashboard-section faq-dashboard-section--improvement">
-      <div className="faq-dashboard-section__title">
-        <span className="faq-dashboard-section__number">05</span>
-        <h2>개선이 필요한 FAQ</h2>
+    <DashboardSection
+      kind="improvement"
+      number="05"
+      title="개선이 필요한 FAQ"
+      actions={
         <button
           aria-label="개선이 필요한 FAQ 새로고침"
           className="faq-dashboard-improvement-refresh"
@@ -113,9 +130,20 @@ export function FaqImprovements({
           onClick={refreshImprovements}
           type="button"
         >
-          ↻
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            aria-hidden="true"
+          >
+            <path d="M20 7v5h-5M4 17v-5h5" />
+            <path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17" />
+          </svg>
+          <span>{isImprovementLoading ? '조회 중' : '새로고침'}</span>
         </button>
-      </div>
+      }
+    >
       <p className="faq-dashboard-improvement-hint">
         FAQ 행을 클릭하면 하단에서 질문과 추가 지표를 확인할 수 있습니다.
       </p>
@@ -155,9 +183,7 @@ export function FaqImprovements({
             type="button"
           >
             {improvementTypeLabel[type]}
-            {type !== 'DUPLICATE_SUSPECTED' && (
-              <b className="faq-dashboard-improvement-type-arrow">⬇</b>
-            )}
+            {type !== 'DUPLICATE_SUSPECTED' && <DownArrow />}
           </button>
         ))}
       </div>
@@ -200,9 +226,7 @@ export function FaqImprovements({
                     {item.improvementTypes.map((type) => (
                       <span data-type={type} key={type}>
                         {improvementTypeLabel[type]}
-                        {type !== 'DUPLICATE_SUSPECTED' && (
-                          <b className="faq-dashboard-improvement-type-arrow">⬇</b>
-                        )}
+                        {type !== 'DUPLICATE_SUSPECTED' && <DownArrow />}
                       </span>
                     ))}
                   </div>
@@ -442,6 +466,6 @@ export function FaqImprovements({
           }}
         />
       )}
-    </section>
+    </DashboardSection>
   )
 }

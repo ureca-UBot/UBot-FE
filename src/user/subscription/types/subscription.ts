@@ -186,6 +186,11 @@ export interface SubscriptionCreateRequest {
   phoneNumber?: string
 }
 
+export interface PhoneNumberAvailability {
+  phoneNumber: string
+  available: boolean
+}
+
 // 날짜는 'yyyy-MM-dd'입니다. 시작일은 오늘부터, 기간은 최대 90일입니다.
 export interface RoamingScheduleRequest {
   roamingProductId: number

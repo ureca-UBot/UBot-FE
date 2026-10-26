@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { noticeUpdateVersion, onNoticeUpdated } from '../../../shared/noticeUpdates'
 import { noticeApi } from '../api/noticeApi'
 import type { NoticeBanners } from '../types/notice'
 
@@ -11,13 +12,19 @@ const BANNER_POLL_MS = 60_000
 
 let bannersRequest: Promise<NoticeBanners> | null = null
 let requestedAt = 0
+let requestedVersion: string | null = null
 
-function loadBanners(force = false) {
-  const fresh = bannersRequest !== null && Date.now() - requestedAt < BANNER_REFRESH_MS
-  if (!force && fresh) return bannersRequest as Promise<NoticeBanners>
+function loadBanners() {
+  const updateVersion = noticeUpdateVersion()
+  const fresh =
+    bannersRequest !== null &&
+    Date.now() - requestedAt < BANNER_REFRESH_MS &&
+    requestedVersion === updateVersion
+  if (fresh) return bannersRequest as Promise<NoticeBanners>
   const request = noticeApi.getBanners()
   bannersRequest = request
   requestedAt = Date.now()
+  requestedVersion = updateVersion
   // 실패하면 다음에 바로 다시 받을 수 있도록 비웁니다. 그 사이 다른 요청으로 바뀌었다면 건드리지 않습니다.
   request.catch(() => {
     if (bannersRequest === request) bannersRequest = null
@@ -26,6 +33,7 @@ function loadBanners(force = false) {
 }
 
 const listeners = new Set<() => void>()
+let stopNoticeUpdates: (() => void) | null = null
 
 // 로그인처럼 배너를 바로 다시 받아야 할 때 부릅니다. 캐시를 비우고 화면에 떠 있는 배너를 모두 새로 받게 합니다.
 export function refreshNoticeBanners() {
@@ -46,11 +54,33 @@ export function useNoticeBanners(): NoticeBannersState {
 
   useEffect(() => {
     let cancelled = false
+    let version = 0
+    let expiryTimer: number | undefined
+
+    function applyBanners(next: NoticeBanners) {
+      if (cancelled) return
+      window.clearTimeout(expiryTimer)
+      const now = Date.now()
+      const active = (notice: NoticeBanners['notices'][number]) =>
+        notice.endsAt === null || new Date(notice.endsAt).getTime() > now
+      const notices = next.notices.filter(active)
+      const outages = next.outages.filter(active)
+      setState({ ...next, notices, outages, loaded: true })
+      const deadlines = [...notices, ...outages].flatMap((notice) =>
+        notice.endsAt ? [new Date(notice.endsAt).getTime()] : [],
+      )
+      if (deadlines.length > 0) {
+        // 서버의 다음 주기 응답을 기다리지 않고 설정한 종료 시각에 숨깁니다.
+        const delay = Math.min(Math.min(...deadlines) - now, 2_147_483_647)
+        expiryTimer = window.setTimeout(() => applyBanners(next), delay)
+      }
+    }
 
     function refresh() {
+      const requestVersion = ++version
       loadBanners()
         .then((next) => {
-          if (!cancelled) setState({ ...next, loaded: true })
+          if (requestVersion === version) applyBanners(next)
         })
         .catch(() => {
           // 배너가 없는 것과 같게 두고, 이전에 받은 배너는 그대로 둡니다.
@@ -62,13 +92,19 @@ export function useNoticeBanners(): NoticeBannersState {
 
     refresh()
     listeners.add(refresh)
+    stopNoticeUpdates ??= onNoticeUpdated(refreshNoticeBanners)
     const timer = window.setInterval(refreshWhenVisible, BANNER_POLL_MS)
     window.addEventListener('focus', refreshWhenVisible)
     document.addEventListener('visibilitychange', refreshWhenVisible)
     return () => {
       cancelled = true
       listeners.delete(refresh)
+      if (listeners.size === 0) {
+        stopNoticeUpdates?.()
+        stopNoticeUpdates = null
+      }
       window.clearInterval(timer)
+      window.clearTimeout(expiryTimer)
       window.removeEventListener('focus', refreshWhenVisible)
       document.removeEventListener('visibilitychange', refreshWhenVisible)
     }

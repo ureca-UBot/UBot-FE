@@ -4,6 +4,7 @@ import { adminFaqApi } from '../api/faqApi'
 import { useFaqCategories } from '../hooks/useFaqCategories'
 import type { OldFaqResponse } from '../types/faq'
 import type { FaqTableRow } from './FaqTable'
+import { FaqReadContent } from './FaqReadContent'
 
 interface FaqVersionHistoryModalProps {
   faq: FaqTableRow
@@ -29,18 +30,28 @@ export function FaqVersionHistoryModal({ faq, onClose }: FaqVersionHistoryModalP
   const [oldFaqs, setOldFaqs] = useState<OldFaqResponse[]>([])
   const [selectedVersion, setSelectedVersion] = useState(faq.version)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    void adminFaqApi
+    let cancelled = false
+    adminFaqApi
       .getOldFaqsByFaq(String(faq.id), 0, 100)
-      .then((response) =>
-        setOldFaqs(response.content.sort((left, right) => right.version - left.version)),
-      )
-      .catch((caughtError: unknown) => {
-        setError(
-          caughtError instanceof Error ? caughtError.message : '변경 기록을 불러오지 못했습니다.',
-        )
+      .then((response) => {
+        if (!cancelled)
+          setOldFaqs(response.content.sort((left, right) => right.version - left.version))
       })
+      .catch((caughtError: unknown) => {
+        if (!cancelled)
+          setError(
+            caughtError instanceof Error ? caughtError.message : '변경 기록을 불러오지 못했습니다.',
+          )
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [faq.id])
 
   const selectedOldFaq = useMemo(
@@ -53,47 +64,49 @@ export function FaqVersionHistoryModal({ faq, onClose }: FaqVersionHistoryModalP
     categories.find((category) => category.faqCategoryId === categoryId)?.name ?? '삭제된 카테고리'
 
   const versions = [
-    { version: faq.version, label: `현재 v${faq.version}` },
-    ...oldFaqs.map((oldFaq) => ({ version: oldFaq.version, label: `v${oldFaq.version}` })),
+    { version: faq.version, label: `현재 v${faq.version}`, updatedAt: faq.updatedAt },
+    ...oldFaqs.map((oldFaq) => ({
+      version: oldFaq.version,
+      label: `v${oldFaq.version}`,
+      updatedAt: oldFaq.updatedAt,
+    })),
   ]
+  const snapshot = isCurrentVersion ? faq : selectedOldFaq
+  const previous = oldFaqs.find((item) => item.version < selectedVersion)
+  const changes =
+    snapshot && previous
+      ? (
+          [
+            ['question', '질문'],
+            ['answer', '답변'],
+            ['categoryId', '카테고리'],
+            ['intent', '의도'],
+          ] as const
+        )
+          .filter(([key]) => snapshot[key] !== previous[key])
+          .map(([, label]) => label)
+      : []
 
   return (
     <div className="modal-backdrop">
       <section
         ref={modalFocusRef}
-        className="faq-modal faq-version-history-modal"
+        className="faq-modal faq-version-history-modal faq-reader-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="faq-version-history-title"
       >
-        <h2 id="faq-version-history-title">FAQ 변경 기록</h2>
-        <div className="faq-version-selector" aria-label="FAQ 버전 선택">
-          {versions.map((item) => (
-            <button
-              className={selectedVersion === item.version ? 'faq-version-selector__active' : ''}
-              key={item.version}
-              onClick={() => setSelectedVersion(item.version)}
-              type="button"
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        {error && <p className="login-error">{error}</p>}
-        {!error && oldFaqs.length === 0 && (
-          <p className="faq-result-count">이전 변경 기록이 없습니다.</p>
-        )}
-
-        <dl className="faq-version-history-detail">
+        <header className="faq-reader-head">
+          <div>
+            <span>FAQ #{faq.id} · 변경 기록</span>
+            <h2 id="faq-version-history-title">FAQ 변경 기록</h2>
+          </div>
+        </header>
+        <dl className="faq-reader-meta">
           <dt>버전</dt>
           <dd>v{selectedVersion}</dd>
           <dt>카테고리</dt>
           <dd>{categoryName}</dd>
-          <dt>질문</dt>
-          <dd>{isCurrentVersion ? faq.question : selectedOldFaq?.question}</dd>
-          <dt>답변</dt>
-          <dd>{isCurrentVersion ? faq.answer : selectedOldFaq?.answer}</dd>
           <dt>FAQ 생성자</dt>
           <dd>{formatAdmin(isCurrentVersion ? faq.adminId : selectedOldFaq?.createdById)}</dd>
           {!isCurrentVersion && selectedOldFaq && (
@@ -107,6 +120,38 @@ export function FaqVersionHistoryModal({ faq, onClose }: FaqVersionHistoryModalP
             {formatDate(isCurrentVersion ? faq.updatedAt : (selectedOldFaq?.updatedAt ?? null))}
           </dd>
         </dl>
+        <div className="faq-version-workspace">
+          <nav className="faq-version-selector" aria-label="FAQ 버전 선택">
+            <h3>버전별 변경 기록</h3>
+            {versions.map((item) => (
+              <button
+                className={selectedVersion === item.version ? 'faq-version-selector__active' : ''}
+                key={item.version}
+                aria-pressed={selectedVersion === item.version}
+                onClick={() => setSelectedVersion(item.version)}
+                type="button"
+              >
+                <b>{item.label}</b>
+                <time>{formatDate(item.updatedAt)}</time>
+              </button>
+            ))}
+            {loading && <p role="status">기록을 불러오는 중입니다.</p>}
+          </nav>
+          <div className="faq-version-content">
+            {error && <p className="login-error">{error}</p>}
+            {!error && !loading && oldFaqs.length === 0 && (
+              <p className="faq-result-count">이전 변경 기록이 없습니다.</p>
+            )}
+
+            {previous && (
+              <p className="faq-version-changes">
+                v{previous.version} 대비 변경 항목:{' '}
+                {changes.length ? changes.join(' · ') : '본문 변경 없음'}
+              </p>
+            )}
+            {snapshot && <FaqReadContent question={snapshot.question} answer={snapshot.answer} />}
+          </div>
+        </div>
 
         <div className="faq-modal__actions">
           <button className="secondary-button" onClick={onClose} type="button">

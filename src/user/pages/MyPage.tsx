@@ -57,7 +57,7 @@ export function MyPage({ active, loggedIn: demoLoggedIn }: PageProps) {
                   <b>54,700원</b>
                 </div>
                 <div className="usage-circle">
-                  <i>54%</i>
+                  <i>100%</i>
                 </div>
               </article>
             )}

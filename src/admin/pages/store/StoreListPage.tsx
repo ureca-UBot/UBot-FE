@@ -88,53 +88,66 @@ export function StoreListPage() {
       </div>
 
       <form className="faq-search admin-store-search" onSubmit={submitSearch}>
-        <select
-          aria-label="시도 선택"
-          onChange={(event) => changeSido(event.target.value)}
-          value={sido}
-        >
-          <option value="">전체 시/도</option>
-          {sidos.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
+        <label>
+          시/도
+          <select
+            aria-label="시도 선택"
+            onChange={(event) => changeSido(event.target.value)}
+            value={sido}
+          >
+            <option value="">전체 시/도</option>
+            {sidos.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
 
-        <select
-          aria-label="시군구 선택"
-          disabled={!sido}
-          onChange={(event) => {
-            setSigungu(event.target.value)
-            setPage(0)
-          }}
-          value={sigungu}
-        >
-          <option value="">전체 시/군/구</option>
-          {sigungus.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
+        <label>
+          시/군/구
+          <select
+            aria-label="시군구 선택"
+            disabled={!sido}
+            onChange={(event) => {
+              setSigungu(event.target.value)
+              setPage(0)
+            }}
+            value={sigungu}
+          >
+            <option value="">전체 시/군/구</option>
+            {sigungus.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
 
-        <input
-          aria-label="매장명 검색"
-          maxLength={150}
-          onChange={(event) => setStoreNameInput(event.target.value)}
-          placeholder="매장명"
-          value={storeNameInput}
-        />
+        <label>
+          매장명
+          <input
+            aria-label="매장명 검색"
+            maxLength={150}
+            onChange={(event) => setStoreNameInput(event.target.value)}
+            placeholder="매장명"
+            value={storeNameInput}
+          />
+        </label>
 
-        <input
-          aria-label="연락처 검색"
-          maxLength={30}
-          onChange={(event) => setPhoneNumberInput(event.target.value)}
-          placeholder="연락처"
-          value={phoneNumberInput}
-        />
+        <label>
+          연락처
+          <input
+            aria-label="연락처 검색"
+            maxLength={30}
+            onChange={(event) => setPhoneNumberInput(event.target.value)}
+            placeholder="연락처"
+            value={phoneNumberInput}
+          />
+        </label>
 
         <div className="admin-store-service-filter" ref={serviceFilterRef}>
+          <span className="admin-store-filter-label">제공 서비스</span>
           <button
             aria-expanded={serviceOpen}
             className="admin-store-service-toggle"
@@ -164,12 +177,14 @@ export function StoreListPage() {
           )}
         </div>
 
-        <button className="primary-button" type="submit">
-          검색
-        </button>
-        <button className="secondary-button" onClick={resetFilters} type="button">
-          초기화
-        </button>
+        <div className="admin-store-search__actions">
+          <button className="primary-button" type="submit">
+            검색
+          </button>
+          <button className="secondary-button" onClick={resetFilters} type="button">
+            초기화
+          </button>
+        </div>
       </form>
 
       {error && <p className="login-error">{error}</p>}

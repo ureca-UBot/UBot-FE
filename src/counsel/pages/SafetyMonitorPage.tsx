@@ -1,3 +1,4 @@
+import { DateField } from '../../shared/components/DateField'
 import { useEffect, useState, type FormEvent } from 'react'
 import { counselApi } from '../api/counselApi'
 import type { EventsPage, Summary } from '../types/counsel'
@@ -88,7 +89,8 @@ function SafetyMonitor() {
       <form className="faq-search counsel-filters" onSubmit={search}>
         <label>
           시작
-          <input
+          <DateField
+            aria-label="조회 시작 일시"
             type="datetime-local"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
@@ -97,7 +99,8 @@ function SafetyMonitor() {
         </label>
         <label>
           종료
-          <input
+          <DateField
+            aria-label="조회 종료 일시"
             type="datetime-local"
             value={to}
             onChange={(e) => setTo(e.target.value)}

@@ -81,7 +81,7 @@ export function EmbeddingBackfillTable({ runs, busy, now, onRun }: EmbeddingBack
                 <td>
                   <div className="faq-row-actions">
                     <button
-                      className="table-action-button"
+                      className="table-action-button table-action-button--primary"
                       disabled={busy}
                       onClick={() => onRun(target)}
                       type="button"

@@ -82,6 +82,8 @@
   flex-direction: column;
   border: 1px solid var(--line);
   border-radius: var(--r-md);
+  outline: 2px solid transparent;
+  outline-offset: -1px;
   background: #fff;
   transition: border-color .2s, translate var(--button-motion-duration) ease
 }
@@ -90,11 +92,15 @@
 .ubot-user-app .product-card-open::after { position: absolute; inset: 0; z-index: 2; border-radius: var(--r-md); content: ""; }
 /* 버튼 자체의 변형·필터가 전체 클릭 영역의 기준 상자를 바꾸지 않도록 카드에 움직임을 적용합니다. */
 .ubot-user-app .product-card .product-card-open { translate: none !important; transform: none !important; filter: none !important; }
-.ubot-user-app .product-card:hover .product-card-open { border-color: var(--pink); color: var(--pink-dark); }
-.ubot-user-app .product-card:focus-within { outline: 2px solid var(--pink); outline-offset: 3px; }
+.ubot-user-app .product-card:is(:hover, :focus-within) .product-card-open { color: var(--pink-dark); }
+/* 카드 전체의 외곽선이 버튼의 키보드 포커스 표시도 맡아 중복 테두리를 만들지 않습니다. */
+.ubot-user-app .product-card .product-card-open:is(:hover, :focus-visible) {
+  border-color: var(--line) !important;
+  outline-color: transparent !important;
+}
 
-.ubot-user-app .product-card:hover {
-  border-color: var(--pink);
+.ubot-user-app .product-card:is(:hover, :focus-within) {
+  outline-color: var(--pink);
   translate: 0 var(--button-hover-lift)
 }
 
@@ -364,8 +370,7 @@
   display: block;
   width: 98px;
   max-width: none;
-  height: 49px;
-  mix-blend-mode: multiply
+  height: 49px
 }
 
 .ubot-user-app .product-name :is(

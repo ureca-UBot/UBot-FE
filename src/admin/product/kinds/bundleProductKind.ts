@@ -52,6 +52,16 @@ export const bundleProductKind: ProductKind<
   idOf: (detail) => detail.bundleProductId,
   codeOf: (detail) => detail.code,
   nameOf: (detail) => detail.name,
+  descriptionOf: (detail) => detail.description,
+  detailFields: (detail) => [
+    { label: '결합 종류', value: BUNDLE_TYPE_LABELS[detail.bundleType] },
+    { label: '회선 수', value: formatLineCount(detail.lineCount) },
+    { label: '할인 금액', value: formatWon(detail.discountAmount) },
+    {
+      label: '연결 인터넷 상품',
+      value: detail.homeProductId === null ? '없음' : `상품 #${detail.homeProductId}`,
+    },
+  ],
   columns: [
     { header: '결합 종류', text: (detail) => BUNDLE_TYPE_LABELS[detail.bundleType] },
     { header: '회선 수', text: (detail) => formatLineCount(detail.lineCount) },

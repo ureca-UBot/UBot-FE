@@ -1,4 +1,5 @@
 import { getAnswerText } from '../../user/ai/utils/answerText'
+import { CounselorIcon } from './CounselorIcon'
 
 interface CounselMessageProps {
   className: string
@@ -17,7 +18,7 @@ export function CounselMessage({ className, role, mine, content, detail }: Couns
     >
       {!mine && (
         <div className="msg-avatar" aria-hidden="true">
-          {role === 'AI' ? 'AI' : role === 'COUNSELOR' ? '상담' : '고객'}
+          {role === 'AI' ? 'AI' : role === 'COUNSELOR' ? <CounselorIcon size={18} /> : '고객'}
         </div>
       )}
       <div className="msg-body">

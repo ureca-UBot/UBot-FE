@@ -31,6 +31,8 @@ export function useModalFocus<T extends HTMLElement>(onClose: () => void, open =
     const onKeyDown = (event: KeyboardEvent) => {
       if (openDialogs.at(-1) !== dialog) return
       if (event.key === 'Escape') {
+        // 열린 날짜 선택기를 먼저 닫고 다음 Escape에서 상위 모달을 닫습니다.
+        if (document.querySelector('[data-date-picker]:popover-open, select:open')) return
         event.preventDefault()
         event.stopImmediatePropagation()
         close()

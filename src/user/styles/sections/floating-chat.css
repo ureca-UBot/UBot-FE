@@ -51,7 +51,6 @@
 }
 .ubot-user-app .floating-chat-head > img {
   object-fit: contain;
-  mix-blend-mode: multiply;
 }
 .ubot-user-app .floating-chat-head > div {
   display: flex;

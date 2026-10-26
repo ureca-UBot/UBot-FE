@@ -1,14 +1,11 @@
 import type { useFaqDashboard } from '../hooks/useFaqDashboard'
+import { DashboardSection } from './DashboardSection'
 
 type Props = Pick<ReturnType<typeof useFaqDashboard>, 'monitoringData'>
 
 export function UnansweredSummary({ monitoringData }: Props) {
   return (
-    <section className="faq-dashboard-section faq-dashboard-section--unanswered">
-      <div className="faq-dashboard-section__title">
-        <span className="faq-dashboard-section__number">01</span>
-        <h2>미처리 질문 모니터링</h2>
-      </div>
+    <DashboardSection kind="unanswered" number="01" title="미처리 질문 모니터링">
       <div className="faq-dashboard-unanswered">
         <article>
           <span>전체 질문 수</span>
@@ -40,6 +37,6 @@ export function UnansweredSummary({ monitoringData }: Props) {
           <p>전체 질문 대비 미처리 질문 비율</p>
         </article>
       </div>
-    </section>
+    </DashboardSection>
   )
 }

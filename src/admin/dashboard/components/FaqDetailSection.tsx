@@ -1,6 +1,8 @@
+import { DateField } from '../../../shared/components/DateField'
 import type { useFaqDashboard } from '../hooks/useFaqDashboard'
 import { toInputDate } from '../utils/dashboardFormat'
 import { DetailUsageChart } from './DetailUsageChart'
+import { DashboardSection } from './DashboardSection'
 
 type Props = Pick<
   ReturnType<typeof useFaqDashboard>,
@@ -33,12 +35,12 @@ export function FaqDetailSection({
   canMoveToNextDetailWindow,
 }: Props) {
   return (
-    <section className="faq-dashboard-section faq-dashboard-section--detail">
-      <div className="faq-dashboard-section__title">
-        <span className="faq-dashboard-section__number">04</span>
-        <h2>FAQ 상세정보</h2>
-        {detailError && <p className="faq-dashboard-detail-error">{detailError}</p>}
-      </div>
+    <DashboardSection
+      kind="detail"
+      number="04"
+      title="FAQ 상세정보"
+      actions={detailError && <p className="faq-dashboard-detail-error">{detailError}</p>}
+    >
       <div className="faq-dashboard-detail">
         <div className="faq-dashboard-detail__basic">
           <span>FAQ ID</span>
@@ -82,7 +84,7 @@ export function FaqDetailSection({
           <div className="faq-dashboard-detail__trend-heading">
             <h3>사용량 추이</h3>
             <div className="faq-dashboard-detail__trend-controls">
-              <input
+              <DateField
                 aria-label="사용량 추이 기준 날짜"
                 className="faq-dashboard-detail__date"
                 max={toInputDate(new Date())}
@@ -112,25 +114,27 @@ export function FaqDetailSection({
             </div>
           </div>
           <div className="faq-dashboard-detail__trend-navigator">
-            <button
-              aria-label="이전 집계 단위"
-              className="faq-dashboard-detail__arrow"
-              disabled={isDetailLoading}
-              onClick={() => moveDetailWindow(-1)}
-              type="button"
-            >
-              ‹
-            </button>
             <DetailUsageChart detail={faqDetail} />
-            <button
-              aria-label="다음 집계 단위"
-              className="faq-dashboard-detail__arrow"
-              disabled={isDetailLoading || !canMoveToNextDetailWindow()}
-              onClick={() => moveDetailWindow(1)}
-              type="button"
-            >
-              ›
-            </button>
+            <div className="faq-dashboard-detail__window-controls">
+              <button
+                aria-label="이전 집계 단위"
+                className="faq-dashboard-detail__arrow"
+                disabled={isDetailLoading}
+                onClick={() => moveDetailWindow(-1)}
+                type="button"
+              >
+                ‹
+              </button>
+              <button
+                aria-label="다음 집계 단위"
+                className="faq-dashboard-detail__arrow"
+                disabled={isDetailLoading || !canMoveToNextDetailWindow()}
+                onClick={() => moveDetailWindow(1)}
+                type="button"
+              >
+                ›
+              </button>
+            </div>
           </div>
         </div>
         <div className="faq-dashboard-cooccurring">
@@ -172,6 +176,6 @@ export function FaqDetailSection({
           </table>
         </div>
       </div>
-    </section>
+    </DashboardSection>
   )
 }

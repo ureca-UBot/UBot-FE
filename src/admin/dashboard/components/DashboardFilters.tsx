@@ -1,3 +1,4 @@
+import { DateField } from '../../../shared/components/DateField'
 import type { useFaqDashboard } from '../hooks/useFaqDashboard'
 
 type Props = Pick<
@@ -56,7 +57,7 @@ export function DashboardFilters({
           </button>
         </div>
         <div className="faq-dashboard-date-inputs">
-          <input
+          <DateField
             aria-label="시작 날짜"
             onChange={(event) => {
               setStartDate(event.target.value)
@@ -66,7 +67,7 @@ export function DashboardFilters({
             value={startDate}
           />
           <span>~</span>
-          <input
+          <DateField
             aria-label="종료 날짜"
             onChange={(event) => {
               setEndDate(event.target.value)

@@ -217,7 +217,7 @@ async function main() {
     )
     await page.goto(`${siteOrigin}/UBot-FE/#/counsel`)
     await page.getByText('상담사와 연결되었어요').waitFor()
-    await page.getByText('전달된 메시지가 없습니다.').waitFor()
+    await page.getByText('상담사에게 현재 채팅창 메세지를 전달합니다.').waitFor()
     assert.equal(refreshCount, 1, 'refresh must use the original BE only')
     assert.ok(counselingRequests.length >= 2)
     assert.deepEqual(await page.evaluate(() => window.cspFailures), [])

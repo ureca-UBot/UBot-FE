@@ -225,7 +225,12 @@ export interface ChatProductCard {
   type: ChatProductType
   name: string
   fee: number | null
-  description: string | null
+  specs?: string[]
+  highlights?: string[]
+  network?: string | null
+  feeNote?: string | null
+  // 이전 작업 결과의 카드도 읽을 수 있도록 구형 응답 필드를 유지합니다.
+  description?: string | null
 }
 
 // BE ProductDataCards: 상품 정보 질문의 답변에 쓰인 상품입니다. 카드가 없으면 productData 자체가 null이고,

@@ -201,7 +201,7 @@ export function TelemapPage() {
           <h1>통신 지도</h1>
           <p>지역별로 짧은 시간에 급증한 유사 질문을 확인하고 처리합니다.</p>
         </div>
-        <button className="secondary-button" disabled={loading} onClick={load} type="button">
+        <button className="primary-button" disabled={loading} onClick={load} type="button">
           새로고침
         </button>
       </div>

@@ -41,6 +41,7 @@ export const roamingProductKind: ProductKind<
   idOf: (detail) => detail.roamingProductId,
   codeOf: (detail) => detail.code,
   nameOf: (detail) => detail.name,
+  descriptionOf: (detail) => detail.description,
   columns: [
     { header: '이용 국가', text: (detail) => detail.country },
     { header: '하루 이용료', text: (detail) => formatWon(detail.dailyFee) },
