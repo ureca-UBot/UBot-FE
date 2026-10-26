@@ -1,5 +1,7 @@
 # 프론트엔드 구조 가이드
 
+[기능별 문서](README.md) · [상태 전이와 API 계약](internals.md) · [실행과 검증](development.md)
+
 ## 목표
 
 이 프로젝트는 화면의 URL 구조와 도메인 기능을 분리합니다. 페이지를 찾기 쉽고, 각 도메인에 해당하는 프론트 작업이 다른 도메인의 프론트에 영향을 주지 않도록 도메인별 코드를 독립적으로 둡니다.
@@ -25,7 +27,7 @@ src/
 │  │  │  ├─ FaqListPage.tsx
 │  │  │  ├─ DeletedFaqListPage.tsx
 │  │  │  └─ FaqCategoryListPage.tsx
-│  │  └─ store/                    # 매장 관리가 추가될 위치
+│  │  └─ store/                    # 매장 목록·편집·삭제·복구 화면
 │  │     └─ StoreListPage.tsx
 │  ├─ faq/                         # FAQ 도메인 기능
 │  │  ├─ api/
@@ -41,6 +43,7 @@ src/
 │  └─ routes/                      # 관리자 접근 권한 검사
 │
 ├─ auth/                           # 전체 서비스의 로그인/로그아웃/토큰
+├─ counsel/                        # 상담 요청·배정·메시지·안전 관리
 ├─ user/                           # 일반 사용자 화면과 기능
 └─ shared/                         # 관리자와 일반 사용자가 함께 쓰는 최소 단위
    ├─ api/
@@ -88,7 +91,7 @@ src/
 
 - 공용 HTTP 클라이언트
 - 서버 공통 응답 타입
-- 관리자와 일반 사용자가 모두 쓰는 인증 토큰 처리
+- 관리자와 일반 사용자가 쓰는 API 오류·표시·서버 계약(인증 상태·토큰은 `auth`에서 관리)
 - 상품·예약·문의처럼 양쪽 화면에서 사용하는 서버 계약과 표시 함수
 - 마크업이나 스타일을 강제하지 않는 모달 키보드 포커스 처리
 
@@ -133,6 +136,8 @@ src/admin/
 - 사용자 페이지의 기준 상태는 React Router의 `location.pathname`입니다. 별도의 URL 상태나 `pushState`를 추가하지 않습니다.
 - `VisitedPage`는 방문하지 않은 화면의 요청과 Effect를 실행하지 않습니다. 방문한 화면은 유지하여 검색·필터·지도 상태를 보존합니다.
 - 실제 채팅 결과는 `ConnectedAiPage`에서 구독합니다. 질문 전송만 필요한 상위 화면은 `useSendQuestion`을 사용합니다.
+- `useCustomerCounsel`은 대기·연결·종료와 진행 중인 상담 복원을 담당합니다. 인계 이력·메시지는 상담 컴포넌트가 조회하고, 종료 기록은 서버 타임라인의 커서로 읽습니다.
+- `MyProfileProvider`와 `NotificationUnreadProvider`는 사용자 화면의 이름·정보와 읽지 않은 알림 수를 공유합니다. `counsel`·`admin` 화면은 역할별 진입점을 사용합니다.
 - 대시보드는 화면 섹션과 차트를 분리하고 조회 범위·FAQ 상세·개선 대상의 상태를 각각 `useFaqMonitoring`, `useFaqDetail`, `useFaqImprovements`에서 관리합니다.
 - 관리자와 사용자 코드가 서로의 도메인 API를 가져오지 않습니다. 공통 서버 계약은 `shared`로 옮기고 API 호출은 각 도메인에 둡니다.
 

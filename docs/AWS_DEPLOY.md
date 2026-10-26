@@ -1,6 +1,8 @@
 # AWS FE 배포 (u-bot.cloud)
 
-`https://u-bot.cloud`는 AWS FE EC2(`ubot-fe`, Ubuntu 24.04)의 Nginx가 정적 파일을 서비스하고, `/api/`를 BE EC2로 넘깁니다. 이 문서는 서버에 손으로 해 둔 설정과 CD 흐름을 정리합니다. GitHub Pages 배포(`frontend-pages.yml`)와는 별개입니다.
+[전체 문서](README.md) · [로컬 실행·설정](development.md)
+
+`https://u-bot.cloud`의 배포 구성은 FE EC2의 Nginx가 정적 파일을 서비스하고 `/api/`를 BE EC2로 전달하는 방식입니다. 아래 서버 값은 저장소 설정과 기존 구성 기록이며, 현재 가동 상태를 보장하는 실시간 조회 결과는 아닙니다. GitHub Pages 배포(`frontend-pages.yml`)와는 별개입니다.
 
 ## 서버 구성
 
@@ -52,6 +54,8 @@ develop push ──▶ verify: npm ci → lint → format:check → test → bui
                  → 실패하면 이전 릴리스로 자동 복구 → 오래된 릴리스 정리
             ──▶ https://u-bot.cloud 공개 확인
 ```
+
+`deploy`는 `verify`가 성공하고 `AWS_FE_DEPLOY_ENABLED=true`일 때 실행합니다. 실행 직전에도 `develop`이 해당 커밋을 가리키는지 확인해 뒤늦게 끝난 이전 실행이 최신 릴리스를 덮어쓰지 않게 합니다. 수동 실행 역시 `develop`만 배포합니다.
 
 GitHub 설정:
 
