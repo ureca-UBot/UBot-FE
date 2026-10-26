@@ -30,21 +30,25 @@ export function StoreLocatorView({ idPrefix = '' }: StoreLocatorViewProps) {
           <p>주소·매장명 검색과 지역별 조건 검색을 함께 사용할 수 있어요.</p>
         </div>
         <div className="store-search-large">
-          <span className="store-search-icon" aria-hidden="true">
-            ⌕
-          </span>
-          <input
-            id={id('storeSearchInput')}
-            defaultValue="서울 강남구 역삼동"
-            placeholder="주소 또는 매장명을 입력해 주세요"
-            aria-label="매장 검색 지역"
-          />
-          <button id={id('storeCurrentLocation')} className="store-location-button" type="button">
-            내 위치
-          </button>
-          <button id={id('storeSearchButton')} className="store-search-submit" type="button">
-            검색
-          </button>
+          <div className="store-search-input">
+            <span className="store-search-icon" aria-hidden="true">
+              ⌕
+            </span>
+            <input
+              id={id('storeSearchInput')}
+              defaultValue="서울 강남구 역삼동"
+              placeholder="주소 또는 매장명을 입력해 주세요"
+              aria-label="매장 검색 지역"
+            />
+          </div>
+          <div className="store-search-actions">
+            <button id={id('storeCurrentLocation')} className="store-location-button" type="button">
+              내 위치
+            </button>
+            <button id={id('storeSearchButton')} className="store-search-submit" type="button">
+              검색
+            </button>
+          </div>
         </div>
         <div className="store-region-search" aria-label="지역별 매장 검색">
           <label>

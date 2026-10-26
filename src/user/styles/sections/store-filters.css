@@ -144,6 +144,20 @@
 }
 
 @media(max-width:767px) {
+  .ubot-user-app .store-filter-panel {
+    padding: 22px 20px
+  }
+
+  .ubot-user-app .store-filter-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px
+  }
+
+  .ubot-user-app .store-filter-head h2 {
+    font-size: 23px
+  }
+
   .ubot-user-app .stores-grid {
     display: block
   }
@@ -157,7 +171,36 @@
   }
 
   .ubot-user-app .store-search-large {
-    min-height: 52px
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    padding: 0;
+    gap: 10px;
+    border: 0;
+    background: transparent;
+    box-shadow: none
+  }
+
+  .ubot-user-app .store-search-input {
+    min-height: 54px;
+    padding: 0 14px;
+    border: 1px solid #cfd1d6;
+    border-radius: 14px;
+    background: #fff
+  }
+
+  .ubot-user-app .store-search-input input {
+    width: 100%;
+    font-size: 16px
+  }
+
+  .ubot-user-app .store-search-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px
+  }
+
+  .ubot-user-app .store-search-actions .store-location-button {
+    margin-right: 0
   }
 
   .ubot-user-app .store-region-search {

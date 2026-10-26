@@ -54,7 +54,7 @@
 
 .ubot-user-app .store-search-large {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   min-height: 62px;
   padding: 7px 8px 7px 17px;
@@ -63,6 +63,18 @@
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 5px 16px rgba(23, 23, 26, .035)
+}
+
+.ubot-user-app .store-search-input {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  min-width: 0
+}
+
+.ubot-user-app .store-search-actions {
+  display: flex;
+  align-items: center
 }
 
 .ubot-user-app .store-search-icon {
