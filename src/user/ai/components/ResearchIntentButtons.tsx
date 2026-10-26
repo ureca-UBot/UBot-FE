@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import {
   CHAT_INTENT_LABELS,
   type ChatIntent,
@@ -13,6 +13,7 @@ interface ResearchIntentButtonsProps {
   // 다른 요청이 진행 중이면 모든 버튼을 잠급니다.
   disabled: boolean
   onResearch: (intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
+  feedback?: ReactNode
 }
 
 const INTENTS: ChatIntent[] = ['GENERAL', 'STORE_DATA', 'USER_DATA', 'PRODUCT_DATA']
@@ -29,6 +30,7 @@ export function ResearchIntentButtons({
   researches,
   disabled,
   onResearch,
+  feedback,
 }: ResearchIntentButtonsProps) {
   const [isLocating, setIsLocating] = useState(false)
   const [locationNote, setLocationNote] = useState<string | null>(null)
@@ -60,20 +62,30 @@ export function ResearchIntentButtons({
 
   return (
     <div className="research-actions">
-      <button
-        className="research-toggle"
-        type="button"
-        aria-expanded={expanded}
-        aria-controls={choicesId}
-        onClick={() => setExpanded((value) => !value)}
-      >
-        질문 의도 변경
-        <svg aria-hidden="true" viewBox="0 0 24 24" width={16} height={16}>
-          <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth={2} />
-        </svg>
-      </button>
+      <div className="research-toolbar">
+        <button
+          className="research-toggle research-prompt"
+          type="button"
+          title={expanded ? '질문 의도 접기' : '질문 의도 펼치기'}
+          aria-expanded={expanded}
+          aria-controls={choicesId}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          <span>질문에 맞는 의도를 선택하면 다시 찾아드려요.</span>
+          <svg aria-hidden="true" viewBox="0 0 16 16" width={12} height={12}>
+            <path
+              d="m4 6 4 4 4-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        {feedback}
+      </div>
       <div id={choicesId} hidden={!expanded}>
-        <p className="research-prompt">질문에 맞는 의도를 선택하면 다시 찾아드려요.</p>
         <div className="answer-actions" role="group" aria-label="질문 의도 선택">
           {INTENTS.map((intent) => (
             <button

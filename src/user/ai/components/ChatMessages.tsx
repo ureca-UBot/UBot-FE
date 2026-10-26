@@ -112,7 +112,10 @@ function ResearchResult({
           </div>
           <ChatStoreCards store={research.response?.store} onNavigateToStore={onNavigateToStore} />
           <ChatUserDataCards userData={research.response?.userData} />
-          <ChatProductCards productData={research.response?.productData} />
+          <ChatProductCards
+            productData={research.response?.productData}
+            onNavigateToStore={onNavigateToStore}
+          />
           {research.response?.status === 'SUCCESS' && (
             <AnswerFeedback
               question={question}
@@ -125,6 +128,44 @@ function ResearchResult({
         </>
       )}
     </div>
+  )
+}
+
+function TurnAnswerActions({
+  turn,
+  canResearch,
+  disabled,
+  onResearch,
+}: {
+  turn: ChatTurn
+  canResearch: boolean
+  disabled: boolean
+  onResearch: (intent: ChatIntent, location?: ChatLocation) => Promise<boolean>
+}) {
+  const feedback =
+    !turn.isCancelling &&
+    !turn.isCancelled &&
+    !turn.isLocating &&
+    !turn.isPending &&
+    !turn.error &&
+    turn.response?.status === 'SUCCESS' ? (
+      <AnswerFeedback
+        question={turn.question}
+        answer={getAnswerText(turn.response.answer)}
+        requestKey={turn.response.idempotencyKey}
+        conversationId={turn.response.conversationId}
+      />
+    ) : null
+
+  return canResearch && canResearchTurn(turn) ? (
+    <ResearchIntentButtons
+      researches={turn.researches}
+      disabled={disabled}
+      onResearch={onResearch}
+      feedback={feedback}
+    />
+  ) : (
+    feedback
   )
 }
 
@@ -208,24 +249,18 @@ export function ChatMessages({
                     disabled={disabled}
                   />
                   <ChatUserDataCards userData={turn.response?.userData} />
-                  <ChatProductCards productData={turn.response?.productData} />
-                  {turn.response?.status === 'SUCCESS' && (
-                    <AnswerFeedback
-                      question={turn.question}
-                      answer={getAnswerText(turn.response.answer)}
-                      requestKey={turn.response.idempotencyKey}
-                      conversationId={turn.response.conversationId}
-                    />
-                  )}
+                  <ChatProductCards
+                    productData={turn.response?.productData}
+                    onNavigateToStore={onNavigateToStore}
+                  />
                 </>
               )}
-              {canResearch && canResearchTurn(turn) && (
-                <ResearchIntentButtons
-                  researches={turn.researches}
-                  disabled={disabled}
-                  onResearch={(intent, location) => onResearch(turn.id, intent, location)}
-                />
-              )}
+              <TurnAnswerActions
+                turn={turn}
+                canResearch={canResearch}
+                disabled={disabled}
+                onResearch={(intent, location) => onResearch(turn.id, intent, location)}
+              />
               {turn.researches.map((research) => (
                 <ResearchResult
                   key={research.intent}

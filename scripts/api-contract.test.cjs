@@ -82,6 +82,34 @@ test('다른 origin의 채팅 접수와 상태 조회에도 게스트 세션 쿠
   assert.ok(calls.every(({ init }) => init.credentials === 'include'))
 })
 
+test('단계별 상품 조회는 공개 API에 선택한 조건과 게스트 쿠키를 그대로 전달한다', async () => {
+  api.tokenStorage.setTokens({ accessToken: 'expired', refreshToken: 'expired' })
+  const calls = captureRequests()
+  const selected = { type: 'PLAN', keyword: '유스', conditions: { networkType: 'FIVE_G' } }
+  await api.productSearchApi.options({ ...selected, key: 'targetGroup' })
+  await api.productSearchApi.search(selected)
+  assert.deepEqual(
+    calls.map(({ url }) => url),
+    [
+      'https://api.example.test/api/chat/product-search/options',
+      'https://api.example.test/api/chat/product-search',
+    ],
+  )
+  assert.deepEqual(
+    calls.map(({ init }) => JSON.parse(init.body)),
+    [{ ...selected, key: 'targetGroup' }, selected],
+  )
+  assert.ok(
+    calls.every(
+      ({ init }) =>
+        init.method === 'POST' &&
+        init.credentials === 'include' &&
+        !new Headers(init.headers).has('Authorization'),
+    ),
+  )
+  api.tokenStorage.clear()
+})
+
 test('번호 중복 검사는 인증과 취소 신호를 유지하고 조회 전용 API로 요청한다', async () => {
   api.tokenStorage.setTokens({ accessToken: 'phone-check', refreshToken: 'refresh' })
   const calls = captureRequests()

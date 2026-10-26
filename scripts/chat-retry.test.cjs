@@ -237,7 +237,10 @@ test('자동 재시도 계약', { timeout: 150000 }, async (group) => {
             0,
           )
           assert.deepEqual(keys.slice(1), Array(Math.max(0, calls.length - 1)).fill(key))
-          const toggle = page.getByRole('button', { name: '질문 의도 변경', exact: true })
+          const toggle = page.getByRole('button', {
+            name: '질문에 맞는 의도를 선택하면 다시 찾아드려요.',
+            exact: true,
+          })
           if (item.research) {
             assert.equal(await toggle.getAttribute('aria-expanded'), 'false')
             await toggle.click()

@@ -1,4 +1,5 @@
 export { productApi } from '../../src/user/product/api/productApi'
+export { productSearchApi } from '../../src/user/ai/api/productSearchApi'
 export { subscriptionApi } from '../../src/user/subscription/api/subscriptionApi'
 export { storeRequest } from '../../src/user/store-locator/api/client'
 export { apiClient } from '../../src/shared/api/client'
