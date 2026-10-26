@@ -62,20 +62,16 @@ export function ResearchIntentButtons({
 
   return (
     <div className="research-actions">
-      <p className="research-prompt">질문에 맞는 의도를 선택하면 다시 찾아드려요.</p>
       <div className="research-toolbar">
         <button
-          className="research-toggle"
+          className="research-toggle research-prompt"
           type="button"
-          aria-label="질문 의도 변경"
           title={expanded ? '질문 의도 접기' : '질문 의도 펼치기'}
           aria-expanded={expanded}
           aria-controls={choicesId}
           onClick={() => setExpanded((value) => !value)}
         >
-          <svg aria-hidden="true" viewBox="0 0 24 24" width={12} height={12}>
-            <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth={2} />
-          </svg>
+          질문에 맞는 의도를 선택하면 다시 찾아드려요.
         </button>
         {feedback}
       </div>

@@ -205,7 +205,9 @@ test('위치가 정해진 답변은 권한을 묻지 않고 작은 채팅창 안
 test('매장 의도 재검색도 위치 거절 시 서버 조회를 진행하지 않는다', async () => {
   await scenario({ nearby: false }, async ({ page, scope, researches }) => {
     await scope.getByRole('heading', { name: store.storeName, exact: true }).waitFor()
-    await scope.getByRole('button', { name: '질문 의도 변경', exact: true }).click()
+    await scope
+      .getByRole('button', { name: '질문에 맞는 의도를 선택하면 다시 찾아드려요.', exact: true })
+      .click()
     await scope
       .getByRole('group', { name: '질문 의도 선택' })
       .getByRole('button', { name: '매장 찾기', exact: true })
