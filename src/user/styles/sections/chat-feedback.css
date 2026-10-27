@@ -1,0 +1,226 @@
+.chat-feedback {
+  margin-top: 10px;
+}
+.chat-feedback-actions {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.ubot-user-app .chat-feedback-vote {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  color: #85868d;
+  background: transparent;
+}
+.ubot-user-app .chat-feedback-vote:not(:disabled):hover {
+  color: #26262a;
+  background: #f0f0f3;
+}
+.ubot-user-app .chat-feedback-vote[aria-pressed='true'] {
+  color: #6f55dd;
+  background: #f0ecff;
+}
+.ubot-user-app .chat-feedback-vote:disabled {
+  cursor: default;
+}
+.chat-feedback-thumb-down {
+  transform: rotate(180deg);
+}
+.ubot-user-app .chat-feedback-receipt {
+  margin: 5px 0 0;
+  color: #686b72;
+  font-size: 12px;
+}
+.chat-feedback-receipt a {
+  color: #6f55dd;
+  text-underline-offset: 3px;
+}
+.chat-feedback-dialog {
+  box-sizing: border-box;
+  width: min(720px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 28px;
+  margin: auto;
+  overflow-y: auto;
+  border: 1px solid #e5e6e9;
+  border-radius: 24px;
+  color: #17171a;
+  background: #fff;
+  box-shadow: 0 24px 80px rgb(20 20 30 / 18%);
+  font:
+    15px/1.6 Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  word-break: keep-all;
+}
+.chat-feedback-dialog::backdrop {
+  background: rgb(18 19 25 / 38%);
+}
+.chat-feedback-dialog * {
+  box-sizing: border-box;
+}
+.chat-feedback-dialog button,
+.chat-feedback-dialog textarea {
+  font: inherit;
+}
+.chat-feedback-dialog button {
+  cursor: pointer;
+}
+.chat-feedback-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.chat-feedback-heading h2 {
+  margin: 0;
+  font-size: 27px;
+  letter-spacing: -0.04em;
+}
+.chat-feedback-heading p {
+  margin: 6px 0 0;
+  color: #686b72;
+}
+.chat-feedback-close {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #686b72;
+  font-size: 26px !important;
+}
+.chat-feedback-close:hover {
+  background: #f1f1f4;
+}
+.chat-feedback-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 24px;
+}
+.chat-feedback-reasons button {
+  min-height: 40px;
+  padding: 7px 13px;
+  border: 1px solid #e1e2e6;
+  border-radius: 999px;
+  color: #34343b;
+  background: #fff;
+  text-align: left;
+}
+.chat-feedback-reasons button span {
+  display: inline-block;
+  min-width: 16px;
+}
+.chat-feedback-reasons button:hover {
+  border-color: #aaa1d8;
+}
+.chat-feedback-reasons button[aria-pressed='true'] {
+  border-color: #6f55dd;
+  color: #5f42cb;
+  background: #f4f0ff;
+}
+.chat-feedback-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.chat-feedback-label span {
+  color: #85868d;
+  font-weight: 400;
+}
+.chat-feedback-dialog textarea {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  max-height: 280px;
+  padding: 14px 16px;
+  resize: vertical;
+  border: 1px solid #dfe0e5;
+  border-radius: 14px;
+  color: #17171a;
+  background: #fff;
+  line-height: 1.7;
+}
+.chat-feedback-dialog textarea::placeholder {
+  color: #93949b;
+}
+.chat-feedback-dialog :is(button, textarea, summary, a):focus-visible {
+  outline: 3px solid rgb(111 85 221 / 28%);
+  outline-offset: 3px;
+}
+.chat-feedback-count {
+  display: block;
+  margin-top: 5px;
+  color: #93949b;
+  text-align: right;
+}
+.chat-feedback-description {
+  margin: 14px 0;
+  color: #777983;
+  font-size: 13px;
+}
+.chat-feedback-preview {
+  margin: 14px 0 20px;
+  color: #686b72;
+  font-size: 12px;
+}
+.chat-feedback-preview summary {
+  cursor: pointer;
+}
+.chat-feedback-preview pre {
+  max-height: 180px;
+  padding: 12px;
+  overflow: auto;
+  border-radius: 10px;
+  background: #f6f6f8;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.chat-feedback-error {
+  color: #b52d4a;
+  font-size: 13px;
+}
+.chat-feedback-dialog .chat-feedback-submit {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 13px;
+  color: #fff;
+  background: #242428;
+  font-weight: 600;
+}
+.chat-feedback-dialog .chat-feedback-submit:disabled {
+  cursor: default;
+  background: #c5c5ca;
+}
+@media (max-width: 600px) {
+  .chat-feedback-dialog {
+    max-height: calc(100dvh - 24px);
+    padding: 22px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+  .chat-feedback-heading h2 {
+    font-size: 24px;
+  }
+  .chat-feedback-reasons {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .chat-feedback-reasons button {
+    min-height: 42px;
+    padding: 7px 11px;
+    font-size: 13px;
+  }
+}

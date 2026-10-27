@@ -1,0 +1,10 @@
+.counsel-sentence-dialog { width: min(calc(100% - 32px), 560px); max-height: calc(100% - 32px); padding: 0; border: 0; border-radius: 16px; }
+.counsel-sentence-dialog::backdrop { background: rgb(15 23 42 / 45%); }
+.counsel-sentence-dialog .faq-modal { box-sizing: border-box; width: 100%; }
+.counsel-sentence-dialog h2 { margin: 0; }
+.counsel-sentence-table .faq-table__question { min-width: 160px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.counsel-sentence-table .faq-row-actions { flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .counsel-sentence-page .faq-search { flex-wrap: wrap; }
+  .counsel-sentence-page .faq-search input { min-width: 0; flex: 1 1 100%; }
+}

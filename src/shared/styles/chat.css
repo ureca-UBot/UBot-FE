@@ -1,0 +1,106 @@
+/* 고객 채팅과 상담사 화면에서 함께 사용하는 말풍선·입력창 */
+.ubot-user-app .ai-searchbox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  align-items: end;
+  min-height: 58px;
+  padding: 8px;
+  gap: 4px;
+  border: 1px solid #d4d5d9;
+  border-radius: 18px;
+  background: #fff
+}
+
+.ubot-user-app .ai-searchbox textarea {
+  min-height: 40px;
+  padding: 9px 6px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  font-size: 15px;
+  line-height: 1.45
+}
+
+.ubot-user-app .ai-searchbox button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent
+}
+
+.ubot-user-app .ai-searchbox .send-ai {
+  color: #fff;
+  background: var(--ink)
+}
+
+.ubot-user-app .chat-thread {
+  display: flex;
+  padding: 28px max(20px, calc((100% - 720px)/2));
+  overflow: auto;
+  flex-direction: column;
+  gap: 18px
+}
+
+.ubot-user-app .msg {
+  display: flex;
+  gap: 10px
+}
+
+.ubot-user-app .msg.user {
+  justify-content: flex-end
+}
+
+.ubot-user-app .msg-avatar {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--ink);
+  font-size: 11px
+}
+
+.ubot-user-app .msg.ai .msg-avatar {
+  background: linear-gradient(135deg, var(--pink), var(--purple))
+}
+
+.ubot-user-app .msg-body {
+  max-width: 86%;
+  font-size: 14px;
+  line-height: 1.7
+}
+
+.ubot-user-app .msg.user .msg-body {
+  padding: 11px 15px;
+  border-radius: 18px 18px 5px 18px;
+  color: #fff;
+  background: var(--ink)
+}
+
+.ubot-user-app .msg.ai .msg-body {
+  width: 100%
+}
+
+.ubot-user-app .chat-bottom {
+  padding: 10px max(18px, calc((100% - 720px)/2)) 13px;
+  border-top: 1px solid var(--line);
+  background: #fff
+}
+
+@media(max-width:767px) {
+  .ubot-user-app .chat-thread {
+    padding: 20px 15px
+  }
+
+  .ubot-user-app .msg-body {
+    max-width: 91%
+  }
+
+  .ubot-user-app .chat-bottom {
+    padding: 9px 13px 10px
+  }
+}

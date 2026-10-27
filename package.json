@@ -1,0 +1,50 @@
+{
+  "name": "ubot-fe",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "node --test scripts/logic.test.cjs scripts/api-contract.test.cjs scripts/guard-review.test.cjs",
+    "test:browser": "node --test scripts/regression.test.cjs scripts/admin-design.test.cjs scripts/admin-followup.test.cjs scripts/subscription-billing.test.cjs scripts/notice-banners.test.cjs scripts/public-faq.test.cjs scripts/counsel-waiting.test.cjs scripts/counsel-workspace.test.cjs scripts/counsel-handoff.test.cjs scripts/chat-retry.test.cjs scripts/chat-cancellation.test.cjs scripts/chat-feedback.test.cjs scripts/chat-products.test.cjs scripts/chat-session.test.cjs scripts/chat-store-map.test.cjs scripts/guard-review-browser.test.cjs scripts/telemap.test.cjs",
+    "test:visual": "node scripts/visual-regression.cjs",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.{cjs,ts}\"",
+    "test:chat": "node --test scripts/chat-retry.test.cjs scripts/chat-cancellation.test.cjs scripts/chat-products.test.cjs scripts/chat-session.test.cjs",
+    "test:counsel": "node scripts/counsel-smoke.cjs",
+    "test:counsel:history": "node scripts/counsel-history-smoke.cjs",
+    "test:counsel:waiting": "node --test scripts/counsel-waiting.test.cjs",
+    "test:counsel:handoff": "node --test scripts/counsel-handoff.test.cjs",
+    "test:counsel:admin": "node scripts/counsel-admin-smoke.cjs",
+    "test:counsel:pages": "node scripts/counsel-pages-smoke.cjs",
+    "test:feedback": "node --test scripts/chat-feedback.test.cjs"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.18.4",
+    "recharts": "^3.10.1",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "playwright": "1.62.1",
+    "pngjs": "7.0.0",
+    "prettier": "3.6.2",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.69.0",
+    "vite": "^8.3.0"
+  }
+}

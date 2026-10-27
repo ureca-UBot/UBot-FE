@@ -1,0 +1,253 @@
+/* 공지·장애 배너 */
+.ubot-user-app .notice-banners {
+  position: relative;
+  z-index: 90
+}
+
+.ubot-user-app .notice-banner {
+  border-bottom: 1px solid transparent;
+  font-size: 14px
+}
+
+.ubot-user-app .notice-banner--outage {
+  border-bottom-color: var(--pink-dark);
+  color: #fff;
+  background: var(--pink-dark)
+}
+
+.ubot-user-app .notice-banner--notice {
+  border-bottom-color: #e4defa;
+  color: #3f2f9e;
+  background: #f4f1ff
+}
+
+.ubot-user-app .notice-banner__inner {
+  width: min(calc(100% - 32px), 1280px);
+  min-height: 44px;
+  margin: auto
+}
+
+.ubot-user-app .notice-banner__badge {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #fff;
+  background: currentColor;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner--outage .notice-banner__badge {
+  color: var(--pink-dark);
+  background: #fff
+}
+
+.ubot-user-app .notice-banner--outage :is(.notice-banner__arrow, .notice-banner__region) {
+  color: var(--pink-dark);
+  background: #fff;
+}
+
+.ubot-user-app .notice-banner--notice .notice-banner__badge {
+  background: var(--purple)
+}
+
+.ubot-user-app .notice-banner__body {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0
+}
+
+.ubot-user-app .notice-banner__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner__content {
+  min-width: 0;
+  overflow: hidden;
+  opacity: .88
+}
+
+.ubot-user-app .notice-banner__arrow,
+.ubot-user-app .notice-banner__all,
+.ubot-user-app .notice-banner__toggle,
+.ubot-user-app .notice-banner__close {
+  flex: none;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer
+}
+
+.ubot-user-app .notice-banner__arrow {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .7);
+  font-size: 18px;
+  line-height: 1
+}
+
+.ubot-user-app .notice-banner__count {
+  flex: none;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: .8
+}
+
+.ubot-user-app .notice-banner__all,
+.ubot-user-app .notice-banner__toggle {
+  padding: 4px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline
+}
+
+.ubot-user-app .notice-banner__region {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .7);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner__close {
+  width: 26px;
+  height: 26px;
+  font-size: 20px;
+  line-height: 1;
+  opacity: .7
+}
+
+.ubot-user-app .notice-banner__arrow:hover,
+.ubot-user-app .notice-banner__close:hover {
+  opacity: 1
+}
+
+/* PC: 배지·제목·본문·버튼을 한 줄에 두고, 본문은 자세히 버튼으로 펼칩니다. */
+.ubot-user-app .notice-banner--pc .notice-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0
+}
+
+.ubot-user-app .notice-banner--pc .notice-banner__title {
+  flex: none;
+  max-width: 45%
+}
+
+.ubot-user-app .notice-banner--pc .notice-banner__content {
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.ubot-user-app .notice-banner--pc .notice-banner__content--open {
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere
+}
+
+/* 모바일: 제목 줄과 본문 줄로 나누고, 긴 본문은 옆으로 흐르게 보여줍니다. */
+.ubot-user-app .notice-banner--mobile .notice-banner__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0
+}
+
+.ubot-user-app .notice-banner--mobile :is(.notice-banner__header, .notice-banner__footer) {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px
+}
+
+.ubot-user-app .notice-banner--mobile :is(.notice-banner__actions, .notice-banner__carousel) {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__actions {
+  margin-left: auto
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__carousel {
+  gap: 2px
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__title {
+  flex: 1;
+  min-width: 0
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__body {
+  font-size: 13px
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__arrow {
+  width: 22px;
+  height: 24px
+}
+
+.ubot-user-app .notice-banner--mobile .notice-banner__count {
+  font-size: 10px
+}
+
+.ubot-user-app .notice-banner__content-text {
+  display: inline-block;
+  width: max-content;
+  white-space: nowrap;
+  vertical-align: top
+}
+
+.ubot-user-app .notice-banner__content--scrolling .notice-banner__content-text {
+  animation-name: notice-content-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite
+}
+
+.ubot-user-app .notice-banner:hover .notice-banner__content-text,
+.ubot-user-app .notice-banner:focus-within .notice-banner__content-text {
+  animation-play-state: paused
+}
+
+@keyframes notice-content-scroll {
+  0%, 15% { transform: translateX(0); }
+  85%, 100% { transform: translateX(var(--notice-scroll-distance)); }
+}
+
+@media (max-width: 767px) {
+
+  /* 모바일 헤더(58px)는 화면 맨 위에 고정이라, 배너는 그 아래에서 시작해 본문을 아래로 밀어냅니다. */
+  .ubot-user-app .notice-banners {
+    z-index: 1;
+    margin-top: 58px
+  }
+
+  /* 배너가 헤더 아래 여백을 대신하므로, 배너가 있는 동안에는 화면 본문의 헤더용 위쪽 여백을 뺍니다. */
+  .ubot-user-app:has(.notice-banners) .route,
+  .ubot-user-app:has(.notice-banners) .page-standard {
+    padding-top: 0
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ubot-user-app .notice-banner--mobile .notice-banner__content {
+    overflow-x: auto;
+    scrollbar-width: thin
+  }
+
+  .ubot-user-app .notice-banner__content .notice-banner__content-text {
+    animation: none;
+    transform: none
+  }
+}

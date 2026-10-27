@@ -1,0 +1,71 @@
+export type FaqIntent = 'GENERAL' | 'STORE_DATA' | 'USER_DATA' | 'PRODUCT_DATA'
+
+export interface FaqResponse {
+  id: number
+  categoryId: number
+  question: string
+  answer: string
+  intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
+  version: number
+  // 등록한 관리자 계정이 삭제되면 BE가 null로 내려줍니다.
+  adminId: number | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface FaqCreateRequest {
+  categoryId: number
+  question: string
+  answer: string
+  intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
+}
+
+export interface FaqUpdateRequest {
+  id: number
+  categoryId: number
+  question: string
+  answer: string
+  intent: FaqIntent
+  cacheable: boolean
+  similarQuestions: string[]
+}
+
+export interface FaqRestoreRequest {
+  faqIds: number[]
+}
+
+export interface FaqCategoryResponse {
+  faqCategoryId: number
+  name: string
+  createdAt: string
+  updatedAt: string
+}
+export interface FaqCategoryCreateRequest {
+  name: string
+}
+export interface FaqCategoryUpdateRequest {
+  afterName: string
+}
+export interface FaqLogResponse {
+  id: number
+  questionLogId: number
+  faqId: number
+  rank: number
+  similarity: number
+  createdAt: string
+}
+export interface OldFaqResponse {
+  faqId: number
+  version: number
+  categoryId: number
+  question: string
+  answer: string
+  intent: FaqIntent
+  createdById: number | null
+  updatedById: number | null
+  updatedAt: string
+}

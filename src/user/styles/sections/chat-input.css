@@ -1,0 +1,94 @@
+.ubot-user-app .ai-route .ai-searchbox {
+  grid-template-columns: minmax(0, 1fr) 44px;
+  min-height: 64px;
+  padding: 9px;
+  gap: 10px;
+  border-color: var(--line);
+  border-radius: var(--r-md);
+}
+
+.ubot-user-app .ai-route .ai-searchbox:focus-within {
+  border-color: var(--pink);
+}
+
+.ubot-user-app .ai-route .msg.ai > .msg-body {
+  flex: 0 1 78%;
+  width: 78%;
+  max-width: 78%;
+  min-width: 0;
+}
+
+.ubot-user-app .research-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  white-space: normal;
+}
+.ubot-user-app .research-toggle svg {
+  flex: none;
+  transition: transform var(--button-motion-duration) ease;
+}
+.ubot-user-app .research-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.ubot-user-app .research-toggle:hover:not(:disabled) {
+  color: var(--pink-dark);
+  translate: none;
+  filter: none;
+}
+.ubot-user-app .research-toolbar + div:not([hidden]) { padding-top: 6px; }
+.ubot-user-app .research-actions .answer-actions button[aria-pressed="true"] {
+  color: var(--pink-dark);
+  background: var(--pink-soft);
+  border-color: var(--pink);
+}
+
+.ubot-user-app .ai-route .ai-searchbox textarea {
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 8px;
+}
+
+.ubot-user-app .ai-route .ai-searchbox .send-ai {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  place-items: center;
+  align-self: end;
+  border: 1px solid var(--pink);
+  border-radius: var(--select-radius);
+  color: #fff;
+  background: var(--pink);
+  line-height: 1;
+}
+
+.ubot-user-app .ai-route .send-ai svg {
+  display: block;
+  pointer-events: none;
+}
+
+.ubot-user-app .ai-route .ai-searchbox .send-ai:disabled {
+  border-color: var(--pink-soft);
+  color: var(--pink);
+  background: var(--pink-soft);
+  opacity: 1;
+}
+
+@media (max-width: 767px) {
+  .ubot-user-app .chat-send-icon {
+    width: 30px;
+    height: 30px;
+  }
+}

@@ -1,0 +1,12 @@
+대한민국 시·도 경계 지도
+
+원본: 국가공간정보포털(V-World), 행정구역 경계 shapefile, 2023-07-29 배포.
+가공: KnellBalm/kr-admin-geojson
+https://github.com/KnellBalm/kr-admin-geojson
+원본 파일: ctprvn.geojson
+https://raw.githubusercontent.com/KnellBalm/kr-admin-geojson/main/ctprvn.geojson
+
+배포 조건: 출처 표시 조건의 자유 이용. 위 저장소 README.md의 라이선스 참고.
+UBot 가공: 기존 API의 17개 시·도 코드에 매핑, 전국 지도용 평면 투영,
+화면 표시용 경계 단순화 및 좌표 반올림, SVG 경로로 변환.
+시·도별 집계 시각화용이며 정밀 측량용 지도가 아닙니다.

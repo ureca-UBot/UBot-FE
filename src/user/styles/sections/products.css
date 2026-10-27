@@ -1,0 +1,559 @@
+/* Store: 상품 목록(요금제·결합상품·부가서비스·로밍·인터넷/IPTV)과 상세 */
+.ubot-user-app .store-demo-note {
+  margin: 0 0 16px;
+  color: var(--subtle);
+  font-size: 13px
+}
+
+.ubot-user-app .product-catalog-search {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px
+}
+
+.ubot-user-app .product-catalog-search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid #d8d9dd;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 14px
+}
+
+.ubot-user-app .product-catalog-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 22px;
+  margin: -6px 0 22px;
+}
+
+.ubot-user-app .product-catalog-filters button {
+  min-height: 38px;
+  padding: 6px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--muted);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ubot-user-app .product-catalog-filters button[aria-pressed="true"],
+.ubot-user-app .product-catalog-filters button:hover {
+  color: var(--pink-dark);
+  border-bottom-color: var(--pink);
+}
+
+.ubot-user-app .product-catalog-filters button[aria-pressed="true"] { font-weight: 800; }
+.ubot-user-app .product-catalog-filters span { color: var(--muted); font-size: 13px; }
+
+.ubot-user-app .product-catalog-search button {
+  min-height: 46px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: var(--ink);
+  font-size: 14px;
+  font-weight: 700
+}
+
+.ubot-user-app .product-catalog-count {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 13px
+}
+
+.ubot-user-app .product-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px
+}
+
+.ubot-user-app .product-card {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  outline: 2px solid transparent;
+  outline-offset: -1px;
+  background: #fff;
+  transition: border-color .2s, translate var(--button-motion-duration) ease
+}
+
+/* 하나의 실제 버튼 영역을 카드 전체로 넓혀 마우스·터치·키보드가 같은 상세를 엽니다. */
+.ubot-user-app .product-card-open::after { position: absolute; inset: 0; z-index: 2; border-radius: var(--r-md); content: ""; }
+/* 버튼 자체의 변형·필터가 전체 클릭 영역의 기준 상자를 바꾸지 않도록 카드에 움직임을 적용합니다. */
+.ubot-user-app .product-card .product-card-open { translate: none !important; transform: none !important; filter: none !important; }
+.ubot-user-app .product-card:is(:hover, :focus-within) .product-card-open { color: var(--pink-dark); }
+/* 카드 전체의 외곽선이 버튼의 키보드 포커스 표시도 맡아 중복 테두리를 만들지 않습니다. */
+.ubot-user-app .product-card .product-card-open:is(:hover, :focus-visible) {
+  border-color: var(--line) !important;
+  outline-color: transparent !important;
+}
+
+.ubot-user-app .product-card:is(:hover, :focus-within) {
+  outline-color: var(--pink);
+  translate: 0 var(--button-hover-lift)
+}
+
+.ubot-user-app .product-card-cover {
+  position: relative;
+  min-height: 280px;
+  isolation: isolate;
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  background: var(--pink-soft)
+}
+
+.ubot-user-app .product-card-cover-art {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 60%;
+  overflow: hidden;
+  border-top-right-radius: var(--r-md)
+}
+
+.ubot-user-app .product-card-cover-art img {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 180%;
+  max-width: none;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: right bottom
+}
+
+.ubot-user-app .product-card-cover-copy {
+  width: 100%;
+  min-height: 280px;
+  padding: 24px 16px 26px 22px
+}
+
+.ubot-user-app .product-card-cover-art.is-photo { inset: 126px 0 0 45%; }
+.ubot-user-app .product-card-cover-art.is-photo img { width: 100%; height: 100%; object-fit: contain; object-position: right bottom; }
+
+.ubot-user-app .product-card-cover-label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--pink-dark);
+  font-size: 12px;
+  font-weight: 800
+}
+
+.ubot-user-app .product-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 22px
+}
+
+.ubot-user-app .product-card small {
+  color: var(--pink-dark);
+  font-size: 12px;
+  font-weight: 800
+}
+
+.ubot-user-app .product-card-cover h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--product-title-size, 22px);
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: -.045em;
+  white-space: nowrap
+}
+
+/* 강조 글자의 크기 전환이 제목 너비 측정을 지연시키지 않도록 합니다. */
+.ubot-user-app .product-card-cover :is(h3, h3 *) {
+  transition: none
+}
+
+.ubot-user-app .product-card p {
+  display: -webkit-box;
+  margin: 10px 0 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2
+}
+
+.ubot-user-app .product-card ul {
+  display: flex;
+  margin: 14px 0 0;
+  padding: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none
+}
+
+.ubot-user-app .product-card li {
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 12px;
+  font-weight: 700
+}
+
+.ubot-user-app .product-card-price {
+  margin-top: auto;
+  padding-top: 22px
+}
+
+.ubot-user-app .product-card-price span,
+.ubot-user-app .product-detail-price span {
+  display: block;
+  color: var(--subtle);
+  font-size: 12px
+}
+
+.ubot-user-app .product-card-price b {
+  font-size: 22px
+}
+
+.ubot-user-app .product-card-open {
+  min-height: 44px;
+  margin-top: 16px;
+  border: 1px solid #d8d9dd;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 700
+}
+
+.ubot-user-app .product-card-open:hover {
+  border-color: var(--ink)
+}
+
+.ubot-user-app .product-catalog-status {
+  margin: 0;
+  padding: 44px 20px;
+  border-radius: 20px;
+  color: var(--muted);
+  background: #f7f7f8;
+  font-size: 14px;
+  text-align: center
+}
+
+.ubot-user-app .product-catalog-status p,
+.ubot-user-app .product-catalog-more-error p {
+  margin: 0 0 14px
+}
+
+.ubot-user-app .product-catalog-status button,
+.ubot-user-app .product-catalog-more {
+  min-height: 44px;
+  padding: 0 24px;
+  border: 1px solid #d8d9dd;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 700
+}
+
+.ubot-user-app .product-catalog-more {
+  display: block;
+  margin: 24px auto 0
+}
+
+.ubot-user-app .product-catalog-more:disabled {
+  cursor: wait;
+  opacity: .6
+}
+
+.ubot-user-app .product-catalog-more-error {
+  margin-top: 24px;
+  color: #b3261e;
+  font-size: 14px;
+  text-align: center
+}
+
+.ubot-user-app .product-catalog-more-error .product-catalog-more {
+  margin-top: 0
+}
+
+.ubot-user-app .product-detail-price {
+  position: relative;
+  z-index: 1;
+  padding: 22px;
+  background: transparent
+}
+
+.ubot-user-app .product-detail-price b {
+  font-size: 24px
+}
+
+.ubot-user-app .product-detail-rows {
+  margin: 0
+}
+
+.ubot-user-app .product-detail-rows div {
+  display: grid;
+  padding: 11px 0;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  border-top: 1px solid var(--line)
+}
+
+.ubot-user-app .product-detail-rows dt {
+  color: var(--muted);
+  font-size: 13px
+}
+
+.ubot-user-app .product-detail-rows dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .product-detail-error {
+  margin: 0;
+  color: #b3261e;
+  font-size: 14px
+}
+
+.ubot-user-app .product-detail-dialog .modal-full {
+  margin-top: 20px
+}
+
+.ubot-user-app .product-card-feature {
+  display: grid;
+  margin-top: 18px;
+  gap: 2px
+}
+
+.ubot-user-app .product-card-feature>span {
+  color: var(--muted);
+  font-size: 12px
+}
+
+.ubot-user-app .product-card-feature strong {
+  --product-type-depth: var(--ink);
+  color: var(--pink);
+  font-family: var(--font-product);
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .product-name {
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .product-name .product-name-brand {
+  position: relative;
+  display: block;
+  width: 76px;
+  height: 30px;
+  margin-bottom: 8px;
+  overflow: hidden
+}
+
+.ubot-user-app .product-name-brand .product-name-logo {
+  position: absolute;
+  top: -10px;
+  left: -12px;
+  display: block;
+  width: 98px;
+  max-width: none;
+  height: 49px
+}
+
+.ubot-user-app .product-name :is(
+  .product-name-guard, .product-name-care, .product-name-device,
+  .product-name-tier, .product-name-amount, .product-name-network
+) {
+  font-family: var(--font-product)
+}
+
+.ubot-user-app .product-name-guard,
+.ubot-user-app .product-name-care {
+  color: var(--ink);
+  font-weight: 900
+}
+
+.ubot-user-app .product-name-device {
+  color: var(--ink);
+  font-weight: 900
+}
+
+.ubot-user-app .product-name-tier {
+  display: inline-block;
+  color: var(--purple);
+  font-size: 1.1em;
+  font-weight: 900;
+  white-space: nowrap
+}
+
+.ubot-user-app .product-name-amount {
+  --product-type-depth: var(--ink);
+  display: inline-block;
+  color: var(--pink);
+  font-size: 1.2em;
+  font-weight: 900;
+  letter-spacing: -.025em;
+  white-space: nowrap
+}
+
+.ubot-user-app .product-name-network {
+  display: inline-flex;
+  padding: 1px 6px 2px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--purple);
+  border-radius: 8px;
+  color: var(--purple);
+  background: #fff;
+  font-size: 1.05em;
+  font-weight: 900;
+  line-height: 1.15;
+  vertical-align: middle;
+  white-space: nowrap
+}
+
+.ubot-user-app .product-name .product-name-amount,
+.ubot-user-app .product-card-feature strong {
+  text-shadow:
+    0 -1px 0 #fff,
+    0 1px 0 var(--product-type-depth),
+    1px 2px 0 var(--product-type-depth),
+    2px 3px 0 var(--product-type-depth),
+    2px 5px 5px rgba(23, 23, 26, .14)
+}
+
+.ubot-user-app .chat-user-data .pd-name {
+  max-height: none;
+  white-space: normal;
+  -webkit-line-clamp: unset
+}
+
+.ubot-user-app .product-detail-dialog {
+  width: min(640px, calc(100vw - 28px));
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto
+}
+
+.ubot-user-app .product-detail-dialog .modal-head h3 {
+  font-size: 24px;
+  line-height: 1.5
+}
+
+.ubot-user-app .product-detail-overview {
+  position: relative;
+  display: flex;
+  min-height: 130px;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--pink-soft)
+}
+
+.ubot-user-app .product-detail-art {
+  position: absolute;
+  inset: 0 0 0 58%;
+  overflow: hidden
+}
+
+.ubot-user-app .product-detail-art img {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 180%;
+  max-width: none;
+  max-height: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: right bottom
+}
+
+.ubot-user-app .product-detail-section {
+  margin-top: 24px
+}
+
+.ubot-user-app .product-detail-section h4 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 800
+}
+
+.ubot-user-app .product-detail-included,
+.ubot-user-app .product-detail-benefits {
+  display: grid;
+  padding: 0;
+  margin: 0;
+  gap: 10px;
+  list-style: none
+}
+
+.ubot-user-app .product-detail-benefits li {
+  position: relative;
+  padding-left: 16px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere
+}
+
+.ubot-user-app .product-detail-benefits li::before {
+  position: absolute;
+  top: .7em;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--pink);
+  content: ""
+}
+
+@media(max-width:1100px) and (min-width:768px) {
+  .ubot-user-app .product-catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+  }
+}
+
+@media(max-width:767px) {
+  .ubot-user-app .product-catalog-search {
+    flex-wrap: wrap
+  }
+
+  .ubot-user-app .product-catalog-search input {
+    flex: 1 1 100%
+  }
+
+  .ubot-user-app .product-catalog-search button {
+    flex: 1 1 100%
+  }
+
+  .ubot-user-app .product-catalog-grid {
+    grid-template-columns: 1fr;
+    gap: 14px
+  }
+
+  .ubot-user-app .product-card {
+    padding: 0
+  }
+
+  .ubot-user-app .product-card-body {
+    padding: 20px
+  }
+
+  .ubot-user-app .product-card-cover-copy {
+    padding-left: 20px
+  }
+}
+
