@@ -24,6 +24,14 @@ import type {
 import { ChatContext, type ChatContextValue } from './ChatContext'
 import { ChatSendContext } from './ChatSendContext'
 import { locationAwareQuestion } from '../utils/locationAwareQuestion'
+import {
+  clearSavedChat,
+  forgetSavedConversation,
+  mergeSavedMessages,
+  readActiveChat,
+  readSavedConversation,
+  saveChat,
+} from '../state/chatSessionStorage'
 
 const MAX_CHAT_ATTEMPTS = 3
 
@@ -38,6 +46,7 @@ interface ActiveRequest {
 }
 
 interface ChatState {
+  restored: boolean
   userId: string | null
   conversationId: string | null
   turns: ChatTurn[]
@@ -49,6 +58,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const { user, isInitializing } = useAuth()
   const userId = user?.id ?? null
   const [state, setState] = useState<ChatState>({
+    restored: false,
     userId,
     conversationId: null,
     turns: [],
@@ -69,16 +79,26 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // 로그아웃하거나 계정이 바뀐 렌더에서는 이전 사용자의 대화를 화면에 전달하지 않습니다.
-  if (state.userId !== userId) {
+  if (!isInitializing && !state.restored) {
+    const cached = readActiveChat(userId)
+    setState({
+      userId,
+      conversationId: cached?.conversationId ?? null,
+      turns: cached?.turns ?? [],
+      error: null,
+      restored: true,
+    })
+  } else if (state.userId !== userId) {
     setState(
       keepsConversation(state.userId, userId)
         ? { ...state, userId, error: null }
-        : { userId, conversationId: null, turns: [], error: null },
+        : { userId, conversationId: null, turns: [], error: null, restored: !isInitializing },
     )
   }
 
   useEffect(() => {
     if (previousUserId.current === userId) return
+    clearSavedChat(previousUserId.current)
     if (!keepsConversation(previousUserId.current, userId)) {
       conversation.current.abort()
       conversation.current = new AbortController()
@@ -87,6 +107,42 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
     previousUserId.current = userId
   }, [userId])
+
+  useEffect(() => {
+    nextTurnId.current = Math.max(nextTurnId.current, ...state.turns.map((turn) => turn.id))
+    if (state.restored && !isInitializing && state.userId === userId)
+      saveChat(userId, state.conversationId, state.turns)
+  }, [state.restored, state.userId, state.conversationId, state.turns, isInitializing, userId])
+
+  const updateAnswerView = useCallback<ChatContextValue['updateAnswerView']>(
+    (turnId, update, intent) => {
+      setState((current) => ({
+        ...current,
+        turns: current.turns.map((turn) =>
+          turn.id !== turnId
+            ? turn
+            : intent
+              ? {
+                  ...turn,
+                  researches: turn.researches.map((research) =>
+                    research.intent !== intent
+                      ? research
+                      : { ...research, view: update(research.view ?? {}) },
+                  ),
+                }
+              : { ...turn, view: update(turn.view ?? {}) },
+        ),
+      }))
+    },
+    [],
+  )
+
+  const forgetConversation = useCallback(
+    (conversationId: string) => {
+      forgetSavedConversation(userId, conversationId)
+    },
+    [userId],
+  )
 
   const cancelServerRequest = useCallback(async (request: ActiveRequest): Promise<void> => {
     if (request.jobId === undefined) return
@@ -535,6 +591,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     activeRequest.current = null
     pendingFaq.current = null
     setState((current) => ({
+      restored: current.restored,
       userId: current.userId,
       conversationId,
       turns: [],
@@ -555,38 +612,33 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [replaceConversation],
   )
 
-  const openConversation = useCallback(async (conversationId: string) => {
-    if (activeRequest.current || conversationLocked.current) return false
-    const requestConversation = new AbortController()
-    conversation.current.abort()
-    conversation.current = requestConversation
-    try {
-      const messages = await chatApi.getConversationMessageList(conversationId)
-      if (conversation.current !== requestConversation) return false
-      const turns: ChatTurn[] = messages.map((message) => ({
-        id: ++nextTurnId.current,
-        question: message.question,
-        isPending: false,
-        response: {
-          answer: message.answer,
-          status: 'SUCCESS',
-          idempotencyKey: null,
-          attemptCount: 0,
-          retryable: false,
-        },
-        error: null,
-        errorCode: null,
-        researches: [],
-      }))
-      setState((current) => ({ ...current, conversationId, turns, error: null }))
-      return true
-    } catch (cause) {
-      if (conversation.current !== requestConversation) return false
-      const error = cause instanceof ApiRequestError ? cause.message : '대화를 불러오지 못했습니다.'
-      setState((current) => ({ ...current, error }))
-      return false
-    }
-  }, [])
+  const openConversation = useCallback(
+    async (conversationId: string) => {
+      if (activeRequest.current || conversationLocked.current) return false
+      const requestConversation = new AbortController()
+      conversation.current.abort()
+      conversation.current = requestConversation
+      try {
+        const messages = await chatApi.getConversationMessageList(conversationId)
+        if (conversation.current !== requestConversation) return false
+        const turns = mergeSavedMessages(
+          messages,
+          readSavedConversation(userId, conversationId),
+          conversationId,
+          () => ++nextTurnId.current,
+        )
+        setState((current) => ({ ...current, conversationId, turns, error: null }))
+        return true
+      } catch (cause) {
+        if (conversation.current !== requestConversation) return false
+        const error =
+          cause instanceof ApiRequestError ? cause.message : '대화를 불러오지 못했습니다.'
+        setState((current) => ({ ...current, error }))
+        return false
+      }
+    },
+    [userId],
+  )
 
   const value = useMemo<ChatContextValue>(
     () => ({
@@ -597,6 +649,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         (turn) => turn.isPending || turn.researches.some((item) => item.isPending),
       ),
       error: state.error,
+      updateAnswerView,
       sendQuestion,
       requestStoreLocation,
       sendFaqAnswer,
@@ -605,11 +658,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       resetConversation,
       startCounselConversation,
       openConversation,
+      forgetConversation,
       setConversationLocked,
     }),
     [
       cancelQuestion,
+      updateAnswerView,
       openConversation,
+      forgetConversation,
       setConversationLocked,
       researchAnswer,
       isConversationLocked,

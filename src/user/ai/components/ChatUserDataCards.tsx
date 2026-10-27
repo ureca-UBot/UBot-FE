@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useChatAnswerView } from '../hooks/useChatAnswerView'
 import type {
   ChatBillingCard,
   ChatBillingRecord,
   ChatPlanCard,
   ChatUsageRecord,
   ChatUserData,
+  ChatIntent,
 } from '../types/chat'
 import {
   aggregatedLabel,
@@ -23,12 +24,15 @@ import {
 import '../../styles/sections/chat-user-data.css'
 
 interface ChatUserDataCardsProps {
+  turnId: number
+  intent?: ChatIntent
   userData?: ChatUserData | null
 }
 
 // 가입 정보 질문의 답변 아래에 요금제·사용량·청구서 카드를 그립니다.
 // 회선마다 요금제 → 사용량 → 청구서 순으로 쌓고, 다른 회선은 한 카드에 섞지 않습니다.
-export function ChatUserDataCards({ userData }: ChatUserDataCardsProps) {
+export function ChatUserDataCards({ userData, turnId, intent }: ChatUserDataCardsProps) {
+  const { view, updateView } = useChatAnswerView(turnId, intent)
   if (!userData) return null
   const lines = groupByPhone(userData)
   if (lines.length === 0) return null
@@ -50,13 +54,33 @@ export function ChatUserDataCards({ userData }: ChatUserDataCardsProps) {
               <PlanCard key={card.plan.summary.planId} card={card} phoneNumber={phoneNumber} />
             ))}
             {line.usages.length > 0 && (
-              <UsageCard usages={line.usages.map((card) => card.usage)} phoneNumber={phoneNumber} />
+              <UsageCard
+                usages={line.usages.map((card) => card.usage)}
+                phoneNumber={phoneNumber}
+                selectedMonth={view?.usageMonths?.[line.phoneNumber] ?? null}
+                onSelect={(month) =>
+                  updateView((current) => ({
+                    ...current,
+                    usageMonths: { ...current.usageMonths, [line.phoneNumber]: month },
+                  }))
+                }
+              />
             )}
             {line.billings.length === 2 ? (
               <BillingCompareCard billings={line.billings} phoneNumber={phoneNumber} />
             ) : (
               line.billings.length > 0 && (
-                <BillingCard billings={line.billings} phoneNumber={phoneNumber} />
+                <BillingCard
+                  billings={line.billings}
+                  phoneNumber={phoneNumber}
+                  selectedMonth={view?.billingMonths?.[line.phoneNumber] ?? null}
+                  onSelect={(month) =>
+                    updateView((current) => ({
+                      ...current,
+                      billingMonths: { ...current.billingMonths, [line.phoneNumber]: month },
+                    }))
+                  }
+                />
               )
             )}
           </section>
@@ -233,8 +257,17 @@ function countText(
   return `${formatWon(used)}${unit} 사용`
 }
 
-function UsageCard({ usages, phoneNumber }: { usages: ChatUsageRecord[]; phoneNumber?: string }) {
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
+function UsageCard({
+  usages,
+  phoneNumber,
+  selectedMonth,
+  onSelect,
+}: {
+  usages: ChatUsageRecord[]
+  phoneNumber?: string
+  selectedMonth: string | null
+  onSelect: (month: string) => void
+}) {
   const usage =
     usages.find((item) => item.billingMonth === selectedMonth) ?? usages[usages.length - 1]
   const hero = dataHero(usage)
@@ -280,7 +313,7 @@ function UsageCard({ usages, phoneNumber }: { usages: ChatUsageRecord[]; phoneNu
           <MonthBars
             caption="월별 데이터 사용량"
             selectedKey={usage.billingMonth}
-            onSelect={setSelectedMonth}
+            onSelect={onSelect}
             items={usages.map((item) => ({
               key: item.billingMonth,
               label: shortMonthLabel(item.billingMonth, baseYear),
@@ -319,11 +352,14 @@ function paymentTone(billing: ChatBillingRecord) {
 function BillingCard({
   billings,
   phoneNumber,
+  selectedMonth,
+  onSelect,
 }: {
   billings: ChatBillingCard[]
   phoneNumber?: string
+  selectedMonth: string | null
+  onSelect: (month: string) => void
 }) {
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
   const foundIndex = billings.findIndex((card) => card.billing.billingMonth === selectedMonth)
   const index = foundIndex >= 0 ? foundIndex : billings.length - 1
   const { billing, usageMonth } = billings[index]
@@ -374,7 +410,7 @@ function BillingCard({
             caption="월별 청구 금액"
             showAverage
             selectedKey={billing.billingMonth}
-            onSelect={setSelectedMonth}
+            onSelect={onSelect}
             items={billings.map((card) => ({
               key: card.billing.billingMonth,
               label: shortMonthLabel(card.billing.billingMonth, baseYear),

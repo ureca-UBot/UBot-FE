@@ -78,10 +78,12 @@ function ProgressLine({
 
 // 원래 답변 아래에 의도별로 다시 검색한 결과를 보여줍니다.
 function ResearchResult({
+  turnId,
   research,
   question,
   onNavigateToStore,
 }: {
+  turnId: number
   research: ChatResearch
   question: string
   onNavigateToStore?: () => void
@@ -110,9 +112,20 @@ function ResearchResult({
           <div className="answer-text" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
             {getAnswerText(research.response?.answer)}
           </div>
-          <ChatStoreCards store={research.response?.store} onNavigateToStore={onNavigateToStore} />
-          <ChatUserDataCards userData={research.response?.userData} />
+          <ChatStoreCards
+            turnId={turnId}
+            intent={research.intent}
+            store={research.response?.store}
+            onNavigateToStore={onNavigateToStore}
+          />
+          <ChatUserDataCards
+            userData={research.response?.userData}
+            turnId={turnId}
+            intent={research.intent}
+          />
           <ChatProductCards
+            turnId={turnId}
+            intent={research.intent}
             productData={research.response?.productData}
             onNavigateToStore={onNavigateToStore}
           />
@@ -243,13 +256,15 @@ export function ChatMessages({
                     {getAnswerText(turn.response?.answer)}
                   </div>
                   <ChatStoreCards
+                    turnId={turn.id}
                     store={turn.response?.store}
                     onNavigateToStore={onNavigateToStore}
                     onRequestLocation={onRequestLocation && (() => onRequestLocation(turn.id))}
                     disabled={disabled}
                   />
-                  <ChatUserDataCards userData={turn.response?.userData} />
+                  <ChatUserDataCards userData={turn.response?.userData} turnId={turn.id} />
                   <ChatProductCards
+                    turnId={turn.id}
                     productData={turn.response?.productData}
                     onNavigateToStore={onNavigateToStore}
                   />
@@ -263,6 +278,7 @@ export function ChatMessages({
               />
               {turn.researches.map((research) => (
                 <ResearchResult
+                  turnId={turn.id}
                   key={research.intent}
                   research={research}
                   question={turn.question}

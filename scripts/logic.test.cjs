@@ -8,6 +8,144 @@ const storage = new Map()
 const originalFetch = global.fetch
 const originalStorage = global.sessionStorage
 
+function savedTurn(id = 1, extra = {}) {
+  return {
+    id,
+    question: '상품 질문',
+    isPending: false,
+    error: null,
+    errorCode: null,
+    researches: [],
+    response: {
+      answer: '상품 답변',
+      status: 'SUCCESS',
+      idempotencyKey: 'saved-key',
+      attemptCount: 1,
+      retryable: false,
+      productData: { products: [{ type: 'PLAN', name: `상품 ${id}`, fee: 30000 }] },
+      store: {
+        locationRequired: false,
+        map: {
+          center: { latitude: 37.5, longitude: 127 },
+          radiusKm: 3,
+          placeName: null,
+          stores: [],
+        },
+      },
+    },
+    ...extra,
+  }
+}
+
+test('새로고침 저장본은 카드·지도·선택 상태를 계정별로 복원하고 다른 계정과 섞지 않는다', () => {
+  const api = modules.chatSession
+  const turn = savedTurn(1, {
+    view: { selectedStoreId: 21, product: { choices: ['FIVE_G', null], keyword: '유스' } },
+  })
+  api.saveChat('session-a', 'conversation-a', [turn])
+  api.saveChat('session-b', 'conversation-b', [savedTurn(2)])
+  assert.deepEqual(api.readActiveChat('session-a').turns, [
+    { ...turn, isLocating: false, isCancelling: false, progress: null },
+  ])
+  assert.equal(
+    api.readActiveChat('session-b').turns[0].response.productData.products[0].name,
+    '상품 2',
+  )
+  assert.deepEqual(api.readSavedConversation('session-b', 'conversation-a'), [])
+  api.clearSavedChat('session-a')
+  assert.equal(api.readActiveChat('session-a'), null)
+  assert.ok(api.readActiveChat('session-b'))
+  api.clearSavedChat('session-b')
+})
+
+test('새로고침 시 진행 중 상태는 원본 변경 없이 종료해 입력이 영구 잠기지 않는다', () => {
+  const turn = savedTurn(1, {
+    isPending: true,
+    researches: [
+      { intent: 'GENERAL', isPending: true, response: null, error: null, errorCode: null },
+    ],
+  })
+  modules.chatSession.saveChat(null, null, [turn])
+  const restored = modules.chatSession.readActiveChat(null).turns[0]
+  assert.equal(turn.isPending, true)
+  assert.equal(restored.isPending, false)
+  assert.match(restored.error, /새로고침/)
+  assert.equal(restored.researches[0].isPending, false)
+  modules.chatSession.clearSavedChat(null)
+})
+
+test('새 대화와 이전 대화를 따로 보관하고 삭제한 대화는 저장본에서도 제거한다', () => {
+  const api = modules.chatSession
+  api.clearSavedChat('archive')
+  for (let index = 0; index < 25; index++)
+    api.saveChat('archive', `c-${index}`, [savedTurn(index + 1)])
+  assert.equal(api.readActiveChat('archive').conversationId, 'c-24')
+  assert.deepEqual(api.readSavedConversation('archive', 'c-0'), [])
+  api.saveChat('archive', null, [])
+  assert.deepEqual(api.readActiveChat('archive').turns, [])
+  assert.equal(api.readSavedConversation('archive', 'c-24').length, 1)
+  api.forgetSavedConversation('archive', 'c-24')
+  assert.deepEqual(api.readSavedConversation('archive', 'c-24'), [])
+  api.clearSavedChat('archive')
+})
+
+test('이력 복원은 질문·답변이 일치하는 저장본만 사용하고 중복 질문은 각각의 카드를 유지한다', () => {
+  let id = 10
+  const cached = [savedTurn(1), savedTurn(2)]
+  const messages = [
+    { question: '상품 질문', answer: '상품 답변' },
+    { question: '상품 질문', answer: '상품 답변' },
+    { question: '상품 질문', answer: '바뀐 답변' },
+  ]
+  const restored = modules.chatSession.mergeSavedMessages(messages, cached, 'history', () => ++id)
+  assert.deepEqual(
+    restored.map((turn) => turn.response.productData?.products[0].name),
+    ['상품 1', '상품 2', undefined],
+  )
+  assert.deepEqual(
+    restored.map((turn) => turn.id),
+    [11, 12, 13],
+  )
+  assert.ok(restored.every((turn) => turn.response.conversationId === 'history'))
+})
+
+test('손상된 저장본과 저장소 차단은 대화 복원을 실패 처리하고 앱의 메모리 동작을 막지 않는다', () => {
+  const key = 'ubot:chat-session:v1:user:broken'
+  storage.set(key, '{broken')
+  assert.equal(modules.chatSession.readActiveChat('broken'), null)
+  storage.set(
+    key,
+    JSON.stringify({
+      version: 1,
+      activeConversationId: null,
+      conversations: [
+        { conversationId: null, updatedAt: 1, turns: [savedTurn(1, { researches: [null] })] },
+      ],
+    }),
+  )
+  assert.equal(modules.chatSession.readActiveChat('broken'), null)
+  const previous = global.sessionStorage
+  try {
+    global.sessionStorage = {
+      getItem() {
+        throw new Error('blocked')
+      },
+      setItem() {
+        throw new Error('blocked')
+      },
+      removeItem() {
+        throw new Error('blocked')
+      },
+    }
+    assert.doesNotThrow(() => modules.chatSession.saveChat('blocked', null, [savedTurn()]))
+    assert.doesNotThrow(() => modules.chatSession.clearSavedChat('blocked'))
+    assert.equal(modules.chatSession.readActiveChat('blocked'), null)
+  } finally {
+    global.sessionStorage = previous
+    storage.delete(key)
+  }
+})
+
 test('청구 예상치는 이용 중 상품·할인·할부와 해당 월의 로밍만 합산하고 과거 청구와 구분한다', () => {
   const loaded = (value) => ({ status: 'loaded', value })
   const parts = {

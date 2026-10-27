@@ -97,7 +97,10 @@ export function AiPage({
       setMobileHistoryOpen(false)
       return
     }
-    if (conversationId === chat.conversationId) {
+    const needsHistoryRefresh = chat.turns.some(
+      (turn) => turn.error || turn.researches.some((research) => research.error),
+    )
+    if (conversationId === chat.conversationId && !needsHistoryRefresh) {
       setMobileHistoryOpen(false)
       return
     }
@@ -125,6 +128,7 @@ export function AiPage({
     chat.setConversationLocked(true)
     try {
       await chatApi.deleteConversation(conversationId)
+      chat.forgetConversation(conversationId)
       chat.setConversationLocked(false)
       if (conversationId === chat.conversationId) {
         counsel.clear()
