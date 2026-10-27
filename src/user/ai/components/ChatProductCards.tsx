@@ -7,6 +7,7 @@ import {
   type ChatProductCard,
   type ChatProductData,
   type ChatProductType,
+  type ChatIntent,
 } from '../types/chat'
 import { formatWon } from '../utils/userDataFormat'
 import { ChatProductRefine } from './ChatProductRefine'
@@ -28,7 +29,11 @@ const CATALOG_KEY: Record<ChatProductType, ProductCatalogKey> = {
 export function ChatProductCards({
   productData,
   onNavigateToStore,
+  turnId,
+  intent,
 }: {
+  turnId: number
+  intent?: ChatIntent
   productData?: ChatProductData | null
   onNavigateToStore?: () => void
 }) {
@@ -40,7 +45,12 @@ export function ChatProductCards({
   return (
     <div className="chat-user-data chat-product-data">
       {productData.refine?.groups.length ? (
-        <ChatProductRefine key={JSON.stringify(productData.refine)} refine={productData.refine}>
+        <ChatProductRefine
+          key={JSON.stringify(productData.refine)}
+          refine={productData.refine}
+          turnId={turnId}
+          intent={intent}
+        >
           {list}
         </ChatProductRefine>
       ) : (

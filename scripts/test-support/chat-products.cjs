@@ -83,6 +83,7 @@ async function installProductChat(context, config = {}) {
     return ok(route, {
       jobId: 1,
       status: 'QUEUED',
+      conversationId: config.conversationId,
       idempotencyKey: 'products-key',
       attemptCount: 1,
     })
@@ -96,6 +97,7 @@ async function installProductChat(context, config = {}) {
       idempotencyKey: 'products-key',
       attemptCount: 1,
       retryable: false,
+      ...config.responseFields,
     }),
   )
   await context.route('**/api/chat/product-search/options', async (route) => {

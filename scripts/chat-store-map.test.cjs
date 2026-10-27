@@ -173,7 +173,7 @@ test('위치 허용 대기 중 중단하면 늦은 좌표로 검색을 다시 �
   })
 })
 
-test('위치가 정해진 답변은 권한을 묻지 않고 작은 채팅창 안에 지도를 표시한다', async () => {
+test('작은 채팅창의 지도를 모바일 본문에서도 권한 재요청 없이 표시한다', async () => {
   await scenario({ nearby: false, floating: true }, async ({ page, scope }) => {
     await scope.getByRole('heading', { name: store.storeName, exact: true }).waitFor()
     assert.equal(await page.evaluate(() => window.__geoCalls), 0)
@@ -181,18 +181,23 @@ test('위치가 정해진 답변은 권한을 묻지 않고 작은 채팅창 안
     await scope.getByRole('button', { name: '지도에서 보기', exact: true }).click()
     await scope.locator('.chat-inline-map-canvas[data-map-ready="true"]').waitFor()
     await page.setViewportSize({ width: 390, height: 844 })
-    const overflow = await scope.evaluate((node) => ({
+    const mobile = page.locator('.ai-app')
+    await mobile.locator('.chat-inline-map-canvas[data-map-ready="true"]').waitFor()
+    await mobile.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    )
+    const overflow = await mobile.evaluate((node) => ({
       panel: node.scrollWidth > node.clientWidth,
       thread:
         node.querySelector('.chat-thread').scrollWidth >
         node.querySelector('.chat-thread').clientWidth,
     }))
-    assert.deepEqual(overflow, { panel: false, thread: false })
     if (process.env.STORE_VISUAL_DIR)
       await page.screenshot({
         path: path.join(process.env.STORE_VISUAL_DIR, 'inline-chat-map-mobile.png'),
       })
-    await scope.getByRole('link', { name: '통합 지도', exact: true }).click()
+    assert.deepEqual(overflow, { panel: false, thread: false })
+    await mobile.getByRole('link', { name: '통합 지도', exact: true }).click()
     await page.waitForURL('**/#/stores?storeId=21')
     await scope.waitFor({ state: 'hidden' })
     await page.locator('#storeListItems [data-store-id="21"].active').waitFor()

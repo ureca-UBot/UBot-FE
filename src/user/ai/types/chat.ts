@@ -267,6 +267,19 @@ export interface ChatProductSearchResponse {
   productData: ChatProductData
 }
 
+export interface ChatProductFilterView {
+  choices: (string | null)[]
+  keyword: string | null
+  result?: { key: string; value: ChatProductSearchResponse }
+}
+
+export interface ChatAnswerView {
+  usageMonths?: Record<string, string>
+  billingMonths?: Record<string, string>
+  product?: ChatProductFilterView
+  selectedStoreId?: number | null
+}
+
 // 조건 선택이 필요한 응답은 products가 비어 있어도 refine을 표시합니다.
 export interface ChatProductData {
   products: ChatProductCard[]
@@ -291,6 +304,7 @@ export interface ChatResearchRequest {
 
 // 한 의도로 재검색한 결과의 화면 상태입니다. 의도마다 한 번만 만들어집니다.
 export interface ChatResearch {
+  view?: ChatAnswerView
   intent: ChatIntent
   isPending: boolean
   progress?: ChatProgress | null
@@ -301,6 +315,7 @@ export interface ChatResearch {
 
 // 한 질문의 화면 상태입니다. 재시도는 같은 항목의 결과를 갱신합니다.
 export interface ChatTurn {
+  view?: ChatAnswerView
   id: number
   question: string
   faqId?: number

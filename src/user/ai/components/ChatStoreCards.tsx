@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { ChatInlineStoreMap } from './ChatInlineStoreMap'
-import type { ChatStore, ChatStoreItem } from '../types/chat'
+import type { ChatIntent, ChatStore, ChatStoreItem } from '../types/chat'
+import { useChatAnswerView } from '../hooks/useChatAnswerView'
 
 const MAX_STORE_CARDS = 3
 
@@ -13,6 +13,8 @@ function openReservation(item: ChatStoreItem) {
 }
 
 interface ChatStoreCardsProps {
+  turnId: number
+  intent?: ChatIntent
   store?: ChatStore | null
   onNavigateToStore?: () => void
   onRequestLocation?: () => void
@@ -24,8 +26,11 @@ export function ChatStoreCards({
   onNavigateToStore,
   onRequestLocation,
   disabled = false,
+  turnId,
+  intent,
 }: ChatStoreCardsProps) {
-  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null)
+  const { view, updateView } = useChatAnswerView(turnId, intent)
+  const selectedStoreId = view?.selectedStoreId ?? null
   const map = store?.map
   if (store?.locationRequired)
     return (
@@ -59,7 +64,10 @@ export function ChatStoreCards({
               <button
                 aria-expanded={selectedStoreId === item.storeId}
                 onClick={() =>
-                  setSelectedStoreId((current) => (current === item.storeId ? null : item.storeId))
+                  updateView((current) => ({
+                    ...current,
+                    selectedStoreId: current.selectedStoreId === item.storeId ? null : item.storeId,
+                  }))
                 }
                 type="button"
               >

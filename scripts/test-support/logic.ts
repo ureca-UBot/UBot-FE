@@ -1,4 +1,5 @@
 export * as chat from '../../src/user/ai/state/chatTransitions'
+export * as chatSession from '../../src/user/ai/state/chatSessionStorage'
 export * as polling from '../../src/user/ai/api/chatJobPolling'
 export * as routes from '../../src/user/routes'
 export * as product from '../../src/shared/product/format'

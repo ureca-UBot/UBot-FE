@@ -1,5 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode, type SetStateAction } from 'react'
 import { productSearchApi } from '../api/productSearchApi'
+import { useChatAnswerView } from '../hooks/useChatAnswerView'
 import {
   CHAT_PRODUCT_LIMIT,
   type ChatProductAvailability,
@@ -7,6 +8,8 @@ import {
   type ChatProductRefine as ProductRefine,
   type ChatProductSearchRequest,
   type ChatProductSearchResponse,
+  type ChatProductFilterView,
+  type ChatIntent,
 } from '../types/chat'
 
 type Lookup = { key: string; revision: number } & (
@@ -18,13 +21,37 @@ type Lookup = { key: string; revision: number } & (
 export function ChatProductRefine({
   refine,
   children,
+  turnId,
+  intent,
 }: {
+  turnId: number
+  intent?: ChatIntent
   refine: ProductRefine
   children: (data: ChatProductData) => ReactNode
 }) {
   // null은 사용자가 명시적으로 고른 '상관없음'입니다. 배열에는 확인한 앞 단계만 담습니다.
-  const [choices, setChoices] = useState<(string | null)[]>([])
-  const [keyword, setKeyword] = useState(refine.keyword)
+  const { view, updateView } = useChatAnswerView(turnId, intent)
+  const choices = view?.product?.choices ?? []
+  const keyword = view?.product ? view.product.keyword : refine.keyword
+  const changeProduct = useCallback(
+    (update: (previous: ChatProductFilterView) => ChatProductFilterView) => {
+      updateView((current) => ({
+        ...current,
+        product: update(current.product ?? { choices: [], keyword: refine.keyword }),
+      }))
+    },
+    [updateView, refine.keyword],
+  )
+  const setChoices = (update: SetStateAction<(string | null)[]>) => {
+    changeProduct((current) => ({
+      ...current,
+      choices: typeof update === 'function' ? update(current.choices) : update,
+      result: undefined,
+    }))
+  }
+  const setKeyword = (value: string | null) => {
+    changeProduct((current) => ({ ...current, keyword: value, result: undefined }))
+  }
   const [lookup, setLookup] = useState<Lookup | null>(null)
   const [revision, setRevision] = useState(0)
   const group = refine.groups[choices.length]
@@ -32,9 +59,15 @@ export function ChatProductRefine({
     choices.flatMap((value, index) => (value === null ? [] : [[refine.groups[index].key, value]])),
   )
   const queryKey = JSON.stringify({ type: refine.type, keyword, conditions, key: group?.key })
-  const current = lookup?.key === queryKey && lookup.revision === revision ? lookup : null
+  const savedResult = view?.product?.result?.key === queryKey ? view.product.result.value : null
+  const current: Lookup | null = savedResult
+    ? { key: queryKey, revision, status: 'results', result: savedResult }
+    : lookup?.key === queryKey && lookup.revision === revision
+      ? lookup
+      : null
 
   useEffect(() => {
+    if (savedResult) return
     let cancelled = false
     const request = JSON.parse(queryKey) as ChatProductSearchRequest & { key?: string }
 
@@ -75,7 +108,10 @@ export function ChatProductRefine({
           })
       } else {
         const result = await productSearchApi.search(request)
-        if (!cancelled) setLookup({ key: queryKey, revision, status: 'results', result })
+        if (!cancelled) {
+          setLookup({ key: queryKey, revision, status: 'results', result })
+          changeProduct((previous) => ({ ...previous, result: { key: queryKey, value: result } }))
+        }
       }
     }
 
@@ -85,7 +121,7 @@ export function ChatProductRefine({
     return () => {
       cancelled = true
     }
-  }, [queryKey, revision, refine.groups])
+  }, [queryKey, revision, refine.groups, savedResult, changeProduct])
 
   const availability = current?.status === 'options' ? current.availability : null
   const result = current?.status === 'results' ? current.result : null
